@@ -1,0 +1,23 @@
+version: '3'
+
+tasks:
+  clean:
+    desc: Löscht den Build-Ordner für einen sauberen Neustart
+    cmds:
+      - rm -rf build/
+
+  setup:
+    desc: Installiert alle C++ Dependencies über Conan
+    cmds:
+      - conan install . --output-folder=build --build=missing
+
+  build:
+    desc: Konfiguriert und kompiliert das Projekt
+    cmds:
+      - cmake --preset conan-release
+      - cmake --build --preset conan-release
+
+  run:
+    desc: Führt die kompilierte Applikation aus
+    cmds:
+      - ./build/build/Release/app
