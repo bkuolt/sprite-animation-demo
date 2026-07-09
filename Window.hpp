@@ -17,8 +17,6 @@ public:
 
 protected:
     void registerCallbacks();
-    void initializeGLAD();
-    void intitializeOpenGL();
     glm::vec2 getScreenSize() const;
 
     GLFWwindow *_window;

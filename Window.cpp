@@ -1,4 +1,5 @@
 #include "Window.hpp"
+#include "graphics.hpp"
 
 #include "glad/gl.h"
 #include "KHR/khrplatform.h"
@@ -8,27 +9,15 @@
 
 #include <glm/common.hpp>
 #include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 #include <fmt/ranges.h>
 #include <spdlog/spdlog.h>
 #include <fmt/core.h>
 
 #include "ktx.hpp"
 
+
 namespace
 {
-
-    void DebugCallback(GLenum source,
-                       GLenum type,
-                       GLuint id,
-                       GLenum severity,
-                       GLsizei length,
-                       const GLchar *message,
-                       const void *userParam)
-    {
-        // TODO
-    }
 
     void KeyboardCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     {
@@ -81,62 +70,7 @@ glm::vec2 Window::getScreenSize() const
     return {mode->width, mode->height};
 }
 
-void Window::initializeGLAD()
-{
-    const int gladVersion = gladLoadGL(glfwGetProcAddress);
-    if (gladVersion == 0)
-    {
-        throw std::runtime_error("Failed to initialize GLAD");
-    }
-
-    spdlog::info("GLAD Version: {}.{}", (int)GLAD_VERSION_MAJOR(gladVersion), (int)GLAD_VERSION_MINOR(gladVersion));
-}
-
-void Window::intitializeOpenGL()
-{
-    // print OpenGL info
-    const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
-    spdlog::info("OpenGL Version: {}", version);
-    spdlog::info("Vendor: {}", (const char *)glGetString(GL_VENDOR));
-    spdlog::info("Renderer: {}", (const char *)glGetString(GL_RENDERER));
-    spdlog::info("GLSL Version: {}", (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
-
-    // setup debug callbacks
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(DebugCallback, nullptr);
-
-    if (!(GL_ARB_texture_compression ||
-          GL_EXT_texture_compression_s3tc ||
-          GL_ARB_texture_compression_rgtc))
-    {
-        throw std::runtime_error("GL_ARB_texture_compression not supported!");
-    }
-
-    if (!GL_ARB_gl_spirv)
-    {
-        throw std::runtime_error("GL_ARB_gl_spirv not supported!");
-    }
-}
-
-std::vector<std::string> getTextureCompressionExtensions()
-{
-    GLint num_extensions = 0;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-    std::vector<std::string> extensions;
-    extensions.reserve(num_extensions);
-
-    for (GLint i = 0; i < num_extensions; ++i)
-    {
-        const std::string ext_str((char *)glGetStringi(GL_EXTENSIONS, i));
-        if (ext_str.find("GL_EXT_texture_compression_") != std::string_view::npos)
-        {
-            extensions.push_back(ext_str);
-        }
-    }
-
-    return extensions;
-}
+///////////////////////////////////////////
 
 Window::Window()
 {
@@ -167,11 +101,8 @@ Window::Window()
     glfwMakeContextCurrent(_window);
     glfwSwapInterval(1);
 
-    initializeGLAD();
-    intitializeOpenGL();
-
-    auto extensions = getTextureCompressionExtensions();
-    spdlog::info("Extensions: {}", fmt::join(extensions, ", "));
+    bgl::InitializeGLAD();
+    bgl::IntitializeOpenGL();
 }
 
 Window::~Window()
@@ -220,10 +151,8 @@ void Window::run()
 
     while (!glfwWindowShouldClose(_window))
     {
-        auto c = ((int)glfwGetTime() % 10) / 10.0f;
-
-        glClearColor(c * 2, c, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        const auto time = glfwGetTime();
+        bgl::Draw(time);
 
         glfwSwapBuffers(_window);
         glfwPollEvents();
