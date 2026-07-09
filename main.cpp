@@ -1,33 +1,27 @@
 
 #include "Window.hpp"
-//#include "ktx.hpp"
 
-#include <iostream>
+#include <spdlog/spdlog.h>
+#include <csignal>
 
-#include <glm/common.hpp>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
+static void signal_handler(int signal)  {
+    spdlog::info("Received signal: {}", signal);
+    // TODO: window.close();
+}
 
 int main()
 {
-    //spdlog::set_level(spdlog::level::trace);
+    spdlog::set_level(spdlog::level::trace);
+
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
 
     try {
-
-
-
-    } catch(std::exception& e) {
-        //return EXIT_FAILURE;
-    }
-
-    try {
-
         Window window;
         window.run();
     } 
     catch(std::exception& e) {
-        std::cerr << e.what() << std::endl;
+        spdlog::error("{}", e.what());
         return EXIT_FAILURE;
     }
 
