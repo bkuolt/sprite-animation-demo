@@ -104,6 +104,12 @@ namespace bgl::ktx
         ktxTexture2_Destroy(_texture);
     }
 
+//[2026-07-09 12:27:49.257] [info] num layers: 13
+//[2026-07-09 12:27:49.257] [info] num levels: 10
+//Could not load OpenGL command: glBindTexture!
+//[2026-07-09 12:27:49.284] [error] failed to upload KTX texture. KTX error: Metadata key or loader-required GPU function not found., GL error: GL_NO_ERROR
+//task: Failed to run task "run": exit status 1
+
     GLuint Loader::upload()
     {
 

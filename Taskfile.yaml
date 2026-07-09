@@ -5,11 +5,13 @@ tasks:
     desc: Löscht den Build-Ordner für einen sauberen Neustart
     cmds:
       - rm -rf build/
+      - rm -f CMakeUserPresets.json
 
   setup:
     desc: Installiert alle C++ Dependencies über Conan
     cmds:
-      - conan install . --output-folder=build --build=missing
+   #   - conan profile detect
+      - conan install . --build=missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
   build:
     desc: Konfiguriert und kompiliert das Projekt
@@ -20,4 +22,6 @@ tasks:
   run:
     desc: Führt die kompilierte Applikation aus
     cmds:
-      - ./build/build/Release/app
+      # Durch das cmake_layout liegt die Executable jetzt meistens direkt im Release-Ordner. 
+      # (Passe den Namen 'app' hier ggf. an deine CMakeLists.txt an)
+      - ./build/Release/app
