@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <fmt/ranges.h> // fmt::join
 
+#include <glm/vec2.hpp>
+
 namespace
 {
 
@@ -89,6 +91,9 @@ namespace bgl
     void Draw(double time)
     {
         auto c = (((int)time) % 10) / 10.0f;
+
+        // set unifroms
+        glProgramUniform1f(0, 0,0);
 
         glClearColor(c * 2, c, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
