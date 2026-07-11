@@ -82,31 +82,34 @@ private:
     const float _frameDuration;
 };
 
-
 class Animation
 {
 public:
     // TODO: get GL texture handle
-    Animation() {
+    Animation()
+    {
         // get shader
-        // get qzad vbo and vao
+        // get quad vbo and vao
         // get texture array handle
     }
 
-    // 
+    //
 
-    void pause() {
+    void pause()
+    {
         // TODO
     }
 
-    void resume() {
+    void resume()
+    {
         // TODO
     }
 
-    void stop() {
+    void stop()
+    {
         // TODO
     }
-    
+
     void draw()
     {
         // TODO

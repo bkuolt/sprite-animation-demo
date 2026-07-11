@@ -12,5 +12,5 @@ find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
 find_package(OpenGL REQUIRED)
 
-add_executable(app main.cpp Window.cpp shader.cpp ktx.cpp graphics.cpp Texture.cpp)
+add_executable(app src/main.cpp src/window.cpp src/shader.cpp src/ktx.cpp src/graphics.cpp src/texture.cpp src/shader.cpp)
 target_link_libraries(app PRIVATE glad::glad OpenGL::GL glfw glm::glm KTX::ktx spdlog::spdlog fmt::fmt)

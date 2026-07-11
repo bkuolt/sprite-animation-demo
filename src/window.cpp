@@ -1,4 +1,4 @@
-#include "Window.hpp"
+#include "window.hpp"
 #include "graphics.hpp"
 
 #include "glad/gl.h"
@@ -13,11 +13,7 @@
 #include <spdlog/spdlog.h>
 #include <fmt/core.h>
 
-
-
-
 int currentAnimation = 0;
-
 
 namespace
 {
@@ -36,7 +32,6 @@ namespace
         {
             currentAnimation++;
         }
-
     }
 
     void MouseCallback(GLFWwindow *window, double xpos, double ypos)
@@ -152,7 +147,6 @@ void Window::registerCallbacks()
 void Window::run()
 {
     glfwMakeContextCurrent(_window);
-
 
     while (!glfwWindowShouldClose(_window))
     {

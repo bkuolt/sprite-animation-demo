@@ -1,5 +1,5 @@
 
-#include "Window.hpp"
+#include "window.hpp"
 
 #include <spdlog/spdlog.h>
 #include <csignal>
