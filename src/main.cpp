@@ -11,7 +11,7 @@ static void signal_handler(int signal)  {
 
 int main()
 {
-    spdlog::set_level(spdlog::level::trace);
+    spdlog::set_level(spdlog::level::info);
 
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);

@@ -158,8 +158,8 @@ namespace bgl
         }
 
         // Load shaders
-        auto vsSrc = bgl::LoadShaderFromFile("/home/bastian/code/sprite-animation-demo/main.vs");
-        auto fsSrc = bgl::LoadShaderFromFile("/home/bastian/code/sprite-animation-demo/main.fs");
+        auto vsSrc = bgl::LoadShaderFromFile("/home/bastian/code/sprite-animation-demo/src/main.vs");
+        auto fsSrc = bgl::LoadShaderFromFile("/home/bastian/code/sprite-animation-demo/src/main.fs");
         _program = bgl::CreateShaderProgram(vsSrc, fsSrc);
 
         // Create mesh
