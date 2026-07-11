@@ -2,13 +2,10 @@
 #include "shader.hpp"
 
 #include <vector>
-#include <iostream>
 #include <print>
 
 #include <fstream>
-#include <sstream>
 #include <string>
-#include <iostream>
 
 static GLuint compileShader(GLenum type, std::string_view source)
 {
@@ -28,9 +25,9 @@ static GLuint compileShader(GLenum type, std::string_view source)
         std::vector<char> infoLog(length);
         glGetShaderInfoLog(shader, length, nullptr, infoLog.data());
 
-        std::cerr << "Shader Compilation Error ("
-                  << (type == GL_VERTEX_SHADER ? "Vertex" : "Fragment") << "):\n"
-                  << infoLog.data() << "\n";
+        std::print("Shader Compilation Error ({}):\n{}\n",
+                   (type == GL_VERTEX_SHADER ? "Vertex" : "Fragment"),
+                   infoLog.data());
 
         glDeleteShader(shader);
         return 0;
@@ -41,17 +38,22 @@ static GLuint compileShader(GLenum type, std::string_view source)
 namespace bgl
 {
 
-    std::string LoadShaderFromFile(const std::string &filepath)
+    std::string LoadShaderFromFile(const std::string &path)
     {
-        std::ifstream file(filepath);
+        std::ifstream file(path);
         if (!file.is_open())
         {
-            std::cerr << "Fehler: Konnte Shader-Datei nicht öffnen: " << filepath << "\n";
+            print("Failed to open shader file: {}", path);
             return "";
         }
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-        return buffer.str();
+
+        file.seekg(0, std::ios::end);
+        std::streampos size = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        std::vector<char> buffer(size);
+        file.read(buffer.data(), size);
+        return std::string(buffer.data(), size);
     }
 
     GLuint CreateShaderProgram(std::string_view vertexSrc, std::string_view fragmentSrc)

@@ -4,12 +4,12 @@
 
 #include <spdlog/spdlog.h>
 #include <stdexcept>
+
 #include <fmt/ranges.h> // fmt::join
 
 #include <glm/vec2.hpp>
 #include "ktx.hpp"
 #include <print>
-#include <iostream>
 
 #include "shader.hpp"
 
@@ -141,14 +141,17 @@ namespace bgl
 
     void loadAssets()
     {
+        auto binaryPath = std::filesystem::read_symlink("/proc/self/exe");
+        auto basePath = binaryPath.parent_path();
+
         // Load textures
         const std::vector<std::filesystem::path> fileNames{
-            "/home/bastian/code/sprite-animation-demo/assets/idle.ktx2",
-            "/home/bastian/code/sprite-animation-demo/assets/walk.ktx2",
-            "/home/bastian/code/sprite-animation-demo/assets/jump.ktx2",
-            "/home/bastian/code/sprite-animation-demo/assets/run.ktx2",
-            "/home/bastian/code/sprite-animation-demo/assets/slide.ktx2",
-            "/home/bastian/code/sprite-animation-demo/assets/dead.ktx2"};
+            basePath / "assets" / "idle.ktx2",
+            basePath / "assets" / "walk.ktx2",
+            basePath / "assets" / "jump.ktx2",
+            basePath / "assets" / "run.ktx2",
+            basePath / "assets" / "slide.ktx2",
+            basePath / "assets" / "dead.ktx2"};
 
         _textureIDs.resize(fileNames.size());
         for (size_t i = 0; i < fileNames.size(); ++i)
@@ -158,8 +161,8 @@ namespace bgl
         }
 
         // Load shaders
-        auto vsSrc = bgl::LoadShaderFromFile("/home/bastian/code/sprite-animation-demo/src/main.vs");
-        auto fsSrc = bgl::LoadShaderFromFile("/home/bastian/code/sprite-animation-demo/src/main.fs");
+        auto vsSrc = bgl::LoadShaderFromFile(basePath / "main.vs");
+        auto fsSrc = bgl::LoadShaderFromFile(basePath / "main.fs");
         _program = bgl::CreateShaderProgram(vsSrc, fsSrc);
 
         // Create mesh
