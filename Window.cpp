@@ -13,7 +13,10 @@
 #include <spdlog/spdlog.h>
 #include <fmt/core.h>
 
-#include "ktx.hpp"
+
+
+
+int currentAnimation = 0;
 
 
 namespace
@@ -28,6 +31,12 @@ namespace
             glfwSetWindowShouldClose(window, GLFW_TRUE);
             return;
         }
+
+        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+        {
+            currentAnimation++;
+        }
+
     }
 
     void MouseCallback(GLFWwindow *window, double xpos, double ypos)
@@ -144,10 +153,6 @@ void Window::run()
 {
     glfwMakeContextCurrent(_window);
 
-    bgl::ktx::Loader loader1("/home/bastian/code/sprite-animation-demo/assets/idle.ktx2", KTX_TTF_BC3_RGBA);
-    bgl::ktx::Loader loader2("/home/bastian/code/sprite-animation-demo/assets/walk.ktx2", KTX_TTF_BC3_RGBA);
-    loader1.upload();
-    loader2.upload();
 
     while (!glfwWindowShouldClose(_window))
     {
