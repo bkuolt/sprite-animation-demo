@@ -70,11 +70,17 @@ public:
 
     std::pair<uint32_t, float> frame() const
     {
-        float tweenFactor;
-        float frameIndex;
-        const float tweenFactor = std::modf(elapsed().count().count() / _frameDuration, &frameIndex);
+        // elapsed().count() is in milliseconds, _frameDuration is in seconds.
+        // Convert elapsed time to seconds before calculation.
+        const float totalTimeInSeconds = elapsed().count() / 1000.0f;
+        const float totalFrames = totalTimeInSeconds / _frameDuration;
 
-        return {std::modf(frameIndex, nullptr), tweenFactor};
+        double integralPart;
+        const float fractionalPart = std::modf(totalFrames, &integralPart);
+
+        const uint32_t frameIndex = static_cast<uint32_t>(integralPart) % _frameCount;
+
+        return {frameIndex, fractionalPart};
     }
 
 private:
@@ -85,12 +91,11 @@ private:
 class Animation
 {
 public:
-    // TODO: get GL texture handle
     Animation()
     {
-        // get shader
-        // get quad vbo and vao
-        // get texture array handle
+        // TODO: get shader handle
+        // TODO: get quad vbo and vao
+        // TODO: get texture array handle
     }
 
     //

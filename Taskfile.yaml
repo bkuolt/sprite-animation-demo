@@ -2,36 +2,36 @@ version: '3'
 
 tasks:
   clean:
-    desc: Löscht den Build-Ordner für einen sauberen Neustart
+    desc: Deletes the build folder for a clean restart
     cmds:
       - rm -rf build/
       - rm -f CMakeUserPresets.json
 
   setup:
-    desc: Installiert alle C++ Dependencies über Conan
+    desc: Installs all C++ dependencies via Conan
     cmds:
    #   - conan profile detect
       - conan install . --build=missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
   shaders:
-    desc: Kompiliert GLSL-Shader zu SPIR-V mit dem Shell-Skript
+    desc: Compiles GLSL shaders to SPIR-V using the Python script
     cmds:
-      - bash ./compile-shaders.sh
+      - python3 ./compile_shaders.py
     sources:
       - src/*.vs
       - src/*.fs
 
   build:
     deps: [shaders]
-    desc: Konfiguriert und kompiliert das Projekt
+    desc: Configures and compiles the project
     cmds:
       - cmake --preset conan-release
       - cmake --build --preset conan-release
 
   run:
     deps: [build]
-    desc: Führt die kompilierte Applikation aus
+    desc: Runs the compiled application
     cmds:
-      # Durch das cmake_layout liegt die Executable jetzt meistens direkt im Release-Ordner. 
-      # (Passe den Namen 'app' hier ggf. an deine CMakeLists.txt an)
+      # With the cmake_layout, the executable is now usually located directly in the Release folder.
+      # (Adjust the name 'app' here to match your CMakeLists.txt if necessary)
       - ./build/Release/app

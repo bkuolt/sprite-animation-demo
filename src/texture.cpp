@@ -32,33 +32,33 @@ GLuint UploadArray(ktxTexture2 *_texture, ktx_transcode_fmt_e _targetFormat)
         throw std::runtime_error("Texture is null before upload!");
     }
 
-    // Cast auf die C-Basisklasse für die Daten-Offsets
+    // Cast to the C base class for data offsets
     ktxTexture *baseTexture = ktxTexture(_texture);
 
-    // Wir mappen das Format jetzt selbst!
+    // We are now mapping the format ourselves!
     const GLenum internalFormat = GetGlInternalFormat(_targetFormat);
     const bool isCompressed = (_targetFormat != KTX_TTF_RGBA32 && _targetFormat != KTX_TTF_RGB565);
 
     GLuint textureId = 0;
-    // 1. DSA: Textur direkt als Array erstellen
+    // 1. DSA: Create texture directly as an array
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &textureId);
 
-    // 2. Filter setzen (Mipmap, falls vorhanden)
+    // 2. Set filters (mipmap, if available)
     glTextureParameteri(textureId, GL_TEXTURE_MIN_FILTER, baseTexture->numLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
     glTextureParameteri(textureId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(textureId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(textureId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    // KTX2 speichert numLayers manchmal als 0, wenn es technisch kein Array ist.
-    // Für einen 2D_ARRAY Upload brauchen wir aber mindestens Tiefe 1.
+    // KTX2 sometimes stores numLayers as 0 if it's not technically an array.
+    // For a 2D_ARRAY upload, however, we need a depth of at least 1.
     const uint32_t numLayers = std::max(1u, baseTexture->numLayers);
 
-    // 3. Immutable Storage allokieren (Parameter: ID, Mips, Format, Breite, Höhe, Tiefe/Layer)
+    // 3. Allocate immutable storage (Parameters: ID, Mips, Format, Width, Height, Depth/Layers)
     glTextureStorage3D(textureId, baseTexture->numLevels, internalFormat, baseTexture->baseWidth, baseTexture->baseHeight, numLayers);
 
     const uint8_t *baseData = ktxTexture_GetData(baseTexture);
 
-    // 4. Mips und Layer iterieren und hochladen
+    // 4. Iterate and upload mips and layers
     for (uint32_t level = 0; level < baseTexture->numLevels; ++level)
     {
         const uint32_t width = std::max(1u, baseTexture->baseWidth >> level);
@@ -74,12 +74,12 @@ GLuint UploadArray(ktxTexture2 *_texture, ktx_transcode_fmt_e _targetFormat)
 
             if (isCompressed)
             {
-                // Komprimiert (BC1, BC3, etc.)
+                // Compressed (BC1, BC3, etc.)
                 glCompressedTextureSubImage3D(textureId, level, 0, 0, layer, width, height, 1, internalFormat, static_cast<GLsizei>(imageSize), data);
             }
             else
             {
-                // Fallback unkomprimiert
+                // Fallback uncompressed
                 GLenum format = (_targetFormat == KTX_TTF_RGBA32) ? GL_RGBA : GL_RGB;
                 GLenum type = (_targetFormat == KTX_TTF_RGBA32) ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT_5_6_5;
                 glTextureSubImage3D(textureId, level, 0, 0, layer, width, height, 1, format, type, data);

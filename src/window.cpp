@@ -45,13 +45,13 @@ namespace
         spdlog::trace("Window closed");
     }
 
-    // TODO: glfwSetWindowIconifyCallback callback implementieren
+    // TODO: Implement glfwSetWindowIconifyCallback callback
     void WindowIconifyCallback(GLFWwindow *window, int iconified) {};
 
-    // ODO: glfwSetFramebufferSizeCallback callback implementieren
+    // TODO: Implement glfwSetFramebufferSizeCallback callback
     void FramebufferSizeCallback(GLFWwindow *window, int width, int height) {};
 
-    // TODO: callback für drag and drop events
+    // TODO: callback for drag and drop events
 
     // TODO: drag and drop
 
@@ -124,12 +124,12 @@ void Window::registerCallbacks()
 {
     glfwSetWindowUserPointer(_window, this);
 
-    // TODO: add keyboard callback with member function as a callback
+    // TODO: Add keyboard callback with member function as a callback
     glfwSetKeyCallback(_window, KeyboardCallback);
     glfwSetCursorPosCallback(_window, MouseCallback);
     glfwSetWindowCloseCallback(_window, WindowCloseCallback);
 
-    // TODO: add callbacks for window stet changes
+    // TODO: Add callbacks for window state changes
     glfwSetWindowFocusCallback(_window, nullptr);
     glfwSetWindowIconifyCallback(_window, nullptr);
     glfwSetWindowMaximizeCallback(_window, nullptr);
@@ -138,10 +138,10 @@ void Window::registerCallbacks()
     glfwSetWindowSizeCallback(_window, nullptr);
     glfwSetWindowContentScaleCallback(_window, nullptr);
 
-    // Callback für Window-Resizing registrieren
-    // glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // Register callback for window resizing
+    // glfwSetFramebufferSizeCallback(_window, FramebufferSizeCallback);
 
-    // V-Sync aktivieren (0 = off, 1 = on)
+    // Enable V-Sync (0 = off, 1 = on)
 }
 
 void Window::run()

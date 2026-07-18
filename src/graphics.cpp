@@ -25,7 +25,42 @@ namespace
                        const GLchar *message,
                        const void *userParam)
     {
-        // TODO
+        // Ignore certain informational messages
+        if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
+            return;
+
+        std::string_view sourceStr;
+        switch (source)
+        {
+        case GL_DEBUG_SOURCE_API:             sourceStr = "API"; break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   sourceStr = "Window System"; break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "Shader Compiler"; break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY:     sourceStr = "Third Party"; break;
+        case GL_DEBUG_SOURCE_APPLICATION:     sourceStr = "Application"; break;
+        case GL_DEBUG_SOURCE_OTHER:           sourceStr = "Other"; break;
+        }
+
+        std::string_view typeStr;
+        switch (type)
+        {
+        case GL_DEBUG_TYPE_ERROR:               typeStr = "Error"; break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "Deprecated Behaviour"; break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  typeStr = "Undefined Behaviour"; break;
+        case GL_DEBUG_TYPE_PORTABILITY:         typeStr = "Portability"; break;
+        case GL_DEBUG_TYPE_PERFORMANCE:         typeStr = "Performance"; break;
+        case GL_DEBUG_TYPE_MARKER:              typeStr = "Marker"; break;
+        case GL_DEBUG_TYPE_PUSH_GROUP:          typeStr = "Push Group"; break;
+        case GL_DEBUG_TYPE_POP_GROUP:           typeStr = "Pop Group"; break;
+        case GL_DEBUG_TYPE_OTHER:               typeStr = "Other"; break;
+        }
+
+        switch (severity)
+        {
+        case GL_DEBUG_SEVERITY_HIGH:         spdlog::critical("[OpenGL Debug] [{}] {} from {}: {}", id, typeStr, sourceStr, message); break;
+        case GL_DEBUG_SEVERITY_MEDIUM:       spdlog::warn("[OpenGL Debug] [{}] {} from {}: {}", id, typeStr, sourceStr, message); break;
+        case GL_DEBUG_SEVERITY_LOW:          spdlog::info("[OpenGL Debug] [{}] {} from {}: {}", id, typeStr, sourceStr, message); break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION: spdlog::trace("[OpenGL Debug] [{}] {} from {}: {}", id, typeStr, sourceStr, message); break;
+        }
     }
 
     std::vector<std::string> getTextureCompressionExtensions()
@@ -171,10 +206,10 @@ namespace bgl
 
     void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor)
     {
-        // Wenn SPIR-V Shader mit expliziten Layout-Locations für Uniforms verwendet werden,
-        // können diese Locations direkt genutzt werden, anstatt glGetUniformLocation aufzurufen.
-        // Siehe main.vs: layout(location = 3) uniform int u_FrameIndex;
-        // Siehe main.vs: layout(location = 4) uniform float u_TweenFactor;
+        // When using SPIR-V shaders with explicit layout locations for uniforms,
+        // these locations can be used directly instead of calling glGetUniformLocation.
+        // See main.vs: layout(location = 3) uniform int u_FrameIndex;
+        // See main.vs: layout(location = 4) uniform float u_TweenFactor;
         glProgramUniform1i(shaderProgram, 3, currentFrameIndex);
         glProgramUniform1f(shaderProgram, 4, tweenFactor);
         glUseProgram(shaderProgram);
@@ -192,22 +227,22 @@ namespace bgl
         std::call_once(_initFlag, []()
                        { loadAssets(); });
 
-        int currentTexture = currentAnimation % _textureIDs.size(); // currentAnimation ist ne global var
+        int currentTexture = currentAnimation % _textureIDs.size(); // currentAnimation is a global variable
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        const auto c = (((int)time) % 10) / 10.0f;
-        glClearColor(c * 2, c, 0.3f, 1.0f);
+        const auto c = (static_cast<int>(time) % 10) / 10.0f;
+        glClearColor(c * 0.2f, c * 0.1f, 0.3f, 1.0f); // A subtle background color pulse
         glClear(GL_COLOR_BUFFER_BIT);
 
         GLint layers = 0;
-        // Die alte, nicht-DSA Variante:
-        glBindTexture(GL_TEXTURE_2D_ARRAY, _textureIDs[currentTexture]);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_DEPTH, &layers);
+        // Get the number of layers (frames) from the texture array using DSA
+        glGetTextureLevelParameteriv(_textureIDs[currentTexture], 0, GL_TEXTURE_DEPTH, &layers);
 
-        const auto num_frames = layers;
-        const auto target_fps = 24.0;
+
+        const auto num_frames = layers > 0 ? layers : 1;
+        constexpr auto target_fps = 24.0;
 
         const double totalFrames = time * target_fps;
         const int currentFrame = static_cast<int>(std::floor(totalFrames)) % num_frames;

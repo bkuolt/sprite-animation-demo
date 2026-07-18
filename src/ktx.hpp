@@ -17,7 +17,6 @@ namespace bgl::ktx
     private:
         void load(const std::filesystem::path &path);
         void transcode();
-        GLuint uploadArray();
 
         ktxTexture2 *_texture{};
         const ktx_transcode_fmt_e _targetFormat;

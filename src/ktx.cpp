@@ -86,21 +86,7 @@ namespace bgl::ktx
 
     GLuint Loader::upload()
     {
-
         return UploadArray(_texture, _targetFormat);
-
-        GLuint glTextureId = 0;
-        GLenum target = 0;
-        GLenum glError = 0;
-
-        const KTX_error_code result = ktxTexture_GLUpload(ktxTexture(_texture), &glTextureId, &target, &glError);
-        if (result != KTX_SUCCESS)
-        {
-            auto message = std::format("failed to upload KTX texture. KTX error: {}, GL error: {}", ktxErrorString(result), glErrorString(glError));
-            throw std::runtime_error(message);
-        }
-
-        return glTextureId;
     }
 
     void Loader::load(const std::filesystem::path &path)

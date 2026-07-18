@@ -5,8 +5,10 @@
 #include <csignal>
 
 static void signal_handler(int signal)  {
+
     spdlog::info("Received signal: {}", signal);
-    // TODO: window.close();
+    // TODO: A global window object or a static instance within the Window class
+    // would be needed to call close() here.
 }
 
 int main()
