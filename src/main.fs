@@ -1,13 +1,13 @@
 #version 450 core
 
-in vec2 v_TexCoords;
-flat in int v_FrameIndex;
-in float v_TweenFactor;
+layout(location = 0) in vec2 v_TexCoords;
+layout(location = 1) flat in int v_FrameIndex;
+layout(location = 2) in float v_TweenFactor;
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 
 // Ein Texture-Array ist perfekt, um mehrere Frames im VRAM zu halten
-uniform sampler2DArray u_TextureArray; 
+layout(binding = 0) uniform sampler2DArray u_TextureArray; 
 
 void main() {
     // Aktuellen Frame sampeln

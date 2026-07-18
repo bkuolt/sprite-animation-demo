@@ -13,13 +13,23 @@ tasks:
    #   - conan profile detect
       - conan install . --build=missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
 
+  shaders:
+    desc: Kompiliert GLSL-Shader zu SPIR-V mit dem Shell-Skript
+    cmds:
+      - bash ./compile-shaders.sh
+    sources:
+      - src/*.vs
+      - src/*.fs
+
   build:
+    deps: [shaders]
     desc: Konfiguriert und kompiliert das Projekt
     cmds:
       - cmake --preset conan-release
       - cmake --build --preset conan-release
 
   run:
+    deps: [build]
     desc: Führt die kompilierte Applikation aus
     cmds:
       # Durch das cmake_layout liegt die Executable jetzt meistens direkt im Release-Ordner. 

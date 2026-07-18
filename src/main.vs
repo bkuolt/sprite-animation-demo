@@ -4,13 +4,13 @@
 layout(location = 0) in vec2 aPos;
 
 // Uniforms
-uniform int u_FrameIndex;
-uniform float u_TweenFactor;
+layout(location = 3) uniform int u_FrameIndex;
+layout(location = 4) uniform float u_TweenFactor;
 
 // Outputs für den Fragment Shader
-out vec2 v_TexCoords;
-flat out int v_FrameIndex; // 'flat' ist wichtig bei Integern (keine Interpolation über das Dreieck)
-out float v_TweenFactor;
+layout(location = 0) out vec2 v_TexCoords;
+layout(location = 1) flat out int v_FrameIndex; // 'flat' ist wichtig bei Integern (keine Interpolation über das Dreieck)
+layout(location = 2) out float v_TweenFactor;
 
 void main() {
     // UV-Koordinaten generieren: Shift von [-0.5, 0.5] auf [0.0, 1.0]
