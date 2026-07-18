@@ -161,9 +161,9 @@ namespace bgl
         }
 
         // Load shaders
-        auto vsSrc = bgl::LoadShaderFromFile(basePath / "main.vs");
-        auto fsSrc = bgl::LoadShaderFromFile(basePath / "main.fs");
-        _program = bgl::CreateShaderProgram(vsSrc, fsSrc);
+        auto vsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.vert.spv");
+        auto fsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.frag.spv");
+        _program = bgl::CreateShaderProgramFromSPIRV(vsSpv, fsSpv);
 
         // Create mesh
         _mesh = create2DQuad();
@@ -171,11 +171,12 @@ namespace bgl
 
     void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor)
     {
-        const GLint frameLoc{glGetUniformLocation(shaderProgram, "u_FrameIndex")};
-        const GLint tweenLoc{glGetUniformLocation(shaderProgram, "u_TweenFactor")};
-
-        glProgramUniform1i(shaderProgram, frameLoc, currentFrameIndex);
-        glProgramUniform1f(shaderProgram, tweenLoc, tweenFactor);
+        // Wenn SPIR-V Shader mit expliziten Layout-Locations für Uniforms verwendet werden,
+        // können diese Locations direkt genutzt werden, anstatt glGetUniformLocation aufzurufen.
+        // Siehe main.vs: layout(location = 3) uniform int u_FrameIndex;
+        // Siehe main.vs: layout(location = 4) uniform float u_TweenFactor;
+        glProgramUniform1i(shaderProgram, 3, currentFrameIndex);
+        glProgramUniform1f(shaderProgram, 4, tweenFactor);
         glUseProgram(shaderProgram);
 
         glBindTextureUnit(0, textureID);
