@@ -1,13 +1,16 @@
-#ifndef __BGL_TEXTURE_HPP__
-#define __BGL_TEXTURE_HPP__
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2024-2026 Bastian. All rights reserved.
+
+#pragma once
 
 #include <glad/gl.h>
 #include <ktx.h>
 #include <vector>
 #include <cstdint>
 #include <cstddef>
+#include <span>
 
-GLuint UploadArray(ktxTexture2 *_texture, ktx_transcode_fmt_e _targetFormat);
+[[nodiscard]] GLuint UploadArray(ktxTexture2 *texture, ktx_transcode_fmt_e targetFormat);
 
 namespace bgl
 {
@@ -19,7 +22,5 @@ namespace bgl
         std::vector<uint8_t> data;
     };
 
-    GLuint UploadRawArray(const std::vector<ImageLayer> &layers, bool generateMipmaps = true);
-}
-
-#endif // __BGL_TEXTURE_HPP__
+    [[nodiscard]] GLuint UploadRawArray(std::span<const ImageLayer> layers, bool generateMipmaps = true);
+} // namespace bgl

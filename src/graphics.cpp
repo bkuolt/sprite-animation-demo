@@ -1,23 +1,18 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2024-2026 Bastian. All rights reserved.
+
+#include "graphics.hpp"
+
 #include "glad/gl.h"
 #include "KHR/khrplatform.h"
 #include <GLFW/glfw3.h>
 
 #include <spdlog/spdlog.h>
 #include <stdexcept>
-
-#include <fmt/ranges.h> // fmt::join
-
+#include <fmt/ranges.h>
 #include <glm/vec2.hpp>
-#include "loaders/loader.hpp"
-#include "loaders/ktx.hpp"
-#include "loaders/png.hpp"
-#include "loaders/jpeg.hpp"
-#include <memory>
-#include <print>
-
-#include "shader.hpp"
-
-extern int currentAnimation;
+#include <array>
+#include <string_view>
 
 namespace
 {
@@ -25,11 +20,10 @@ namespace
                        GLenum type,
                        GLuint id,
                        GLenum severity,
-                       GLsizei length,
+                       GLsizei /*length*/,
                        const GLchar *message,
-                       const void *userParam)
+                       const void * /*userParam*/)
     {
-        // Ignore certain informational messages
         if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
             return;
 
@@ -41,7 +35,7 @@ namespace
         case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "Shader Compiler"; break;
         case GL_DEBUG_SOURCE_THIRD_PARTY:     sourceStr = "Third Party"; break;
         case GL_DEBUG_SOURCE_APPLICATION:     sourceStr = "Application"; break;
-        case GL_DEBUG_SOURCE_OTHER:           sourceStr = "Other"; break;
+        default:                              sourceStr = "Other"; break;
         }
 
         std::string_view typeStr;
@@ -55,7 +49,7 @@ namespace
         case GL_DEBUG_TYPE_MARKER:              typeStr = "Marker"; break;
         case GL_DEBUG_TYPE_PUSH_GROUP:          typeStr = "Push Group"; break;
         case GL_DEBUG_TYPE_POP_GROUP:           typeStr = "Pop Group"; break;
-        case GL_DEBUG_TYPE_OTHER:               typeStr = "Other"; break;
+        default:                                typeStr = "Other"; break;
         }
 
         switch (severity)
@@ -63,7 +57,7 @@ namespace
         case GL_DEBUG_SEVERITY_HIGH:         spdlog::critical("[OpenGL Debug] [{}] {} from {}: {}", id, typeStr, sourceStr, message); break;
         case GL_DEBUG_SEVERITY_MEDIUM:       spdlog::warn("[OpenGL Debug] [{}] {} from {}: {}", id, typeStr, sourceStr, message); break;
         case GL_DEBUG_SEVERITY_LOW:          spdlog::info("[OpenGL Debug] [{}] {} from {}: {}", id, typeStr, sourceStr, message); break;
-        case GL_DEBUG_SEVERITY_NOTIFICATION: spdlog::trace("[OpenGL Debug] [{}] {} from {}: {}", id, typeStr, sourceStr, message); break;
+        default:                             spdlog::trace("[OpenGL Debug] [{}] {} from {}: {}", id, typeStr, sourceStr, message); break;
         }
     }
 
@@ -72,11 +66,11 @@ namespace
         GLint num_extensions = 0;
         glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
         std::vector<std::string> extensions;
-        extensions.reserve(num_extensions);
+        extensions.reserve(static_cast<size_t>(num_extensions));
 
         for (GLint i = 0; i < num_extensions; ++i)
         {
-            const std::string ext_str((char *)glGetStringi(GL_EXTENSIONS, i));
+            const std::string ext_str(reinterpret_cast<const char *>(glGetStringi(GL_EXTENSIONS, i)));
             if (ext_str.find("GL_EXT_texture_compression_") != std::string_view::npos)
             {
                 extensions.push_back(ext_str);
@@ -85,24 +79,10 @@ namespace
 
         return extensions;
     }
-
 } // namespace
 
 namespace bgl
 {
-    struct QuadMesh
-    {
-        GLuint VAO;
-        GLuint VBO;
-        GLuint IBO;
-        unsigned int indexCount;
-    };
-
-    std::vector<GLuint> _textureIDs;
-    QuadMesh _mesh;
-    GLuint _program;
-    std::once_flag _initFlag;
-
     void InitializeGLAD()
     {
         const int gladVersion = gladLoadGL(glfwGetProcAddress);
@@ -111,25 +91,22 @@ namespace bgl
             throw std::runtime_error("Failed to initialize GLAD");
         }
 
-        spdlog::info("GLAD Version: {}.{}", (int)GLAD_VERSION_MAJOR(gladVersion), (int)GLAD_VERSION_MINOR(gladVersion));
+        spdlog::info("GLAD Version: {}.{}", static_cast<int>(GLAD_VERSION_MAJOR(gladVersion)), static_cast<int>(GLAD_VERSION_MINOR(gladVersion)));
     }
 
     void IntitializeOpenGL()
     {
-        // print OpenGL info
-        const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+        const auto *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
         spdlog::info("OpenGL Version: {}", version);
-        spdlog::info("Vendor: {}", (const char *)glGetString(GL_VENDOR));
-        spdlog::info("Renderer: {}", (const char *)glGetString(GL_RENDERER));
-        spdlog::info("GLSL Version: {}", (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+        spdlog::info("Vendor: {}", reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
+        spdlog::info("Renderer: {}", reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
+        spdlog::info("GLSL Version: {}", reinterpret_cast<const char *>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
-        // setup debug callbacks
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(DebugCallback, nullptr);
 
-        // handle extensions
-        auto extensions = getTextureCompressionExtensions();
+        const auto extensions = getTextureCompressionExtensions();
         spdlog::info("Extensions: {}", fmt::join(extensions, ", "));
 
         if (!(GL_ARB_texture_compression ||
@@ -150,16 +127,17 @@ namespace bgl
         QuadMesh quad;
         quad.indexCount = 6;
 
-        std::vector<glm::vec2> vertices = {
-            glm::vec2(-0.75f, -0.75f), // Unten-Links  (Index 0)
-            glm::vec2(0.75f, -0.75f),  // Unten-Rechts (Index 1)
-            glm::vec2(0.75f, 0.75f),   // Oben-Rechts  (Index 2)
-            glm::vec2(-0.75f, 0.75f)   // Oben-Links   (Index 3)
+        constexpr std::array<glm::vec2, 4> vertices = {
+            glm::vec2(-0.75f, -0.75f),
+            glm::vec2(0.75f, -0.75f),
+            glm::vec2(0.75f, 0.75f),
+            glm::vec2(-0.75f, 0.75f)
         };
 
-        std::vector<GLuint> indices = {
+        constexpr std::array<GLuint, 6> indices = {
             0, 1, 2,
-            2, 3, 0};
+            2, 3, 0
+        };
 
         glCreateVertexArrays(1, &quad.VAO);
         glCreateBuffers(1, &quad.VBO);
@@ -178,89 +156,17 @@ namespace bgl
         return quad;
     }
 
-    void loadAssets()
-    {
-        auto binaryPath = std::filesystem::read_symlink("/proc/self/exe");
-        auto basePath = binaryPath.parent_path();
-
-        // Load textures
-        const std::vector<std::filesystem::path> fileNames{
-            basePath / "assets" / "idle.ktx2",
-            basePath / "assets" / "walk.ktx2",
-            basePath / "assets" / "jump.ktx2",
-            basePath / "assets" / "run.ktx2",
-            basePath / "assets" / "slide.ktx2",
-            basePath / "assets" / "dead.ktx2"};
-
-        std::vector<std::unique_ptr<bgl::ITextureLoader>> loaders;
-        loaders.reserve(fileNames.size());
-        for (const auto &file : fileNames)
-        {
-            loaders.push_back(std::make_unique<bgl::ktx::Loader>(file, KTX_TTF_BC3_RGBA));
-        }
-
-        _textureIDs.resize(loaders.size());
-        for (size_t i = 0; i < loaders.size(); ++i)
-        {
-            _textureIDs[i] = loaders[i]->upload();
-        }
-
-        // Load shaders
-        auto vsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.vert.spv");
-        auto fsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.frag.spv");
-        _program = bgl::CreateShaderProgramFromSPIRV(vsSpv, fsSpv);
-
-        // Create mesh
-        _mesh = create2DQuad();
-    }
-
     void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor)
     {
-        // When using SPIR-V shaders with explicit layout locations for uniforms,
-        // these locations can be used directly instead of calling glGetUniformLocation.
-        // See main.vs: layout(location = 3) uniform int u_FrameIndex;
-        // See main.vs: layout(location = 4) uniform float u_TweenFactor;
         glProgramUniform1i(shaderProgram, 3, currentFrameIndex);
         glProgramUniform1f(shaderProgram, 4, tweenFactor);
         glUseProgram(shaderProgram);
 
         glBindTextureUnit(0, textureID);
         glBindVertexArray(quad.VAO);
-        glDrawElements(GL_TRIANGLES, quad.indexCount, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(quad.indexCount), GL_UNSIGNED_INT, nullptr);
 
         glBindVertexArray(0);
         glUseProgram(0);
     }
-
-    void Draw(double time)
-    {
-        std::call_once(_initFlag, []()
-                       { loadAssets(); });
-
-        int currentTexture = currentAnimation % _textureIDs.size(); // currentAnimation is a global variable
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        const auto c = (static_cast<int>(time) % 10) / 10.0f;
-        glClearColor(c * 0.2f, c * 0.1f, 0.3f, 1.0f); // A subtle background color pulse
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        GLint layers = 0;
-        // Get the number of layers (frames) from the texture array using DSA
-        glGetTextureLevelParameteriv(_textureIDs[currentTexture], 0, GL_TEXTURE_DEPTH, &layers);
-
-
-        const auto num_frames = layers > 0 ? layers : 1;
-        constexpr auto target_fps = 24.0;
-
-        const double totalFrames = time * target_fps;
-        const int currentFrame = static_cast<int>(std::floor(totalFrames)) % num_frames;
-        const float tweenFactor = static_cast<float>(totalFrames - std::floor(totalFrames));
-
-        renderQuad(_mesh, _textureIDs[currentTexture], _program, currentFrame, tweenFactor);
-    }
-
-    //--------------------------------------------
-
 } // namespace bgl

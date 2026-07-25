@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2024-2026 Bastian. All rights reserved.
+
 #include "ktx.hpp"
+#include "../texture.hpp"
 
 #include "glad/gl.h"
 
@@ -8,11 +12,9 @@
 #include <filesystem>
 #include <stdexcept>
 
-GLuint UploadArray(ktxTexture2 *_texture, ktx_transcode_fmt_e _targetFormat); // from  texture.cpp
-
 namespace bgl::ktx
 {
-    constexpr const char *glErrorString(GLenum error)
+    constexpr const char *glErrorString(GLenum error) noexcept
     {
         switch (error)
         {
@@ -33,31 +35,26 @@ namespace bgl::ktx
         }
     }
 
-    ktx_transcode_fmt_e GetTextureFormat(
+    [[nodiscard]] ktx_transcode_fmt_e GetTextureFormat(
         const std::unordered_set<std::string> &extensions,
         bool hasAlpha,
         bool isNormalMap = false)
     {
-        // 1. S3TC (DXT1, DXT3, DXT5 / BC1, BC2, BC3)
         if (extensions.contains("GL_EXT_texture_compression_s3tc"))
         {
             return hasAlpha ? KTX_TTF_BC3_RGBA : KTX_TTF_BC1_RGB;
         }
 
-        // 2. DXT1 explizit (BC1)
         if (extensions.contains("GL_EXT_texture_compression_dxt1"))
         {
             return KTX_TTF_BC1_RGB;
         }
 
-        // 3. RGTC (BC4, BC5)
-        // Optimal für reine Daten-Texturen, um S3TC-Artefakte zu vermeiden.
         if (extensions.contains("GL_EXT_texture_compression_rgtc"))
         {
             return isNormalMap ? KTX_TTF_BC5_RG : KTX_TTF_BC4_R;
         }
 
-        // 4. Absoluter Fallback (unkomprimiert)
         return hasAlpha ? KTX_TTF_RGBA32 : KTX_TTF_RGB565;
     }
 
@@ -68,20 +65,25 @@ namespace bgl::ktx
         {
             load(path);
         }
-        catch (const std::exception &e)
+        catch (...)
         {
-            ktxTexture2_Destroy(_texture);
+            if (_texture)
+            {
+                ktxTexture2_Destroy(_texture);
+                _texture = nullptr;
+            }
             throw;
         }
 
-        // print num  layers, mipmaps yes, no
-        spdlog::info("num layers: {}", _texture->numLayers);
-        spdlog::info("num levels: {}", _texture->numLevels);
+        spdlog::info("KTX layers: {}, levels: {}", _texture->numLayers, _texture->numLevels);
     }
 
     Loader::~Loader()
     {
-        ktxTexture2_Destroy(_texture);
+        if (_texture)
+        {
+            ktxTexture2_Destroy(_texture);
+        }
     }
 
     GLuint Loader::upload()
@@ -91,13 +93,18 @@ namespace bgl::ktx
 
     void Loader::load(const std::filesystem::path &path)
     {
-        KTX_error_code result = ktxTexture2_CreateFromNamedFile(path.string().c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &_texture);
+        const KTX_error_code result = ktxTexture2_CreateFromNamedFile(
+            path.string().c_str(),
+            KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+            &_texture
+        );
+
         if (result != KTX_SUCCESS)
         {
-            throw std::runtime_error("failed to load KTX file");
+            throw std::runtime_error(fmt::format("Failed to load KTX file: {}", path.string()));
         }
 
-        spdlog::info("loaded KTX file: {}", path.string());
+        spdlog::info("Loaded KTX file: {}", path.string());
 
         if (ktxTexture2_NeedsTranscoding(_texture))
         {
@@ -112,13 +119,13 @@ namespace bgl::ktx
         const auto result = ktxTexture2_TranscodeBasis(_texture, _targetFormat, 0);
         if (result != KTX_SUCCESS)
         {
-            throw std::runtime_error("failed to transcode KTX file");
+            throw std::runtime_error("Failed to transcode KTX Basis texture");
         }
 
         const auto uncompressedSize = _texture->dataSize;
-        spdlog::info("transcoded KTX file");
-        spdlog::info("  compressed size: {} MB", compressedSize / (1024 * 1024));
-        spdlog::info("uncompressed size: {} MB", uncompressedSize / (1024 * 1024));
+        spdlog::info("Transcoded KTX texture - compressed: {} MB, uncompressed: {} MB",
+                     compressedSize / (1024 * 1024),
+                     uncompressedSize / (1024 * 1024));
     }
 
-} // bgl::ktx
+} // namespace bgl::ktx

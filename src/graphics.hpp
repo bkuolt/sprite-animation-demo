@@ -1,13 +1,26 @@
-#ifndef BGL_GRAPHICS_HPP
-#define BGL_GRAPHICS_HPP
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-namespace bgl {
+#pragma once
 
-void InitializeGLAD();
-void IntitializeOpenGL();
+#include "glad/gl.h"
+#include <vector>
+#include <filesystem>
+#include <glm/vec2.hpp>
 
-void Draw(double time);
+namespace bgl
+{
+    struct QuadMesh
+    {
+        GLuint VAO{0};
+        GLuint VBO{0};
+        GLuint IBO{0};
+        unsigned int indexCount{0};
+    };
 
-}  // namespace bgl
+    void InitializeGLAD();
+    void IntitializeOpenGL();
 
-#endif // BGL_GRAPHICS_HPP
+    [[nodiscard]] QuadMesh create2DQuad();
+    void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor);
+} // namespace bgl

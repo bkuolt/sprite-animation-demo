@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2024-2026 Bastian. All rights reserved.
+
 #include "window.hpp"
 #include "graphics.hpp"
 
@@ -6,7 +9,6 @@
 
 #include <GLFW/glfw3.h>
 #include <iostream>
-
 #include <glm/common.hpp>
 #include <glm/vec2.hpp>
 #include <fmt/ranges.h>
@@ -17,7 +19,6 @@ int currentAnimation = 0;
 
 namespace
 {
-
     void KeyboardCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     {
         spdlog::trace("Key {} pressed", key);
@@ -32,29 +33,23 @@ namespace
         {
             currentAnimation++;
         }
+
+        auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+        if (win && win->getKeyCallback())
+        {
+            win->getKeyCallback()(key, scancode, action, mods);
+        }
     }
 
-    void MouseCallback(GLFWwindow *window, double xpos, double ypos)
+    void MouseCallback(GLFWwindow * /*window*/, double xpos, double ypos)
     {
         spdlog::trace("Mouse moved to ({}, {})", xpos, ypos);
-        // TODO
     }
 
-    void WindowCloseCallback(GLFWwindow *window)
+    void WindowCloseCallback(GLFWwindow * /*window*/)
     {
         spdlog::trace("Window closed");
     }
-
-    // TODO: Implement glfwSetWindowIconifyCallback callback
-    void WindowIconifyCallback(GLFWwindow *window, int iconified) {};
-
-    // TODO: Implement glfwSetFramebufferSizeCallback callback
-    void FramebufferSizeCallback(GLFWwindow *window, int width, int height) {};
-
-    // TODO: callback for drag and drop events
-
-    // TODO: drag and drop
-
 } // namespace
 
 glm::vec2 Window::getScreenSize() const
@@ -71,10 +66,8 @@ glm::vec2 Window::getScreenSize() const
         throw std::runtime_error("Failed to get video mode");
     }
 
-    return {mode->width, mode->height};
+    return {static_cast<float>(mode->width), static_cast<float>(mode->height)};
 }
-
-///////////////////////////////////////////
 
 Window::Window()
 {
@@ -90,18 +83,16 @@ Window::Window()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // GLFWmonitor *primary{glfwGetPrimaryMonitor()};
-    _window = glfwCreateWindow(size.x, size.y, "Basti's Window", NULL, NULL);
+    _window = glfwCreateWindow(static_cast<int>(size.x), static_cast<int>(size.y), "Basti's Window", nullptr, nullptr);
     if (_window == nullptr)
     {
+        glfwTerminate();
         throw std::runtime_error("Failed to create window");
     }
 
-    spdlog::info("");
-
     registerCallbacks();
 
-    // setup OpenGL rendering
+    // Setup OpenGL rendering context
     glfwMakeContextCurrent(_window);
     glfwSwapInterval(1);
 
@@ -111,25 +102,40 @@ Window::Window()
 
 Window::~Window()
 {
-    glfwDestroyWindow(_window);
+    if (_window)
+    {
+        glfwDestroyWindow(_window);
+        _window = nullptr;
+    }
     glfwTerminate();
+}
+
+void Window::setRenderCallback(RenderCallback callback)
+{
+    _renderCallback = std::move(callback);
+}
+
+void Window::setKeyCallback(KeyCallback callback)
+{
+    _keyCallback = std::move(callback);
 }
 
 void Window::close()
 {
-    glfwSetWindowShouldClose(_window, GLFW_TRUE);
+    if (_window)
+    {
+        glfwSetWindowShouldClose(_window, GLFW_TRUE);
+    }
 }
 
 void Window::registerCallbacks()
 {
     glfwSetWindowUserPointer(_window, this);
 
-    // TODO: Add keyboard callback with member function as a callback
     glfwSetKeyCallback(_window, KeyboardCallback);
     glfwSetCursorPosCallback(_window, MouseCallback);
     glfwSetWindowCloseCallback(_window, WindowCloseCallback);
 
-    // TODO: Add callbacks for window state changes
     glfwSetWindowFocusCallback(_window, nullptr);
     glfwSetWindowIconifyCallback(_window, nullptr);
     glfwSetWindowMaximizeCallback(_window, nullptr);
@@ -137,11 +143,6 @@ void Window::registerCallbacks()
     glfwSetWindowPosCallback(_window, nullptr);
     glfwSetWindowSizeCallback(_window, nullptr);
     glfwSetWindowContentScaleCallback(_window, nullptr);
-
-    // Register callback for window resizing
-    // glfwSetFramebufferSizeCallback(_window, FramebufferSizeCallback);
-
-    // Enable V-Sync (0 = off, 1 = on)
 }
 
 void Window::run()
@@ -151,9 +152,18 @@ void Window::run()
     while (!glfwWindowShouldClose(_window))
     {
         const auto time = glfwGetTime();
-        bgl::Draw(time);
+        if (_renderCallback)
+        {
+            _renderCallback(time);
+        }
 
         glfwSwapBuffers(_window);
         glfwPollEvents();
     }
+}
+
+void Window::run(RenderCallback callback)
+{
+    setRenderCallback(std::move(callback));
+    run();
 }

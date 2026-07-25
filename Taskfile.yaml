@@ -2,36 +2,41 @@ version: '3'
 
 tasks:
   clean:
-    desc: Deletes the build folder for a clean restart
+    desc: Deletes build artifacts and CMake presets
     cmds:
       - rm -rf build/
       - rm -f CMakeUserPresets.json
 
-  setup:
-    desc: Installs all C++ dependencies via Conan
+  lock:
+    desc: Creates or updates the Conan lockfile
     cmds:
-   #   - conan profile detect
-      - conan install . --build=missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True
+      - conan lock create .
+
+  setup:
+    desc: Installs dependencies via Conan using the lockfile
+    cmds:
+      - conan install . --lockfile=conan.lock --build=missing -c tools.system.package_manager:mode=install
 
   shaders:
-    desc: Compiles GLSL shaders to SPIR-V using the Python script
+    desc: Compiles GLSL shaders to SPIR-V binaries
     cmds:
-      - python3 ./compile_shaders.py
+      - ./compile-shaders.sh
     sources:
-      - src/*.vs
-      - src/*.fs
+      - src/main.vs
+      - src/main.fs
+    generates:
+      - assets/main.vert.spv
+      - assets/main.frag.spv
 
   build:
     deps: [shaders]
-    desc: Configures and compiles the project
+    desc: Configures and builds the project using CMake preset
     cmds:
       - cmake --preset conan-release
       - cmake --build --preset conan-release
 
   run:
     deps: [build]
-    desc: Runs the compiled application
+    desc: Executes the compiled application
     cmds:
-      # With the cmake_layout, the executable is now usually located directly in the Release folder.
-      # (Adjust the name 'app' here to match your CMakeLists.txt if necessary)
       - ./build/Release/app

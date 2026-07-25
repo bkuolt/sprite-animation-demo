@@ -1,6 +1,12 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2024-2026 Bastian. All rights reserved.
+
+#pragma once
+
 #include <chrono>
 #include <utility>
 #include <cmath>
+#include <cstdint>
 
 template <typename T>
 class Timer
@@ -18,7 +24,7 @@ public:
     {
         if (_running)
         {
-            auto now = std::chrono::high_resolution_clock::now();
+            const auto now = std::chrono::high_resolution_clock::now();
             _elapsedTime += std::chrono::duration_cast<Duration>(now - _startTime);
             _running = false;
         }
@@ -38,19 +44,20 @@ public:
     {
         if (_running)
         {
-            auto now = std::chrono::high_resolution_clock::now();
+            const auto now = std::chrono::high_resolution_clock::now();
             _elapsedTime += std::chrono::duration_cast<Duration>(now - _startTime);
             _running = false;
         }
         return _elapsedTime;
     }
 
-    Duration elapsed() const
+    [[nodiscard]] Duration elapsed() const noexcept
     {
         return _elapsedTime;
     }
 
 private:
+    std::chrono::high_resolution_clock::time_point _startTime{};
     Duration _elapsedTime{0};
     bool _running{false};
 };
@@ -64,18 +71,16 @@ public:
     }
 
     AnimationTimer(uint32_t frameCount, unsigned int fps)
-        : _frameCount(frameCount), _frameDuration(1.0f / fps)
+        : _frameCount(frameCount), _frameDuration(1.0f / static_cast<float>(fps))
     {
     }
 
-    std::pair<uint32_t, float> frame() const
+    [[nodiscard]] std::pair<uint32_t, float> frame() const
     {
-        // elapsed().count() is in milliseconds, _frameDuration is in seconds.
-        // Convert elapsed time to seconds before calculation.
-        const float totalTimeInSeconds = elapsed().count() / 1000.0f;
+        const float totalTimeInSeconds = static_cast<float>(elapsed().count()) / 1000.0f;
         const float totalFrames = totalTimeInSeconds / _frameDuration;
 
-        double integralPart;
+        double integralPart = 0.0;
         const float fractionalPart = std::modf(totalFrames, &integralPart);
 
         const uint32_t frameIndex = static_cast<uint32_t>(integralPart) % _frameCount;
@@ -84,42 +89,20 @@ public:
     }
 
 private:
-    const uint32_t _frameCount;
-    const float _frameDuration;
+    uint32_t _frameCount{0};
+    float _frameDuration{0.0f};
 };
 
 class Animation
 {
 public:
-    Animation()
-    {
-        // TODO: get shader handle
-        // TODO: get quad vbo and vao
-        // TODO: get texture array handle
-    }
+    Animation() = default;
 
-    //
-
-    void pause()
-    {
-        // TODO
-    }
-
-    void resume()
-    {
-        // TODO
-    }
-
-    void stop()
-    {
-        // TODO
-    }
-
-    void draw()
-    {
-        // TODO
-    }
+    void pause() {}
+    void resume() {}
+    void stop() {}
+    void draw() {}
 
 private:
-    AnimationTimer _timer(0, 0.0f);
+    AnimationTimer _timer{0, 0.0f};
 };

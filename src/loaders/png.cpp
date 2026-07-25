@@ -1,8 +1,12 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2024-2026 Bastian. All rights reserved.
+
 #include "png.hpp"
 
 #include <png.h>
 #include <spdlog/spdlog.h>
 #include <cstdio>
+#include <memory>
 #include <stdexcept>
 
 namespace bgl::png
@@ -12,7 +16,7 @@ namespace bgl::png
         loadFile(path);
     }
 
-    Loader::Loader(const std::vector<std::filesystem::path> &paths)
+    Loader::Loader(std::span<const std::filesystem::path> paths)
     {
         for (const auto &p : paths)
         {
@@ -27,23 +31,21 @@ namespace bgl::png
 
     void Loader::loadFile(const std::filesystem::path &path)
     {
-        FILE *fp = std::fopen(path.string().c_str(), "rb");
+        std::unique_ptr<FILE, int (*)(FILE *)> fp(std::fopen(path.string().c_str(), "rb"), std::fclose);
         if (!fp)
         {
             throw std::runtime_error(fmt::format("Failed to open PNG file: {}", path.string()));
         }
 
         unsigned char header[8];
-        if (std::fread(header, 1, 8, fp) != 8 || png_sig_cmp(header, 0, 8))
+        if (std::fread(header, 1, 8, fp.get()) != 8 || png_sig_cmp(header, 0, 8))
         {
-            std::fclose(fp);
             throw std::runtime_error(fmt::format("File is not a valid PNG: {}", path.string()));
         }
 
         png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
         if (!png_ptr)
         {
-            std::fclose(fp);
             throw std::runtime_error("png_create_read_struct failed");
         }
 
@@ -51,25 +53,23 @@ namespace bgl::png
         if (!info_ptr)
         {
             png_destroy_read_struct(&png_ptr, nullptr, nullptr);
-            std::fclose(fp);
             throw std::runtime_error("png_create_info_struct failed");
         }
 
         if (setjmp(png_jmpbuf(png_ptr)))
         {
             png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-            std::fclose(fp);
             throw std::runtime_error(fmt::format("Error reading PNG file: {}", path.string()));
         }
 
-        png_init_io(png_ptr, fp);
+        png_init_io(png_ptr, fp.get());
         png_set_sig_bytes(png_ptr, 8);
         png_read_info(png_ptr, info_ptr);
 
-        png_uint_32 width = png_get_image_width(png_ptr, info_ptr);
-        png_uint_32 height = png_get_image_height(png_ptr, info_ptr);
-        png_byte color_type = png_get_color_type(png_ptr, info_ptr);
-        png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+        const png_uint_32 width = png_get_image_width(png_ptr, info_ptr);
+        const png_uint_32 height = png_get_image_height(png_ptr, info_ptr);
+        const png_byte color_type = png_get_color_type(png_ptr, info_ptr);
+        const png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
         if (bit_depth == 16)
             png_set_strip_16(png_ptr);
@@ -95,18 +95,17 @@ namespace bgl::png
         layer.width = width;
         layer.height = height;
         layer.channels = 4;
-        layer.data.resize(width * height * 4);
+        layer.data.resize(static_cast<size_t>(width) * height * 4);
 
         std::vector<png_bytep> row_pointers(height);
         for (png_uint_32 y = 0; y < height; ++y)
         {
-            row_pointers[y] = layer.data.data() + y * width * 4;
+            row_pointers[y] = layer.data.data() + static_cast<size_t>(y) * width * 4;
         }
 
         png_read_image(png_ptr, row_pointers.data());
 
         png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
-        std::fclose(fp);
 
         spdlog::info("Loaded PNG image: {} ({}x{})", path.string(), width, height);
         _layers.push_back(std::move(layer));

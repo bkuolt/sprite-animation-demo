@@ -1,9 +1,13 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2024-2026 Bastian. All rights reserved.
+
 #include "jpeg.hpp"
 
 #include <jpeglib.h>
 #include <csetjmp>
 #include <spdlog/spdlog.h>
 #include <cstdio>
+#include <memory>
 #include <stdexcept>
 
 namespace
@@ -16,7 +20,7 @@ namespace
 
     METHODDEF(void) CustomJpegErrorExit(j_common_ptr cinfo)
     {
-        CustomJpegErrorMgr *err = reinterpret_cast<CustomJpegErrorMgr *>(cinfo->err);
+        auto *err = reinterpret_cast<CustomJpegErrorMgr *>(cinfo->err);
         (*cinfo->err->output_message)(cinfo);
         longjmp(err->setjmp_buffer, 1);
     }
@@ -29,7 +33,7 @@ namespace bgl::jpeg
         loadFile(path);
     }
 
-    Loader::Loader(const std::vector<std::filesystem::path> &paths)
+    Loader::Loader(std::span<const std::filesystem::path> paths)
     {
         for (const auto &p : paths)
         {
@@ -44,14 +48,14 @@ namespace bgl::jpeg
 
     void Loader::loadFile(const std::filesystem::path &path)
     {
-        FILE *fp = std::fopen(path.string().c_str(), "rb");
+        std::unique_ptr<FILE, int (*)(FILE *)> fp(std::fopen(path.string().c_str(), "rb"), std::fclose);
         if (!fp)
         {
             throw std::runtime_error(fmt::format("Failed to open JPEG file: {}", path.string()));
         }
 
-        struct jpeg_decompress_struct cinfo;
-        CustomJpegErrorMgr jerr;
+        struct jpeg_decompress_struct cinfo{};
+        CustomJpegErrorMgr jerr{};
 
         cinfo.err = jpeg_std_error(&jerr.pub);
         jerr.pub.error_exit = CustomJpegErrorExit;
@@ -59,12 +63,11 @@ namespace bgl::jpeg
         if (setjmp(jerr.setjmp_buffer))
         {
             jpeg_destroy_decompress(&cinfo);
-            std::fclose(fp);
             throw std::runtime_error(fmt::format("Error reading JPEG file: {}", path.string()));
         }
 
         jpeg_create_decompress(&cinfo);
-        jpeg_stdio_src(&cinfo, fp);
+        jpeg_stdio_src(&cinfo, fp.get());
         jpeg_read_header(&cinfo, TRUE);
 
         cinfo.out_color_space = JCS_RGB;
@@ -74,7 +77,7 @@ namespace bgl::jpeg
         layer.width = cinfo.output_width;
         layer.height = cinfo.output_height;
         layer.channels = cinfo.output_components;
-        layer.data.resize(layer.width * layer.height * layer.channels);
+        layer.data.resize(static_cast<size_t>(layer.width) * layer.height * layer.channels);
 
         const int row_stride = layer.width * layer.channels;
         JSAMPROW row_pointer[1];
@@ -87,7 +90,6 @@ namespace bgl::jpeg
 
         jpeg_finish_decompress(&cinfo);
         jpeg_destroy_decompress(&cinfo);
-        std::fclose(fp);
 
         spdlog::info("Loaded JPEG image: {} ({}x{})", path.string(), layer.width, layer.height);
         _layers.push_back(std::move(layer));

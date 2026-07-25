@@ -1,5 +1,7 @@
-#ifndef __BGL_KTX_HPP__
-#define __BGL_KTX_HPP__
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2024-2026 Bastian. All rights reserved.
+
+#pragma once
 
 #include "loader.hpp"
 #include <ktx.h>
@@ -7,22 +9,22 @@
 
 namespace bgl::ktx
 {
-    class Loader : public bgl::ITextureLoader
+    /**
+     * @brief Loader for KTX 2.0 container textures using Basis Universal transcoding.
+     */
+    class Loader final : public bgl::ITextureLoader
     {
     public:
         Loader(const std::filesystem::path &path, ktx_transcode_fmt_e targetFormat);
-        virtual ~Loader();
+        ~Loader() override;
 
-        GLuint upload() override;
+        [[nodiscard]] GLuint upload() override;
 
     private:
         void load(const std::filesystem::path &path);
         void transcode();
 
-        ktxTexture2 *_texture{};
-        const ktx_transcode_fmt_e _targetFormat;
+        ktxTexture2 *_texture{nullptr};
+        ktx_transcode_fmt_e _targetFormat;
     };
-
-} // bgl::ktx
-
-#endif // __BGL_KTX_HPP__   
+} // namespace bgl::ktx
