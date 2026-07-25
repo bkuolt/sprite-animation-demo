@@ -21,5 +21,6 @@ namespace bgl
     void IntitializeOpenGL();
 
     [[nodiscard]] QuadMesh create2DQuad();
+    void destroyQuadMesh(QuadMesh &quad);
     void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor, const glm::mat4 &projection);
 } // namespace bgl

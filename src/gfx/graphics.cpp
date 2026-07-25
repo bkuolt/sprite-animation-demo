@@ -157,6 +157,25 @@ namespace bgl
         return quad;
     }
 
+    void destroyQuadMesh(QuadMesh &quad)
+    {
+        if (quad.VAO != 0)
+        {
+            glDeleteVertexArrays(1, &quad.VAO);
+            quad.VAO = 0;
+        }
+        if (quad.VBO != 0)
+        {
+            glDeleteBuffers(1, &quad.VBO);
+            quad.VBO = 0;
+        }
+        if (quad.IBO != 0)
+        {
+            glDeleteBuffers(1, &quad.IBO);
+            quad.IBO = 0;
+        }
+    }
+
     void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor, const glm::mat4 &projection)
     {
         glProgramUniform1i(shaderProgram, 3, currentFrameIndex);

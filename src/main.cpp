@@ -128,13 +128,16 @@ int main()
             textureIDs[i] = loaders[i]->upload();
         }
 
+        // Destroy CPU texture loader instances as GPU textures are now allocated
+        loaders.clear();
+
         // 2. Load SPIR-V shaders
         const auto vsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.vert.spv");
         const auto fsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.frag.spv");
         const GLuint program = bgl::CreateShaderProgramFromSPIRV(vsSpv, fsSpv);
 
         // 3. Create mesh
-        const bgl::QuadMesh quadMesh = bgl::create2DQuad();
+        bgl::QuadMesh quadMesh = bgl::create2DQuad();
 
         // 4. Register render callback in main.cpp
         g_window->setRenderCallback([&](double time)
@@ -173,6 +176,23 @@ int main()
         });
 
         g_window->run();
+
+        // Explicit GPU memory deallocation upon main loop exit
+        if (!textureIDs.empty())
+        {
+            glDeleteTextures(static_cast<GLsizei>(textureIDs.size()), textureIDs.data());
+            spdlog::info("Released {} OpenGL textures from VRAM", textureIDs.size());
+            textureIDs.clear();
+        }
+
+        if (program != 0)
+        {
+            glDeleteProgram(program);
+            spdlog::info("Released OpenGL shader program handle");
+        }
+
+        bgl::destroyQuadMesh(quadMesh);
+        spdlog::info("Released Quad VAO/VBO/IBO buffers");
     }
     catch (const std::exception &e)
     {
