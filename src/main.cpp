@@ -74,7 +74,8 @@ int main()
         // 4. Register render callback in main.cpp
         g_window->setRenderCallback([&](double time)
         {
-            const auto currentTexture = static_cast<size_t>(currentAnimation) % textureIDs.size();
+            const auto count = static_cast<int>(textureIDs.size());
+            const auto currentTexture = static_cast<size_t>(((currentAnimation % count) + count) % count);
 
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

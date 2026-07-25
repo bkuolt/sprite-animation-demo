@@ -22,9 +22,13 @@ namespace
             return;
         }
 
-        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+        if ((key == GLFW_KEY_SPACE || key == GLFW_KEY_UP) && action == GLFW_PRESS)
         {
             currentAnimation++;
+        }
+        else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+        {
+            currentAnimation--;
         }
 
         auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
