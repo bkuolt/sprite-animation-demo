@@ -1,18 +1,19 @@
 #ifndef __BGL_KTX_HPP__
 #define __BGL_KTX_HPP__
 
+#include "loader.hpp"
 #include <ktx.h>
 #include <filesystem>
 
 namespace bgl::ktx
 {
-    class Loader
+    class Loader : public bgl::ITextureLoader
     {
     public:
         Loader(const std::filesystem::path &path, ktx_transcode_fmt_e targetFormat);
         virtual ~Loader();
 
-        GLuint upload();
+        GLuint upload() override;
 
     private:
         void load(const std::filesystem::path &path);

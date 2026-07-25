@@ -1,0 +1,95 @@
+#include "jpeg.hpp"
+
+#include <jpeglib.h>
+#include <csetjmp>
+#include <spdlog/spdlog.h>
+#include <cstdio>
+#include <stdexcept>
+
+namespace
+{
+    struct CustomJpegErrorMgr
+    {
+        struct jpeg_error_mgr pub;
+        jmp_buf setjmp_buffer;
+    };
+
+    METHODDEF(void) CustomJpegErrorExit(j_common_ptr cinfo)
+    {
+        CustomJpegErrorMgr *err = reinterpret_cast<CustomJpegErrorMgr *>(cinfo->err);
+        (*cinfo->err->output_message)(cinfo);
+        longjmp(err->setjmp_buffer, 1);
+    }
+} // namespace
+
+namespace bgl::jpeg
+{
+    Loader::Loader(const std::filesystem::path &path)
+    {
+        loadFile(path);
+    }
+
+    Loader::Loader(const std::vector<std::filesystem::path> &paths)
+    {
+        for (const auto &p : paths)
+        {
+            loadFile(p);
+        }
+    }
+
+    GLuint Loader::upload()
+    {
+        return UploadRawArray(_layers, true);
+    }
+
+    void Loader::loadFile(const std::filesystem::path &path)
+    {
+        FILE *fp = std::fopen(path.string().c_str(), "rb");
+        if (!fp)
+        {
+            throw std::runtime_error(fmt::format("Failed to open JPEG file: {}", path.string()));
+        }
+
+        struct jpeg_decompress_struct cinfo;
+        CustomJpegErrorMgr jerr;
+
+        cinfo.err = jpeg_std_error(&jerr.pub);
+        jerr.pub.error_exit = CustomJpegErrorExit;
+
+        if (setjmp(jerr.setjmp_buffer))
+        {
+            jpeg_destroy_decompress(&cinfo);
+            std::fclose(fp);
+            throw std::runtime_error(fmt::format("Error reading JPEG file: {}", path.string()));
+        }
+
+        jpeg_create_decompress(&cinfo);
+        jpeg_stdio_src(&cinfo, fp);
+        jpeg_read_header(&cinfo, TRUE);
+
+        cinfo.out_color_space = JCS_RGB;
+        jpeg_start_decompress(&cinfo);
+
+        ImageLayer layer;
+        layer.width = cinfo.output_width;
+        layer.height = cinfo.output_height;
+        layer.channels = cinfo.output_components;
+        layer.data.resize(layer.width * layer.height * layer.channels);
+
+        const int row_stride = layer.width * layer.channels;
+        JSAMPROW row_pointer[1];
+
+        while (cinfo.output_scanline < cinfo.output_height)
+        {
+            row_pointer[0] = &layer.data[cinfo.output_scanline * row_stride];
+            jpeg_read_scanlines(&cinfo, row_pointer, 1);
+        }
+
+        jpeg_finish_decompress(&cinfo);
+        jpeg_destroy_decompress(&cinfo);
+        std::fclose(fp);
+
+        spdlog::info("Loaded JPEG image: {} ({}x{})", path.string(), layer.width, layer.height);
+        _layers.push_back(std::move(layer));
+    }
+} // namespace bgl::jpeg

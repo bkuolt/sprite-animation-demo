@@ -1,9 +1,14 @@
+#include "texture.hpp"
+
 #include "glad/gl.h"
 #include "KHR/khrplatform.h"
 #include <GLFW/glfw3.h>
 #include <ktx.h>
 
 #include <spdlog/spdlog.h>
+#include <stdexcept>
+#include <cmath>
+#include <algorithm>
 
 constexpr GLenum GetGlInternalFormat(ktx_transcode_fmt_e format)
 {
@@ -25,6 +30,7 @@ constexpr GLenum GetGlInternalFormat(ktx_transcode_fmt_e format)
         throw std::runtime_error("Unsupported target format for GL mapping");
     }
 }
+
 GLuint UploadArray(ktxTexture2 *_texture, ktx_transcode_fmt_e _targetFormat)
 {
     if (!_texture)
@@ -90,3 +96,53 @@ GLuint UploadArray(ktxTexture2 *_texture, ktx_transcode_fmt_e _targetFormat)
     spdlog::info("Successfully uploaded KTX2 Array Texture to GL ID: {}", textureId);
     return textureId;
 }
+
+namespace bgl
+{
+    GLuint UploadRawArray(const std::vector<ImageLayer> &layers, bool generateMipmaps)
+    {
+        if (layers.empty())
+        {
+            throw std::runtime_error("Cannot upload empty layer list as texture array");
+        }
+
+        const uint32_t width = layers[0].width;
+        const uint32_t height = layers[0].height;
+        const uint32_t channels = layers[0].channels;
+        const uint32_t numLayers = static_cast<uint32_t>(layers.size());
+
+        const GLenum format = (channels == 3) ? GL_RGB : GL_RGBA;
+        const GLenum internalFormat = (channels == 3) ? GL_RGB8 : GL_RGBA8;
+
+        const GLsizei mipLevels = generateMipmaps 
+            ? static_cast<GLsizei>(std::floor(std::log2(std::max(width, height)))) + 1 
+            : 1;
+
+        GLuint textureId = 0;
+        glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &textureId);
+
+        glTextureParameteri(textureId, GL_TEXTURE_MIN_FILTER, generateMipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+        glTextureParameteri(textureId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(textureId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(textureId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTextureStorage3D(textureId, mipLevels, internalFormat, width, height, numLayers);
+
+        for (uint32_t layer = 0; layer < numLayers; ++layer)
+        {
+            if (layers[layer].data.empty())
+            {
+                throw std::runtime_error(fmt::format("Layer {} has empty data buffer", layer));
+            }
+            glTextureSubImage3D(textureId, 0, 0, 0, layer, width, height, 1, format, GL_UNSIGNED_BYTE, layers[layer].data.data());
+        }
+
+        if (generateMipmaps)
+        {
+            glGenerateTextureMipmap(textureId);
+        }
+
+        spdlog::info("Successfully uploaded Raw Image Array ({} layers, {}x{}) to GL ID: {}", numLayers, width, height, textureId);
+        return textureId;
+    }
+} // namespace bgl

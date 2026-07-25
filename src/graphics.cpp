@@ -8,7 +8,11 @@
 #include <fmt/ranges.h> // fmt::join
 
 #include <glm/vec2.hpp>
-#include "ktx.hpp"
+#include "loaders/loader.hpp"
+#include "loaders/ktx.hpp"
+#include "loaders/png.hpp"
+#include "loaders/jpeg.hpp"
+#include <memory>
 #include <print>
 
 #include "shader.hpp"
@@ -188,11 +192,17 @@ namespace bgl
             basePath / "assets" / "slide.ktx2",
             basePath / "assets" / "dead.ktx2"};
 
-        _textureIDs.resize(fileNames.size());
-        for (size_t i = 0; i < fileNames.size(); ++i)
+        std::vector<std::unique_ptr<bgl::ITextureLoader>> loaders;
+        loaders.reserve(fileNames.size());
+        for (const auto &file : fileNames)
         {
-            bgl::ktx::Loader loader(fileNames[i], KTX_TTF_BC3_RGBA);
-            _textureIDs[i] = loader.upload();
+            loaders.push_back(std::make_unique<bgl::ktx::Loader>(file, KTX_TTF_BC3_RGBA));
+        }
+
+        _textureIDs.resize(loaders.size());
+        for (size_t i = 0; i < loaders.size(); ++i)
+        {
+            _textureIDs[i] = loaders[i]->upload();
         }
 
         // Load shaders
