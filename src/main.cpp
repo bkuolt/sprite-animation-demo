@@ -7,12 +7,15 @@
 #include "loaders/ktx.hpp"
 
 #include <spdlog/spdlog.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/vec2.hpp>
 #include <csignal>
 #include <cmath>
 #include <vector>
 #include <array>
 #include <filesystem>
 #include <memory>
+#include <algorithm>
 
 extern int currentAnimation;
 
@@ -37,6 +40,68 @@ int main()
     try
     {
         g_window = std::make_unique<Window>();
+
+        float zoomLevel = 1.0f;
+        glm::vec2 cameraPosition{0.0f, 0.0f};
+        bool isPanning = false;
+        glm::vec2 lastMousePos{0.0f, 0.0f};
+
+        g_window->setScrollCallback([&zoomLevel](double /*xoffset*/, double yoffset)
+        {
+            if (yoffset > 0)
+            {
+                zoomLevel *= 0.9f;
+            }
+            else if (yoffset < 0)
+            {
+                zoomLevel *= 1.1f;
+            }
+            zoomLevel = std::clamp(zoomLevel, 0.1f, 10.0f);
+            spdlog::info("Camera zoom: {:.2f}", zoomLevel);
+        });
+
+        g_window->setMouseButtonCallback([&](int button, int action, int /*mods*/)
+        {
+            if (button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_MIDDLE || button == GLFW_MOUSE_BUTTON_RIGHT)
+            {
+                if (action == GLFW_PRESS)
+                {
+                    isPanning = true;
+                }
+                else if (action == GLFW_RELEASE)
+                {
+                    isPanning = false;
+                }
+            }
+        });
+
+        g_window->setCursorPosCallback([&](double xpos, double ypos)
+        {
+            const glm::vec2 currentPos{static_cast<float>(xpos), static_cast<float>(ypos)};
+            if (isPanning)
+            {
+                const glm::vec2 delta = currentPos - lastMousePos;
+                const auto winSize = g_window->getWindowSize();
+                const float aspect = winSize.x / winSize.y;
+
+                const float worldWidth = 2.0f * zoomLevel * aspect;
+                const float worldHeight = 2.0f * zoomLevel;
+
+                cameraPosition.x -= delta.x * (worldWidth / winSize.x);
+                cameraPosition.y += delta.y * (worldHeight / winSize.y);
+            }
+            lastMousePos = currentPos;
+        });
+
+        g_window->setKeyCallback([&](int key, int /*scancode*/, int action, int /*mods*/)
+        {
+            if (key == GLFW_KEY_R && action == GLFW_PRESS)
+            {
+                cameraPosition = {0.0f, 0.0f};
+                zoomLevel = 1.0f;
+                spdlog::info("Camera reset to position (0, 0) and zoom 1.0");
+            }
+        });
 
         const auto binaryPath = std::filesystem::read_symlink("/proc/self/exe");
         const auto basePath = binaryPath.parent_path();
@@ -94,7 +159,17 @@ int main()
             const int currentFrame = static_cast<int>(std::floor(totalFrames)) % num_frames;
             const float tweenFactor = static_cast<float>(totalFrames - std::floor(totalFrames));
 
-            bgl::renderQuad(quadMesh, textureIDs[currentTexture], program, currentFrame, tweenFactor);
+            const auto winSize = g_window->getWindowSize();
+            const float aspect = winSize.x / winSize.y;
+            const glm::mat4 projection = glm::ortho(
+                cameraPosition.x - zoomLevel * aspect,
+                cameraPosition.x + zoomLevel * aspect,
+                cameraPosition.y - zoomLevel,
+                cameraPosition.y + zoomLevel,
+                -1.0f, 1.0f
+            );
+
+            bgl::renderQuad(quadMesh, textureIDs[currentTexture], program, currentFrame, tweenFactor, projection);
         });
 
         g_window->run();

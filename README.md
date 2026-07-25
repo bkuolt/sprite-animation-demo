@@ -4,13 +4,14 @@
 ![OpenGL 4.6](https://img.shields.io/badge/OpenGL-4.6-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-A high-performance 2D sprite animation demo built with modern C++23 and OpenGL 4.6. This project showcases polymorphic texture loading (`KTX2`, `PNG`, `JPEG`), callback-driven windowing, GPU frame-tweening, and SPIR-V shaders.
+A high-performance 2D sprite animation demo built with modern C++23 and OpenGL 4.6. This project showcases polymorphic texture loading (`KTX2`, `PNG`, `JPEG`), callback-driven windowing, orthographic 2D camera panning & zoom, GPU frame-tweening, and SPIR-V shaders.
 
 ---
 
 ## ✨ Features
 
 - **Modern Graphics Pipeline**: Utilizes Direct State Access (DSA) in OpenGL 4.6 for a clean, state-decoupled, and efficient rendering pipeline.
+- **Interactive 2D Camera**: Orthographic camera (`glm::ortho`) with mouse-drag panning, mouse-wheel zoom, camera position reset (`R` key), and aspect-ratio preservation.
 - **Polymorphic Texture Loaders**: Abstracted texture loading interface (`bgl::ITextureLoader`) supporting `KTX2` (Basis Universal compressed), `PNG` (`libpng`), and `JPEG` (`libjpeg`) textures uploaded to `GL_TEXTURE_2D_ARRAY`.
 - **Callback-Driven Architecture**: Decoupled rendering and event handling where application logic resides in `main.cpp` and window management is delegated to `Window`.
 - **SPIR-V Shaders**: Pre-compiled SPIR-V binary shaders loaded directly via OpenGL 4.6 `glShaderBinary` and specialized with `glSpecializeShaderARB`.
@@ -74,9 +75,12 @@ task run
 
 ## 🎮 Controls
 
-- **`Pfeil-oben` / `Leertaste`**: Switch to the next animation.
-- **`Pfeil-unten`**: Switch to the previous animation.
-- **`ESC` / `Ctrl+C`**: Gracefully exit application.
+- **`Maus drag (Gedrückte Maustaste + Ziehen)`**: Kamera pannen (Verschieben der 2D-Kameraansicht).
+- **`Mausrad Hoch / Runter`**: Rein- und Rauszoomen (Kamera-Zoom).
+- **`Taste R`**: Kamera zurücksetzen (Position `(0, 0)` & Zoom `1.0`).
+- **`Pfeil-oben` / `Leertaste`**: Schaltet zur nächsten Animation.
+- **`Pfeil-unten`**: Schaltet zur vorherigen Animation.
+- **`ESC` / `Ctrl+C`**: Anwendung sauber beenden.
 
 ---
 

@@ -5,6 +5,7 @@
 
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <spdlog/spdlog.h>
 #include <stdexcept>
@@ -156,10 +157,11 @@ namespace bgl
         return quad;
     }
 
-    void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor)
+    void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor, const glm::mat4 &projection)
     {
         glProgramUniform1i(shaderProgram, 3, currentFrameIndex);
         glProgramUniform1f(shaderProgram, 4, tweenFactor);
+        glProgramUniformMatrix4fv(shaderProgram, 5, 1, GL_FALSE, glm::value_ptr(projection));
         glUseProgram(shaderProgram);
 
         glBindTextureUnit(0, textureID);

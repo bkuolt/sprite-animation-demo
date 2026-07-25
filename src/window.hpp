@@ -13,6 +13,9 @@ class Window
 public:
     using RenderCallback = std::function<void(double time)>;
     using KeyCallback = std::function<void(int key, int scancode, int action, int mods)>;
+    using ScrollCallback = std::function<void(double xoffset, double yoffset)>;
+    using CursorPosCallback = std::function<void(double xpos, double ypos)>;
+    using MouseButtonCallback = std::function<void(int button, int action, int mods)>;
 
     Window();
     ~Window();
@@ -24,7 +27,16 @@ public:
 
     void setRenderCallback(RenderCallback callback);
     void setKeyCallback(KeyCallback callback);
+    void setScrollCallback(ScrollCallback callback);
+    void setCursorPosCallback(CursorPosCallback callback);
+    void setMouseButtonCallback(MouseButtonCallback callback);
+
     [[nodiscard]] const KeyCallback &getKeyCallback() const noexcept { return _keyCallback; }
+    [[nodiscard]] const ScrollCallback &getScrollCallback() const noexcept { return _scrollCallback; }
+    [[nodiscard]] const CursorPosCallback &getCursorPosCallback() const noexcept { return _cursorPosCallback; }
+    [[nodiscard]] const MouseButtonCallback &getMouseButtonCallback() const noexcept { return _mouseButtonCallback; }
+
+    [[nodiscard]] glm::vec2 getWindowSize() const;
 
     void close();
     void run();
@@ -37,4 +49,7 @@ protected:
     GLFWwindow *_window{nullptr};
     RenderCallback _renderCallback;
     KeyCallback _keyCallback;
+    ScrollCallback _scrollCallback;
+    CursorPosCallback _cursorPosCallback;
+    MouseButtonCallback _mouseButtonCallback;
 };

@@ -38,9 +38,37 @@ namespace
         }
     }
 
-    void MouseCallback(GLFWwindow * /*window*/, double xpos, double ypos)
+    void CursorPosCallbackInternal(GLFWwindow *window, double xpos, double ypos)
     {
         spdlog::trace("Mouse moved to ({}, {})", xpos, ypos);
+
+        auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+        if (win && win->getCursorPosCallback())
+        {
+            win->getCursorPosCallback()(xpos, ypos);
+        }
+    }
+
+    void MouseButtonCallbackInternal(GLFWwindow *window, int button, int action, int mods)
+    {
+        spdlog::trace("Mouse button {} action {}", button, action);
+
+        auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+        if (win && win->getMouseButtonCallback())
+        {
+            win->getMouseButtonCallback()(button, action, mods);
+        }
+    }
+
+    void ScrollCallbackInternal(GLFWwindow *window, double xoffset, double yoffset)
+    {
+        spdlog::trace("Mouse scroll: ({}, {})", xoffset, yoffset);
+
+        auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+        if (win && win->getScrollCallback())
+        {
+            win->getScrollCallback()(xoffset, yoffset);
+        }
     }
 
     void WindowCloseCallback(GLFWwindow * /*window*/)
@@ -64,6 +92,17 @@ glm::vec2 Window::getScreenSize() const
     }
 
     return {static_cast<float>(mode->width), static_cast<float>(mode->height)};
+}
+
+glm::vec2 Window::getWindowSize() const
+{
+    int width = 0;
+    int height = 0;
+    if (_window)
+    {
+        glfwGetFramebufferSize(_window, &width, &height);
+    }
+    return {static_cast<float>(width > 0 ? width : 1), static_cast<float>(height > 0 ? height : 1)};
 }
 
 Window::Window()
@@ -117,6 +156,21 @@ void Window::setKeyCallback(KeyCallback callback)
     _keyCallback = std::move(callback);
 }
 
+void Window::setScrollCallback(ScrollCallback callback)
+{
+    _scrollCallback = std::move(callback);
+}
+
+void Window::setCursorPosCallback(CursorPosCallback callback)
+{
+    _cursorPosCallback = std::move(callback);
+}
+
+void Window::setMouseButtonCallback(MouseButtonCallback callback)
+{
+    _mouseButtonCallback = std::move(callback);
+}
+
 void Window::close()
 {
     if (_window)
@@ -130,7 +184,9 @@ void Window::registerCallbacks()
     glfwSetWindowUserPointer(_window, this);
 
     glfwSetKeyCallback(_window, KeyboardCallback);
-    glfwSetCursorPosCallback(_window, MouseCallback);
+    glfwSetCursorPosCallback(_window, CursorPosCallbackInternal);
+    glfwSetMouseButtonCallback(_window, MouseButtonCallbackInternal);
+    glfwSetScrollCallback(_window, ScrollCallbackInternal);
     glfwSetWindowCloseCallback(_window, WindowCloseCallback);
 
     glfwSetWindowFocusCallback(_window, nullptr);

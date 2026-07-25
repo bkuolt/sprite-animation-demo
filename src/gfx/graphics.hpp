@@ -5,6 +5,7 @@
 
 #include "glad/gl.h"
 #include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
 
 namespace bgl
 {
@@ -20,5 +21,5 @@ namespace bgl
     void IntitializeOpenGL();
 
     [[nodiscard]] QuadMesh create2DQuad();
-    void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor);
+    void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor, const glm::mat4 &projection);
 } // namespace bgl
