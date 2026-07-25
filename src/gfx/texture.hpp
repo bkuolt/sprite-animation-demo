@@ -7,7 +7,6 @@
 #include <ktx.h>
 #include <vector>
 #include <cstdint>
-#include <cstddef>
 #include <span>
 
 [[nodiscard]] GLuint UploadArray(ktxTexture2 *texture, ktx_transcode_fmt_e targetFormat);

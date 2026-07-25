@@ -6,7 +6,6 @@
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>
 #include <glm/vec2.hpp>
-
 #include <functional>
 
 class Window

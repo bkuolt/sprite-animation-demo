@@ -4,8 +4,6 @@
 #pragma once
 
 #include "glad/gl.h"
-#include <vector>
-#include <filesystem>
 #include <glm/vec2.hpp>
 
 namespace bgl

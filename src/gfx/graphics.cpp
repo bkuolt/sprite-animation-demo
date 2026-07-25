@@ -4,15 +4,15 @@
 #include "graphics.hpp"
 
 #include "glad/gl.h"
-#include "KHR/khrplatform.h"
 #include <GLFW/glfw3.h>
 
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <fmt/ranges.h>
-#include <glm/vec2.hpp>
 #include <array>
 #include <string_view>
+#include <vector>
+#include <string>
 
 namespace
 {

@@ -18,9 +18,9 @@ find_package(JPEG REQUIRED)
 add_executable(app
     src/main.cpp
     src/window.cpp
-    src/shader.cpp
-    src/graphics.cpp
-    src/texture.cpp
+    src/gfx/shader.cpp
+    src/gfx/graphics.cpp
+    src/gfx/texture.cpp
     src/loaders/ktx.cpp
     src/loaders/png.cpp
     src/loaders/jpeg.cpp

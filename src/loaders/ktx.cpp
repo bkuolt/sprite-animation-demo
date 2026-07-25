@@ -2,7 +2,7 @@
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
 #include "ktx.hpp"
-#include "../texture.hpp"
+#include "../gfx/texture.hpp"
 
 #include "glad/gl.h"
 

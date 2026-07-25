@@ -4,7 +4,7 @@
 #pragma once
 
 #include "loader.hpp"
-#include "../texture.hpp"
+#include "../gfx/texture.hpp"
 #include <filesystem>
 #include <vector>
 #include <span>

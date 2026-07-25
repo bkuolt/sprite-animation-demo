@@ -2,24 +2,17 @@
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
 #include "window.hpp"
-#include "graphics.hpp"
-
-#include "glad/gl.h"
-#include "KHR/khrplatform.h"
+#include "gfx/graphics.hpp"
 
 #include <GLFW/glfw3.h>
-#include <iostream>
-#include <glm/common.hpp>
-#include <glm/vec2.hpp>
-#include <fmt/ranges.h>
 #include <spdlog/spdlog.h>
-#include <fmt/core.h>
+#include <stdexcept>
 
 int currentAnimation = 0;
 
 namespace
 {
-    void KeyboardCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+    void KeyboardCallback(GLFWwindow *window, int key, int /*scancode*/, int action, int mods)
     {
         spdlog::trace("Key {} pressed", key);
 
@@ -37,7 +30,7 @@ namespace
         auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
         if (win && win->getKeyCallback())
         {
-            win->getKeyCallback()(key, scancode, action, mods);
+            win->getKeyCallback()(key, key, action, mods);
         }
     }
 

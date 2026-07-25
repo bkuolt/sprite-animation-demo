@@ -2,20 +2,17 @@
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
 #include "window.hpp"
-#include "graphics.hpp"
-#include "shader.hpp"
-#include "loaders/loader.hpp"
+#include "gfx/graphics.hpp"
+#include "gfx/shader.hpp"
 #include "loaders/ktx.hpp"
-#include "loaders/png.hpp"
-#include "loaders/jpeg.hpp"
 
 #include <spdlog/spdlog.h>
 #include <csignal>
 #include <cmath>
 #include <vector>
+#include <array>
 #include <filesystem>
 #include <memory>
-#include <span>
 
 extern int currentAnimation;
 

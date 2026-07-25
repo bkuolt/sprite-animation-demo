@@ -4,8 +4,6 @@
 #include "texture.hpp"
 
 #include "glad/gl.h"
-#include "KHR/khrplatform.h"
-#include <GLFW/glfw3.h>
 #include <ktx.h>
 
 #include <spdlog/spdlog.h>
