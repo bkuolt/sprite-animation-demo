@@ -11,6 +11,8 @@ freetype/2.13.2
 harfbuzz/8.3.0
 fontconfig/2.15.0
 pngpp/0.2.10
+nlohmann_json/3.11.3
+
 
 
 [generators]
@@ -19,3 +21,7 @@ CMakeToolchain
 
 [layout]
 cmake_layout
+
+[options]
+glad/*:gl_version=4.6
+glad/*:gl_profile=core

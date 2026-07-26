@@ -61,6 +61,8 @@ class Application
     QuadMesh m_overlayQuad;
     QuadMesh m_bgQuad;
 
+    std::unique_ptr<gfx::Sampler> m_defaultSampler;
+
     GLuint m_snowVAO = 0;
     GLuint m_snowVBO = 0;
     GLuint m_quadVBO = 0;

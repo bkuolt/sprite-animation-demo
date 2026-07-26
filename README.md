@@ -4,7 +4,7 @@
 ![OpenGL 4.6](https://img.shields.io/badge/OpenGL-4.6-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-A high-performance 2D sprite animation demo built with modern C++23 and OpenGL 4.6. This project showcases polymorphic texture loading (`KTX2`, `PNG`, `JPEG`), callback-driven windowing, orthographic 2D camera panning & zoom, GPU frame-tweening, and SPIR-V shaders.
+Modernized C++23 OpenGL sprite animation demonstration featuring Direct State Access (DSA), `nlohmann_json` asset configuration, HarfBuzz text shaping, and automated Doxygen (GitBook) documentation.
 
 ---
 

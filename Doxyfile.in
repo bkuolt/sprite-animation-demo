@@ -1,0 +1,7 @@
+PROJECT_NAME           = "Sprite Animation Demo"
+OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/docs
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/src
+RECURSIVE              = YES
+GENERATE_HTML          = YES
+HTML_EXTRA_STYLESHEET  = @DOXYGEN_AWESOME_CSS_DIR@/doxygen-awesome.css
+GENERATE_LATEX         = NO

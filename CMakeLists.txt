@@ -18,6 +18,7 @@ find_package(freetype REQUIRED)
 find_package(harfbuzz REQUIRED)
 find_package(Fontconfig REQUIRED)
 find_package(pngpp REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 option(BGL_ENABLE_PNG_LOADER "Enable PNG texture loader" ON)
 option(BGL_ENABLE_JPEG_LOADER "Enable JPEG texture loader" OFF)
@@ -32,6 +33,7 @@ set(APP_SOURCES
     src/gfx/graphics.cpp
     src/gfx/texture2d.cpp
     src/gfx/texture2dArray.cpp
+    src/gfx/sampler.cpp
     src/gfx/font.cpp
     src/gfx/textShaper.cpp
     src/gfx/textRenderer.cpp
@@ -68,6 +70,7 @@ target_link_libraries(app PRIVATE
     Freetype::Freetype
     harfbuzz::harfbuzz
     Fontconfig::Fontconfig
+    nlohmann_json::nlohmann_json
 )
 
 if(BGL_ENABLE_PNG_LOADER)
@@ -101,6 +104,7 @@ file(GLOB_RECURSE ASSET_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/assets/*.jpg"
     "${CMAKE_SOURCE_DIR}/assets/*.ttf"
     "${CMAKE_SOURCE_DIR}/assets/*.otf"
+    "${CMAKE_SOURCE_DIR}/assets/*.json"
 )
 
 set(ASSET_DESTINATIONS "")
@@ -124,3 +128,26 @@ endforeach()
 
 add_custom_target(copy_assets ALL DEPENDS ${ASSET_DESTINATIONS})
 add_dependencies(app copy_assets)
+
+# --- Documentation ---
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+      doxygen-awesome-css
+      GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
+      GIT_TAG v2.3.3
+    )
+    FetchContent_MakeAvailable(doxygen-awesome-css)
+
+    set(DOXYGEN_AWESOME_CSS_DIR ${doxygen-awesome-css_SOURCE_DIR})
+
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+
+    add_custom_target(docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM
+    )
+endif()

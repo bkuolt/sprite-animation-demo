@@ -4,17 +4,19 @@
 #include "application.hpp"
 #include "gfx/textShaper.hpp"
 #include "io/ktxLoader.hpp"
-#include "io/pngLoader.hpp"
 #include "io/shaderLoader.hpp"
+#include "gfx/sampler.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/vec2.hpp>
+#include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 
 namespace bgl
@@ -28,6 +30,8 @@ Application::Application()
     initAssets();
     initShaders();
     initMeshes();
+
+    m_defaultSampler = bgl::CreateDefaultSampler();
 }
 
 Application::~Application()
@@ -111,34 +115,50 @@ void Application::initAssets()
     // Load a bold sans-serif font
     m_font = Font::LoadSystemFont("sans-serif:bold", 36);
 
-    auto hero = std::make_shared<Character>("Hero");
-    auto villain = std::make_shared<Character>("Villain");
-
-    const std::array fileNames{std::make_pair("Idle", basePath / "assets" / "textures" / "ktx" / "idle.ktx2"),
-                               std::make_pair("Walk", basePath / "assets" / "textures" / "ktx" / "walk.ktx2"),
-                               std::make_pair("Jump", basePath / "assets" / "textures" / "ktx" / "jump.ktx2"),
-                               std::make_pair("Run", basePath / "assets" / "textures" / "ktx" / "run.ktx2"),
-                               std::make_pair("Slide", basePath / "assets" / "textures" / "ktx" / "slide.ktx2"),
-                               std::make_pair("Dead", basePath / "assets" / "textures" / "ktx" / "dead.ktx2")};
-
-    for (const auto &[animName, file] : fileNames)
+    const auto jsonPath = basePath / "assets" / "animations.json";
+    std::ifstream f(jsonPath);
+    if (!f.is_open())
     {
-        io::KtxLoader loaderHero(file, KTX_TTF_BC3_RGBA);
-        auto texHero = loaderHero.upload();
-        GLint layersHero = 0;
-        glGetTextureLevelParameteriv(texHero->getHandle(), 0, GL_TEXTURE_DEPTH, &layersHero);
-        hero->addAnimation(animName, std::move(texHero), static_cast<uint32_t>(layersHero > 0 ? layersHero : 1));
-
-        io::KtxLoader loaderVillain(file, KTX_TTF_BC3_RGBA);
-        auto texVillain = loaderVillain.upload();
-        GLint layersVillain = 0;
-        glGetTextureLevelParameteriv(texVillain->getHandle(), 0, GL_TEXTURE_DEPTH, &layersVillain);
-        villain->addAnimation(animName, std::move(texVillain),
-                              static_cast<uint32_t>(layersVillain > 0 ? layersVillain : 1));
+        spdlog::error("Failed to open animations.json at {}", jsonPath.string());
+        return;
+    }
+    
+    nlohmann::json data;
+    try
+    {
+        data = nlohmann::json::parse(f);
+    }
+    catch (const nlohmann::json::parse_error& e)
+    {
+        spdlog::error("JSON parse error: {}", e.what());
+        return;
     }
 
-        m_characters.push_back(hero);
-        m_characters.push_back(villain);
+    if (!data.contains("characters")) return;
+
+    for (const auto& charNode : data["characters"])
+    {
+        std::string charName = charNode.value("name", "Unknown");
+        auto character = std::make_shared<Character>(charName);
+
+        if (charNode.contains("animations"))
+        {
+            for (const auto& animNode : charNode["animations"])
+            {
+                std::string animName = animNode.value("name", "Unknown");
+                std::string animFile = animNode.value("file", "");
+                if (animFile.empty()) continue;
+
+                auto file = basePath / "assets" / animFile;
+                io::KtxLoader loader(file, KTX_TTF_BC3_RGBA);
+                auto tex = loader.upload();
+                GLint layers = 0;
+                glGetTextureLevelParameteriv(tex->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
+                character->addAnimation(animName, std::move(tex), static_cast<uint32_t>(layers > 0 ? layers : 1));
+            }
+        }
+        m_characters.push_back(character);
+    }
 }
 
 void Application::initShaders()
@@ -231,6 +251,11 @@ void Application::renderFrame(double time)
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    if (m_defaultSampler)
+    {
+        m_defaultSampler->bind(0);
+    }
 
     const auto c = (static_cast<int>(time) % 10) / 10.0f;
     glClearColor(c * 0.2f, c * 0.1f, 0.3f, 1.0f);

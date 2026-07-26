@@ -46,11 +46,6 @@ Texture2DArray::Texture2DArray(ktxTexture2 *texture, ktx_transcode_fmt_e targetF
     const bool isCompressed = (targetFormat != KTX_TTF_RGBA32 && targetFormat != KTX_TTF_RGB565);
 
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_handle);
-    glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER,
-                        baseTexture->numLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-    glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(m_handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     const uint32_t numLayers = std::max(1u, baseTexture->numLayers);
     glTextureStorage3D(m_handle, baseTexture->numLevels, internalFormat, baseTexture->baseWidth,
@@ -107,10 +102,6 @@ Texture2DArray::Texture2DArray(std::span<const ImageLayer> layers, bool generate
         generateMipmaps ? static_cast<GLsizei>(std::floor(std::log2(std::max(width, height)))) + 1 : 1;
 
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_handle);
-    glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER, generateMipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-    glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(m_handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage3D(m_handle, mipLevels, internalFormat, width, height, numLayers);
 

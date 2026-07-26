@@ -2,6 +2,7 @@
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
 #include "graphics.hpp"
+#include "sampler.hpp"
 #include "../math.hpp"
 
 #include "glad/gl.h"
@@ -143,6 +144,9 @@ void IntitializeOpenGL()
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(DebugCallback, nullptr);
 
+    glEnable(GL_MULTISAMPLE);
+    spdlog::info("MSAA enabled if supported by the windowing system.");
+
     const auto extensions = getTextureCompressionExtensions();
     spdlog::info("Extensions: {}", fmt::join(extensions, ", "));
 
@@ -155,6 +159,30 @@ void IntitializeOpenGL()
     {
         throw std::runtime_error("GL_ARB_gl_spirv not supported!");
     }
+}
+
+std::unique_ptr<bgl::gfx::Sampler> CreateDefaultSampler()
+{
+    auto sampler = std::make_unique<bgl::gfx::Sampler>();
+    sampler->setFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+    sampler->setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+    if (GLAD_GL_EXT_texture_filter_anisotropic)
+    {
+        float maxAnisotropy = 1.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+        sampler->setAnisotropy(maxAnisotropy);
+        spdlog::info("Enabled Anisotropic Filtering (Max: {})", maxAnisotropy);
+    }
+    else if (GLAD_GL_VERSION_4_6)
+    {
+        float maxAnisotropy = 1.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy);
+        sampler->setAnisotropy(maxAnisotropy);
+        spdlog::info("Enabled Anisotropic Filtering (Core 4.6, Max: {})", maxAnisotropy);
+    }
+
+    return sampler;
 }
 
 QuadMesh create2DQuad()

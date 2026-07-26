@@ -28,10 +28,6 @@ Texture2D::Texture2D(const ImageLayer &image, bool generateMipmaps)
         generateMipmaps ? static_cast<GLsizei>(std::floor(std::log2(std::max(width, height)))) + 1 : 1;
 
     glCreateTextures(GL_TEXTURE_2D, 1, &m_handle);
-    glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER, generateMipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-    glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(m_handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(m_handle, mipLevels, internalFormat, width, height);
     glTextureSubImage2D(m_handle, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, image.data.data());

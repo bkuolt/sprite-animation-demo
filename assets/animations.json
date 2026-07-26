@@ -1,0 +1,26 @@
+{
+  "characters": [
+    {
+      "name": "Hero",
+      "animations": [
+        { "name": "Idle", "file": "textures/ktx/idle.ktx2" },
+        { "name": "Walk", "file": "textures/ktx/walk.ktx2" },
+        { "name": "Jump", "file": "textures/ktx/jump.ktx2" },
+        { "name": "Run", "file": "textures/ktx/run.ktx2" },
+        { "name": "Slide", "file": "textures/ktx/slide.ktx2" },
+        { "name": "Dead", "file": "textures/ktx/dead.ktx2" }
+      ]
+    },
+    {
+      "name": "Villain",
+      "animations": [
+        { "name": "Idle", "file": "textures/ktx/idle.ktx2" },
+        { "name": "Walk", "file": "textures/ktx/walk.ktx2" },
+        { "name": "Jump", "file": "textures/ktx/jump.ktx2" },
+        { "name": "Run", "file": "textures/ktx/run.ktx2" },
+        { "name": "Slide", "file": "textures/ktx/slide.ktx2" },
+        { "name": "Dead", "file": "textures/ktx/dead.ktx2" }
+      ]
+    }
+  ]
+}
