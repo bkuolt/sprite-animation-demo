@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "graphics.hpp"
+#include "Graphics.hpp"
+#include "../Math.hpp"
 
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>

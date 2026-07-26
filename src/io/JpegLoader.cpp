@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "jpeg.hpp"
+#include "JpegLoader.hpp"
 
 #include <jpeglib.h>
 #include <csetjmp>
@@ -26,14 +26,14 @@ namespace
     }
 } // namespace
 
-namespace bgl::jpeg
+namespace bgl::io
 {
-    Loader::Loader(const std::filesystem::path &path)
+    JpegLoader::JpegLoader(const std::filesystem::path &path)
     {
         loadFile(path);
     }
 
-    Loader::Loader(std::span<const std::filesystem::path> paths)
+    JpegLoader::JpegLoader(std::span<const std::filesystem::path> paths)
     {
         for (const auto &p : paths)
         {
@@ -41,12 +41,12 @@ namespace bgl::jpeg
         }
     }
 
-    GLuint Loader::upload()
+    std::unique_ptr<bgl::gfx::Texture2DArray> JpegLoader::upload()
     {
-        return UploadRawArray(_layers, true);
+        return std::make_unique<bgl::gfx::Texture2DArray>(_layers, true);
     }
 
-    void Loader::loadFile(const std::filesystem::path &path)
+    void JpegLoader::loadFile(const std::filesystem::path &path)
     {
         std::unique_ptr<FILE, int (*)(FILE *)> fp(std::fopen(path.string().c_str(), "rb"), std::fclose);
         if (!fp)
@@ -73,7 +73,7 @@ namespace bgl::jpeg
         cinfo.out_color_space = JCS_RGB;
         jpeg_start_decompress(&cinfo);
 
-        ImageLayer layer;
+        bgl::gfx::ImageLayer layer;
         layer.width = cinfo.output_width;
         layer.height = cinfo.output_height;
         layer.channels = cinfo.output_components;
@@ -94,4 +94,4 @@ namespace bgl::jpeg
         spdlog::info("Loaded JPEG image: {} ({}x{})", path.string(), layer.width, layer.height);
         _layers.push_back(std::move(layer));
     }
-} // namespace bgl::jpeg
+} // namespace bgl::io

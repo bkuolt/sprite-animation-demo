@@ -5,7 +5,10 @@
 
 #include <glad/gl.h>
 
-namespace bgl
+#include "../gfx/Texture2DArray.hpp"
+#include <memory>
+
+namespace bgl::io
 {
     /**
      * @brief Interface for polymorphic texture loaders.
@@ -17,8 +20,8 @@ namespace bgl
 
         /**
          * @brief Uploads loaded texture data to the GPU.
-         * @return OpenGL handle for the created GL_TEXTURE_2D_ARRAY texture.
+         * @return Unique pointer to the created Texture2DArray.
          */
-        [[nodiscard]] virtual GLuint upload() = 0;
+        [[nodiscard]] virtual std::unique_ptr<bgl::gfx::Texture2DArray> upload() = 0;
     };
-} // namespace bgl
+} // namespace bgl::io

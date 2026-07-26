@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "font.hpp"
-#include "text_shaper.hpp"
+#include "Font.hpp"
+#include "Text_shaper.hpp"
 
 #include <glad/gl.h>
 #include <glm/vec4.hpp>

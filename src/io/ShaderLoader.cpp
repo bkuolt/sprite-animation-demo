@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "shader.hpp"
+#include "ShaderLoader.hpp"
 #include "glad/gl.h"
 
 #include <vector>
@@ -11,6 +11,7 @@
 #include <string>
 #include <span>
 
+#ifdef BGL_ENABLE_GLSL_LOADER
 static GLuint compileGLSLShader(GLenum type, std::string_view source)
 {
     GLuint shader = glCreateShader(type);
@@ -38,6 +39,7 @@ static GLuint compileGLSLShader(GLenum type, std::string_view source)
     std::println("GLSL shader compiled successfully ({}).", (type == GL_VERTEX_SHADER ? "Vertex" : "Fragment"));
     return shader;
 }
+#endif
 
 static GLuint compileSPIRVShader(GLenum type, std::span<const uint32_t> spirvBinary)
 {
@@ -67,8 +69,9 @@ static GLuint compileSPIRVShader(GLenum type, std::span<const uint32_t> spirvBin
     return shader;
 }
 
-namespace bgl
+namespace bgl::io
 {
+#ifdef BGL_ENABLE_GLSL_LOADER
     std::string LoadShaderFromFile(const std::filesystem::path &path)
     {
         std::ifstream file(path, std::ios::in);
@@ -126,6 +129,7 @@ namespace bgl
         std::println("GLSL shader program created successfully.");
         return program;
     }
+#endif
 
     std::vector<uint32_t> LoadSPIRVShaderFromFile(const std::filesystem::path &path)
     {
@@ -190,4 +194,4 @@ namespace bgl
         return program;
     }
 
-} // namespace bgl
+} // namespace bgl::io

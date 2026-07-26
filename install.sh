@@ -24,7 +24,8 @@ sudo apt install -y \
     libxrandr-dev \
     libxinerama-dev \
     libxcursor-dev \
-    libxi-dev
+    libxi-dev \
+    libfontconfig1-dev
 
 pipx ensurepath || true
 

@@ -41,6 +41,7 @@ public:
     void close();
     void run();
     void run(RenderCallback callback);
+    void toggleFullscreen();
 
 protected:
     void registerCallbacks();
@@ -52,4 +53,9 @@ protected:
     ScrollCallback _scrollCallback;
     CursorPosCallback _cursorPosCallback;
     MouseButtonCallback _mouseButtonCallback;
+
+    bool _isPaused{false};
+    bool _isFullscreen{false};
+    int _windowedX{0}, _windowedY{0};
+    int _windowedWidth{800}, _windowedHeight{600};
 };

@@ -1,14 +1,56 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "font.hpp"
+#include "Font.hpp"
 
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <utility>
+#include <fontconfig/fontconfig.h>
 
 namespace bgl
 {
+    Font Font::LoadSystemFont(std::string_view fontName, uint32_t pixelSize)
+    {
+        FcConfig* config = FcInitLoadConfigAndFonts();
+        if (!config)
+        {
+            throw std::runtime_error("Failed to initialize fontconfig library");
+        }
+
+        std::string nameStr(fontName);
+        FcPattern* pat = FcNameParse(reinterpret_cast<const FcChar8*>(nameStr.c_str()));
+        FcConfigSubstitute(config, pat, FcMatchPattern);
+        FcDefaultSubstitute(pat);
+
+        FcResult result;
+        FcPattern* match = FcFontMatch(config, pat, &result);
+        
+        if (!match)
+        {
+            FcPatternDestroy(pat);
+            FcConfigDestroy(config);
+            throw std::runtime_error(fmt::format("Could not find system font matching: {}", fontName));
+        }
+
+        FcChar8* file = nullptr;
+        if (FcPatternGetString(match, FC_FILE, 0, &file) != FcResultMatch)
+        {
+            FcPatternDestroy(match);
+            FcPatternDestroy(pat);
+            FcConfigDestroy(config);
+            throw std::runtime_error(fmt::format("Failed to get file path for system font: {}", fontName));
+        }
+
+        std::string fontPath(reinterpret_cast<const char*>(file));
+        
+        FcPatternDestroy(match);
+        FcPatternDestroy(pat);
+        FcConfigDestroy(config);
+
+        spdlog::info("Fontconfig resolved '{}' to '{}'", fontName, fontPath);
+        return Font(fontPath, pixelSize);
+    }
     FontLibrary &FontLibrary::Instance()
     {
         static FontLibrary instance;

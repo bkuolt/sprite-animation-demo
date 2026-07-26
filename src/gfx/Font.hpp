@@ -38,6 +38,10 @@ namespace bgl
     public:
         Font(std::string_view fontPath, uint32_t pixelSize);
         Font(const uint8_t *data, size_t dataSize, uint32_t pixelSize);
+        
+        // Dynamically locate and load a system font using fontconfig
+        static Font LoadSystemFont(std::string_view fontName, uint32_t pixelSize);
+
         ~Font();
 
         Font(const Font &) = delete;

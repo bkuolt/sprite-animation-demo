@@ -17,6 +17,8 @@ A high-performance 2D sprite animation demo built with modern C++23 and OpenGL 4
 - **SPIR-V Shaders**: Pre-compiled SPIR-V binary shaders loaded directly via OpenGL 4.6 `glShaderBinary` and specialized with `glSpecializeShaderARB`.
 - **GPU-based Animation & Interpolation**: Smooth frame-to-frame tweening performed directly on the GPU within `sampler2DArray` textures.
 - **Modern C++23 Standard**: Written in strict C++23 using modern language features (`std::span`, `std::println`, smart pointers, `#pragma once`, zero macro pollution).
+- **CMake Options**: Modular build with optional `PNG`, `JPEG`, and `GLSL` source loader support (`BGL_ENABLE_PNG_LOADER`, `BGL_ENABLE_JPEG_LOADER`, `BGL_ENABLE_GLSL_LOADER`).
+- **Asset Pipeline**: Includes `tools/convert_to_ktx2.py` for automated PNG to KTX2 conversions using Basis Universal and Zstandard.
 - **Graceful Shutdown**: Intercepts `SIGINT` / `SIGTERM` signals for clean resource release and window termination.
 - **Build System**: Clean build setup with CMake 3.20+, Conan 2.x (with `conan.lock`), and Taskfile automation.
 

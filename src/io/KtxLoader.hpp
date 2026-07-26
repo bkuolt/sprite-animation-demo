@@ -3,22 +3,22 @@
 
 #pragma once
 
-#include "loader.hpp"
+#include "TextureLoader.hpp"
 #include <ktx.h>
 #include <filesystem>
 
-namespace bgl::ktx
+namespace bgl::io
 {
     /**
      * @brief Loader for KTX 2.0 container textures using Basis Universal transcoding.
      */
-    class Loader final : public bgl::ITextureLoader
+    class KtxLoader final : public bgl::io::ITextureLoader
     {
     public:
-        Loader(const std::filesystem::path &path, ktx_transcode_fmt_e targetFormat);
-        ~Loader() override;
+        KtxLoader(const std::filesystem::path &path, ktx_transcode_fmt_e targetFormat);
+        ~KtxLoader() override;
 
-        [[nodiscard]] GLuint upload() override;
+        [[nodiscard]] std::unique_ptr<bgl::gfx::Texture2DArray> upload() override;
 
     private:
         void load(const std::filesystem::path &path);
@@ -27,4 +27,4 @@ namespace bgl::ktx
         ktxTexture2 *_texture{nullptr};
         ktx_transcode_fmt_e _targetFormat;
     };
-} // namespace bgl::ktx
+} // namespace bgl::io

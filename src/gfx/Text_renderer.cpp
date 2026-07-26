@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "text_renderer.hpp"
+#include "Text_renderer.hpp"
 
 #include <spdlog/spdlog.h>
 #include <algorithm>

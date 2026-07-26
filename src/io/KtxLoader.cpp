@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "ktx.hpp"
-#include "../gfx/texture.hpp"
+#include "KtxLoader.hpp"
+#include "../gfx/Texture2DArray.hpp"
 
-#include "glad/gl.h"
-
+#include <glad/gl.h>
 #include <spdlog/spdlog.h>
 #include <unordered_set>
 #include <string>
 #include <filesystem>
 #include <stdexcept>
 
-namespace bgl::ktx
+namespace bgl::io
 {
     constexpr const char *glErrorString(GLenum error) noexcept
     {
@@ -58,74 +57,65 @@ namespace bgl::ktx
         return hasAlpha ? KTX_TTF_RGBA32 : KTX_TTF_RGB565;
     }
 
-    Loader::Loader(const std::filesystem::path &path, ktx_transcode_fmt_e targetFormat)
+    KtxLoader::KtxLoader(const std::filesystem::path &path, ktx_transcode_fmt_e targetFormat)
         : _targetFormat(targetFormat)
     {
-        try
-        {
-            load(path);
-        }
-        catch (...)
-        {
-            if (_texture)
-            {
-                ktxTexture2_Destroy(_texture);
-                _texture = nullptr;
-            }
-            throw;
-        }
-
-        spdlog::info("KTX layers: {}, levels: {}", _texture->numLayers, _texture->numLevels);
+        load(path);
+        transcode();
     }
 
-    Loader::~Loader()
+    KtxLoader::~KtxLoader()
     {
         if (_texture)
         {
-            ktxTexture2_Destroy(_texture);
+            ktxTexture_Destroy(ktxTexture(_texture));
+            _texture = nullptr;
         }
     }
 
-    GLuint Loader::upload()
+    void KtxLoader::load(const std::filesystem::path &path)
     {
-        return UploadArray(_texture, _targetFormat);
-    }
+        if (!std::filesystem::exists(path))
+        {
+            throw std::runtime_error(fmt::format("KTX file not found: {}", path.string()));
+        }
 
-    void Loader::load(const std::filesystem::path &path)
-    {
-        const KTX_error_code result = ktxTexture2_CreateFromNamedFile(
+        KTX_error_code result = ktxTexture2_CreateFromNamedFile(
             path.string().c_str(),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-            &_texture
-        );
+            &_texture);
 
         if (result != KTX_SUCCESS)
         {
-            throw std::runtime_error(fmt::format("Failed to load KTX file: {}", path.string()));
+            throw std::runtime_error(fmt::format("Failed to load KTX file: {}. Error: {}", path.string(), ktxErrorString(result)));
         }
 
         spdlog::info("Loaded KTX file: {}", path.string());
+    }
+
+    void KtxLoader::transcode()
+    {
+        if (!_texture)
+            return;
 
         if (ktxTexture2_NeedsTranscoding(_texture))
         {
-            transcode();
+            KTX_error_code result = ktxTexture2_TranscodeBasis(_texture, _targetFormat, 0);
+
+            if (result != KTX_SUCCESS)
+            {
+                throw std::runtime_error(fmt::format("Failed to transcode KTX texture. Error: {}", ktxErrorString(result)));
+            }
+
+            const auto uncompressedBytes = ktxTexture_GetDataSizeUncompressed(ktxTexture(_texture));
+            const auto compressedBytes = ktxTexture_GetDataSize(ktxTexture(_texture));
+            spdlog::info("Transcoded KTX texture - compressed: {} MB, uncompressed: {} MB", compressedBytes / (1024 * 1024), uncompressedBytes / (1024 * 1024));
+            spdlog::info("KTX layers: {}, levels: {}", _texture->numLayers, _texture->numLevels);
         }
     }
 
-    void Loader::transcode()
+    std::unique_ptr<bgl::gfx::Texture2DArray> KtxLoader::upload()
     {
-        const size_t compressedSize = _texture->dataSize;
-
-        const auto result = ktxTexture2_TranscodeBasis(_texture, _targetFormat, 0);
-        if (result != KTX_SUCCESS)
-        {
-            throw std::runtime_error("Failed to transcode KTX Basis texture");
-        }
-
-        const auto uncompressedSize = _texture->dataSize;
-        spdlog::info("Transcoded KTX texture - compressed: {} MB, uncompressed: {} MB",
-                     compressedSize / (1024 * 1024),
-                     uncompressedSize / (1024 * 1024));
+        return std::make_unique<bgl::gfx::Texture2DArray>(_texture, _targetFormat);
     }
-
-} // namespace bgl::ktx
+} // namespace bgl::io
