@@ -12,6 +12,7 @@ harfbuzz/8.3.0
 fontconfig/2.15.0
 pngpp/0.2.10
 nlohmann_json/3.11.3
+entt/3.13.0
 
 
 

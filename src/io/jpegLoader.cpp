@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2024-2026 Bastian. All rights reserved.
+// Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "jpegLoader.hpp"
 

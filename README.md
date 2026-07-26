@@ -1,5 +1,7 @@
 # OpenGL Sprite Animation Demo
 
+![Screenshot](assets/screenshot.png)
+
 ![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)
 ![OpenGL 4.6](https://img.shields.io/badge/OpenGL-4.6-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)

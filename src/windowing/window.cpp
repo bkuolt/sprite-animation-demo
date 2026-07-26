@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2024-2026 Bastian. All rights reserved.
+// Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "window.hpp"
 #include "../gfx/graphics.hpp"
+#include "../events/event.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
@@ -28,9 +29,10 @@ void KeyboardCallback(GLFWwindow *window, int key, int scancode, int action, int
             win->toggleFullscreen();
         }
 
-        if (win->getInputHandler().getKeyCallback())
+        auto* dispatcher = win->getInputHandler().getEventDispatcher();
+        if (dispatcher)
         {
-            win->getInputHandler().getKeyCallback()(key, scancode, action, mods);
+            dispatcher->trigger(bgl::events::KeyEvent{key, scancode, action, mods});
         }
     }
 }
@@ -39,9 +41,9 @@ void CursorPosCallbackInternal(GLFWwindow *window, double xpos, double ypos)
 {
     spdlog::trace("Mouse moved to ({}, {})", xpos, ypos);
     auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getInputHandler().getCursorPosCallback())
+    if (win && win->getInputHandler().getEventDispatcher())
     {
-        win->getInputHandler().getCursorPosCallback()(xpos, ypos);
+        win->getInputHandler().getEventDispatcher()->trigger(bgl::events::MouseMovedEvent{xpos, ypos});
     }
 }
 
@@ -49,9 +51,9 @@ void MouseButtonCallbackInternal(GLFWwindow *window, int button, int action, int
 {
     spdlog::trace("Mouse button {} action {}", button, action);
     auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getInputHandler().getMouseButtonCallback())
+    if (win && win->getInputHandler().getEventDispatcher())
     {
-        win->getInputHandler().getMouseButtonCallback()(button, action, mods);
+        win->getInputHandler().getEventDispatcher()->trigger(bgl::events::MouseButtonEvent{button, action, mods});
     }
 }
 
@@ -59,9 +61,9 @@ void ScrollCallbackInternal(GLFWwindow *window, double xoffset, double yoffset)
 {
     spdlog::trace("Mouse scroll: ({}, {})", xoffset, yoffset);
     auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getInputHandler().getScrollCallback())
+    if (win && win->getInputHandler().getEventDispatcher())
     {
-        win->getInputHandler().getScrollCallback()(xoffset, yoffset);
+        win->getInputHandler().getEventDispatcher()->trigger(bgl::events::ScrollEvent{xoffset, yoffset});
     }
 }
 
@@ -176,25 +178,7 @@ void Window::setRenderCallback(RenderCallback callback)
     _renderCallback = std::move(callback);
 }
 
-void Window::setKeyCallback(KeyCallback callback)
-{
-    _inputHandler.setKeyCallback(std::move(callback));
-}
 
-void Window::setScrollCallback(ScrollCallback callback)
-{
-    _inputHandler.setScrollCallback(std::move(callback));
-}
-
-void Window::setCursorPosCallback(CursorPosCallback callback)
-{
-    _inputHandler.setCursorPosCallback(std::move(callback));
-}
-
-void Window::setMouseButtonCallback(MouseButtonCallback callback)
-{
-    _inputHandler.setMouseButtonCallback(std::move(callback));
-}
 
 void Window::close()
 {

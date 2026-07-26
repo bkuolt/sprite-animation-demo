@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2024-2026 Bastian. All rights reserved.
+// Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #pragma once
 
@@ -13,6 +13,8 @@
 
 #include <glad/gl.h>
 #include <glm/vec2.hpp>
+#include <entt/entt.hpp>
+#include "events/event.hpp"
 #include <memory>
 #include <optional>
 #include <string>
@@ -35,12 +37,18 @@ class Application
     void initMeshes();
     void setupCallbacks();
 
+    void onKeyEvent(const events::KeyEvent& event);
+    void onScrollEvent(const events::ScrollEvent& event);
+    void onCursorPosEvent(const events::MouseMovedEvent& event);
+    void onMouseButtonEvent(const events::MouseButtonEvent& event);
+
     void renderFrame(double time);
     void renderBackground(const glm::mat4 &projection);
     void renderCharacter(double time, const glm::mat4 &projection);
     void renderSnow(double time, const glm::mat4 &projection);
     void renderUI(double time, const glm::vec2 &winSize);
 
+    entt::dispatcher m_eventDispatcher;
     std::unique_ptr<bgl::window::Window> m_window;
     std::vector<std::shared_ptr<Character>> m_characters;
     size_t m_currentCharacterIndex = 0;

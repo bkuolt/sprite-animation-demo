@@ -19,6 +19,7 @@ find_package(harfbuzz REQUIRED)
 find_package(Fontconfig REQUIRED)
 find_package(pngpp REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(EnTT REQUIRED)
 
 option(BGL_ENABLE_PNG_LOADER "Enable PNG texture loader" ON)
 option(BGL_ENABLE_JPEG_LOADER "Enable JPEG texture loader" OFF)
@@ -71,6 +72,7 @@ target_link_libraries(app PRIVATE
     harfbuzz::harfbuzz
     Fontconfig::Fontconfig
     nlohmann_json::nlohmann_json
+    EnTT::EnTT
 )
 
 if(BGL_ENABLE_PNG_LOADER)

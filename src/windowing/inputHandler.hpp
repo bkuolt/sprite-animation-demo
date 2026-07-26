@@ -1,40 +1,29 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2024-2026 Bastian. All rights reserved.
+// Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #pragma once
 
-#include <functional>
+#include <entt/entt.hpp>
 
 struct GLFWwindow;
 
 namespace bgl::window
 {
 
-using KeyCallback = std::function<void(int key, int scancode, int action, int mods)>;
-using CursorPosCallback = std::function<void(double xpos, double ypos)>;
-using MouseButtonCallback = std::function<void(int button, int action, int mods)>;
-using ScrollCallback = std::function<void(double xoffset, double yoffset)>;
-
 class InputHandler
 {
   public:
     InputHandler() = default;
 
-    void setKeyCallback(KeyCallback callback);
-    void setCursorPosCallback(CursorPosCallback callback);
-    void setMouseButtonCallback(MouseButtonCallback callback);
-    void setScrollCallback(ScrollCallback callback);
+    void setEventDispatcher(entt::dispatcher* dispatcher)
+    {
+        _dispatcher = dispatcher;
+    }
 
-    [[nodiscard]] const KeyCallback &getKeyCallback() const { return _keyCallback; }
-    [[nodiscard]] const CursorPosCallback &getCursorPosCallback() const { return _cursorPosCallback; }
-    [[nodiscard]] const MouseButtonCallback &getMouseButtonCallback() const { return _mouseButtonCallback; }
-    [[nodiscard]] const ScrollCallback &getScrollCallback() const { return _scrollCallback; }
+    [[nodiscard]] entt::dispatcher* getEventDispatcher() const { return _dispatcher; }
 
   private:
-    KeyCallback _keyCallback;
-    CursorPosCallback _cursorPosCallback;
-    MouseButtonCallback _mouseButtonCallback;
-    ScrollCallback _scrollCallback;
+    entt::dispatcher* _dispatcher{nullptr};
 };
 
 } // namespace bgl::window

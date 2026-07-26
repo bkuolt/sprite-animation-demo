@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2024-2026 Bastian. All rights reserved.
+// Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "application.hpp"
 #include "gfx/textShaper.hpp"
@@ -25,6 +25,7 @@ namespace bgl
 Application::Application()
 {
     m_window = std::make_unique<bgl::window::Window>();
+    m_window->setEventDispatcher(&m_eventDispatcher);
 
     setupCallbacks();
     initAssets();
@@ -65,47 +66,58 @@ Application::~Application()
 
 void Application::setupCallbacks()
 {
-    m_window->setScrollCallback([this](double /*xoffset*/, double yoffset) { m_camera.handleScroll(yoffset); });
-
-    m_window->setMouseButtonCallback(
-        [this](int button, int action, int /*mods*/) { m_camera.handleMouseButton(button, action); });
-
-    m_window->setCursorPosCallback([this](double xpos, double ypos) {
-        const auto winSize = m_window->getWindowSize();
-        m_camera.handleCursorPos(xpos, ypos, static_cast<float>(winSize.x), static_cast<float>(winSize.y));
-    });
-
-    m_window->setKeyCallback(
-        [this](int key, int /*scancode*/, int action, int /*mods*/)
-        {
-            if (key == GLFW_KEY_R && action == GLFW_PRESS)
-            {
-                m_camera.reset();
-            }
-
-            if (!m_characters.empty())
-            {
-                auto &current_char = m_characters[m_currentCharacterIndex];
-                if ((key == GLFW_KEY_SPACE || key == GLFW_KEY_UP) && action == GLFW_PRESS)
-                {
-                    current_char->nextAnimation();
-                }
-                else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
-                {
-                    current_char->previousAnimation();
-                }
-                else if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
-                {
-                    m_currentCharacterIndex = (m_currentCharacterIndex + 1) % m_characters.size();
-                }
-                else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
-                {
-                    m_currentCharacterIndex =
-                        (m_currentCharacterIndex > 0) ? (m_currentCharacterIndex - 1) : (m_characters.size() - 1);
-                }
-            }
-        });
+    m_eventDispatcher.sink<events::ScrollEvent>().connect<&Application::onScrollEvent>(this);
+    m_eventDispatcher.sink<events::MouseButtonEvent>().connect<&Application::onMouseButtonEvent>(this);
+    m_eventDispatcher.sink<events::MouseMovedEvent>().connect<&Application::onCursorPosEvent>(this);
+    m_eventDispatcher.sink<events::KeyEvent>().connect<&Application::onKeyEvent>(this);
 }
+
+void Application::onKeyEvent(const events::KeyEvent& event)
+{
+    if (event.key == GLFW_KEY_R && event.action == GLFW_PRESS)
+    {
+        m_camera.reset();
+    }
+
+    if (!m_characters.empty())
+    {
+        auto &current_char = m_characters[m_currentCharacterIndex];
+        if ((event.key == GLFW_KEY_SPACE || event.key == GLFW_KEY_UP) && event.action == GLFW_PRESS)
+        {
+            current_char->nextAnimation();
+        }
+        else if (event.key == GLFW_KEY_DOWN && event.action == GLFW_PRESS)
+        {
+            current_char->previousAnimation();
+        }
+        else if (event.key == GLFW_KEY_RIGHT && event.action == GLFW_PRESS)
+        {
+            m_currentCharacterIndex = (m_currentCharacterIndex + 1) % m_characters.size();
+        }
+        else if (event.key == GLFW_KEY_LEFT && event.action == GLFW_PRESS)
+        {
+            m_currentCharacterIndex =
+                (m_currentCharacterIndex > 0) ? (m_currentCharacterIndex - 1) : (m_characters.size() - 1);
+        }
+    }
+}
+
+void Application::onScrollEvent(const events::ScrollEvent& event)
+{
+    m_camera.handleScroll(event.yoffset);
+}
+
+void Application::onCursorPosEvent(const events::MouseMovedEvent& event)
+{
+    const auto winSize = m_window->getWindowSize();
+    m_camera.handleCursorPos(event.xpos, event.ypos, static_cast<float>(winSize.x), static_cast<float>(winSize.y));
+}
+
+void Application::onMouseButtonEvent(const events::MouseButtonEvent& event)
+{
+    m_camera.handleMouseButton(event.button, event.action);
+}
+
 
 void Application::initAssets()
 {

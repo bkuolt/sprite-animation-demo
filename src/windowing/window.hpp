@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2024-2026 Bastian. All rights reserved.
+// Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #pragma once
 
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>
-#include <functional>
 #include <glm/vec2.hpp>
+#include <entt/entt.hpp>
 #include "inputHandler.hpp"
 
 namespace bgl::window
@@ -29,10 +29,10 @@ class Window
     [[nodiscard]] const InputHandler &getInputHandler() const noexcept { return _inputHandler; }
 
     void setRenderCallback(RenderCallback callback);
-    void setKeyCallback(KeyCallback callback);
-    void setScrollCallback(ScrollCallback callback);
-    void setCursorPosCallback(CursorPosCallback callback);
-    void setMouseButtonCallback(MouseButtonCallback callback);
+    void setEventDispatcher(entt::dispatcher* dispatcher)
+    {
+        _inputHandler.setEventDispatcher(dispatcher);
+    }
 
     [[nodiscard]] glm::vec2 getWindowSize() const;
 
