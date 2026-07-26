@@ -5,12 +5,12 @@
 
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>
-#include <glm/vec2.hpp>
 #include <functional>
+#include <glm/vec2.hpp>
 
 class Window
 {
-public:
+  public:
     using RenderCallback = std::function<void(double time)>;
     using KeyCallback = std::function<void(int key, int scancode, int action, int mods)>;
     using ScrollCallback = std::function<void(double xoffset, double yoffset)>;
@@ -31,10 +31,22 @@ public:
     void setCursorPosCallback(CursorPosCallback callback);
     void setMouseButtonCallback(MouseButtonCallback callback);
 
-    [[nodiscard]] const KeyCallback &getKeyCallback() const noexcept { return _keyCallback; }
-    [[nodiscard]] const ScrollCallback &getScrollCallback() const noexcept { return _scrollCallback; }
-    [[nodiscard]] const CursorPosCallback &getCursorPosCallback() const noexcept { return _cursorPosCallback; }
-    [[nodiscard]] const MouseButtonCallback &getMouseButtonCallback() const noexcept { return _mouseButtonCallback; }
+    [[nodiscard]] const KeyCallback &getKeyCallback() const noexcept
+    {
+        return _keyCallback;
+    }
+    [[nodiscard]] const ScrollCallback &getScrollCallback() const noexcept
+    {
+        return _scrollCallback;
+    }
+    [[nodiscard]] const CursorPosCallback &getCursorPosCallback() const noexcept
+    {
+        return _cursorPosCallback;
+    }
+    [[nodiscard]] const MouseButtonCallback &getMouseButtonCallback() const noexcept
+    {
+        return _mouseButtonCallback;
+    }
 
     [[nodiscard]] glm::vec2 getWindowSize() const;
 
@@ -43,7 +55,7 @@ public:
     void run(RenderCallback callback);
     void toggleFullscreen();
 
-protected:
+  protected:
     void registerCallbacks();
     [[nodiscard]] glm::vec2 getScreenSize() const;
 

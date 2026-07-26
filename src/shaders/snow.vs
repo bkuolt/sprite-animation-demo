@@ -29,7 +29,7 @@ void main()
     y = mod(y + 2.0, 4.0) - 2.0; // Assume scene height is roughly [-2, 2]
     
     // Scale particle
-    float scale = 0.05 + hash(aOffset + vec2(1.0)) * 0.05;
+    float scale = 0.005 + hash(aOffset + vec2(1.0)) * 0.015;
     
     vec2 pos = aPos * scale + vec2(x, y);
     

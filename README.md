@@ -33,8 +33,9 @@ A high-performance 2D sprite animation demo built with modern C++23 and OpenGL 4
   - `glad`: OpenGL 4.6 Loader
   - `glm`: OpenGL Mathematics
   - `ktx`: Khronos KTX2 & Basis Universal Transcoder
-  - `libpng`: Portable Network Graphics library
-  - `libjpeg`: Independent JPEG Group's JPEG library
+  - `libpng` & `libjpeg`: PNG and JPEG fallback loaders
+  - `fontconfig` & `freetype`: System font resolution and text shaping
+  - `harfbuzz`: Advanced text shaping for UI overlays
   - `spdlog` & `fmt`: Fast logging and string formatting
 - **Build Automation**:
   - `CMake`: Build System
@@ -80,8 +81,9 @@ task run
 - **`Maus drag (Gedrückte Maustaste + Ziehen)`**: Kamera pannen (Verschieben der 2D-Kameraansicht).
 - **`Mausrad Hoch / Runter`**: Rein- und Rauszoomen (Kamera-Zoom).
 - **`Taste R`**: Kamera zurücksetzen (Position `(0, 0)` & Zoom `1.0`).
-- **`Pfeil-oben` / `Leertaste`**: Schaltet zur nächsten Animation.
+- **`Pfeil-oben` / `Leertaste`**: Schaltet zur nächsten Animation des aktuellen Charakters.
 - **`Pfeil-unten`**: Schaltet zur vorherigen Animation.
+- **`Pfeil-links` / `Pfeil-rechts`**: Wechselt zwischen den geladenen Charakteren (z.B. "Hero" und "Villain").
 - **`ESC` / `Ctrl+C`**: Anwendung sauber beenden.
 
 ---

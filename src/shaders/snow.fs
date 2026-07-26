@@ -3,12 +3,17 @@
 in vec2 TexCoords;
 out vec4 FragColor;
 
-layout(binding = 1) uniform sampler2D snowTexture;
+
 
 void main()
 {
-    vec4 texColor = texture(snowTexture, TexCoords);
-    if (texColor.a < 0.1)
+    // Procedural soft circle for snowflake
+    vec2 center = vec2(0.5, 0.5);
+    float dist = distance(TexCoords, center);
+    float alpha = 1.0 - smoothstep(0.1, 0.5, dist);
+    
+    if (alpha < 0.01)
         discard;
-    FragColor = texColor;
+        
+    FragColor = vec4(1.0, 1.0, 1.0, alpha);
 }

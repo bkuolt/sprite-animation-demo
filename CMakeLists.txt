@@ -17,13 +17,15 @@ find_package(JPEG REQUIRED)
 find_package(freetype REQUIRED)
 find_package(harfbuzz REQUIRED)
 find_package(Fontconfig REQUIRED)
+find_package(pngpp REQUIRED)
 
-option(BGL_ENABLE_PNG_LOADER "Enable PNG texture loader" OFF)
+option(BGL_ENABLE_PNG_LOADER "Enable PNG texture loader" ON)
 option(BGL_ENABLE_JPEG_LOADER "Enable JPEG texture loader" OFF)
-option(BGL_ENABLE_GLSL_LOADER "Enable GLSL runtime shader compiler" OFF)
+option(BGL_ENABLE_GLSL_LOADER "Enable GLSL runtime shader compiler" ON)
 
 set(APP_SOURCES
     src/main.cpp
+    src/Application.cpp
     src/Window.cpp
     src/Character.cpp
     src/gfx/Graphics.cpp
@@ -66,7 +68,7 @@ target_link_libraries(app PRIVATE
 )
 
 if(BGL_ENABLE_PNG_LOADER)
-    target_link_libraries(app PRIVATE PNG::PNG)
+    target_link_libraries(app PRIVATE PNG::PNG pngpp::pngpp)
     target_compile_definitions(app PRIVATE BGL_ENABLE_PNG_LOADER)
 endif()
 

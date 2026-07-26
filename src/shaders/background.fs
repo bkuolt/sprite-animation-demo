@@ -6,16 +6,21 @@ out vec4 FragColor;
 
 void main()
 {
-    // Checkered background pattern
-    float checkerSize = 20.0;
-    vec2 pos = floor(TexCoord * checkerSize);
-    float pattern = mod(pos.x + pos.y, 2.0);
+    // Checkerboard pattern (smaller squares)
+    float size = 30.0; 
+    vec2 p = TexCoord * size;
     
-    // Pattern color: dark grey and light grey
-    vec3 color1 = vec3(0.2);
-    vec3 color2 = vec3(0.3);
+    // Analytical anti-aliasing (box filter) to remove jagged edges
+    vec2 dpdx = dFdx(p);
+    vec2 dpdy = dFdy(p);
+    vec2 w = abs(dpdx) + abs(dpdy) + 0.001; // filter width
     
-    vec3 finalColor = mix(color1, color2, pattern);
+    // Integral of the step function over the pixel area
+    vec2 i = 2.0 * (abs(fract((p - 0.5 * w) * 0.5) - 0.5) - abs(fract((p + 0.5 * w) * 0.5) - 0.5)) / w;
+    float checker = 0.5 - 0.5 * i.x * i.y;
     
-    FragColor = vec4(finalColor, 1.0);
+    // Use grey tones instead of pure black/white
+    vec3 color = mix(vec3(0.25), vec3(0.35), checker);
+    
+    FragColor = vec4(color, 1.0);
 }

@@ -1,40 +1,18 @@
----
-Language: Cpp
 BasedOnStyle: LLVM
 Standard: c++20
-
-# Naming Conventions (PascalCase for classes, camelCase for functions/vars)
-# While clang-format cannot enforce all naming rules, we set formatting to match modern C++
 IndentWidth: 4
-TabWidth: 4
 UseTab: Never
 ColumnLimit: 120
-PointerAlignment: Right
-ReferenceAlignment: Right
-
-AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
-AlignOperands: Align
-
-AllowShortBlocksOnASingleLine: Empty
-AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
-
 BreakBeforeBraces: Allman
-BreakBeforeTernaryOperators: true
-
-SpaceBeforeAssignmentOperators: true
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+NamespaceIndentation: None
+PointerAlignment: Right
 SpaceBeforeParens: ControlStatements
-SpaceInEmptyParentheses: false
-
-SpacesInAngles: false
-SpacesInCStyleCastParentheses: false
-SpacesInParentheses: false
-SpacesInSquareBrackets: false
-
-FixNamespaceComments: true
-SortIncludes: CaseSensitive
-IncludeBlocks: Regroup
+DerivePointerAlignment: false
+AlignTrailingComments: true
+AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: false
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 2

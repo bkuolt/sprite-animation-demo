@@ -10,100 +10,102 @@
 
 namespace
 {
-    void KeyboardCallback(GLFWwindow *window, int key, int /*scancode*/, int action, int mods)
+void KeyboardCallback(GLFWwindow *window, int key, int /*scancode*/, int action, int mods)
+{
+    spdlog::trace("Key {} pressed", key);
+
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
-        spdlog::trace("Key {} pressed", key);
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+        return;
+    }
 
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    if (key == GLFW_KEY_F && action == GLFW_PRESS)
+    {
+        if (auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window)))
         {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-            return;
-        }
-
-        if (key == GLFW_KEY_F && action == GLFW_PRESS)
-        {
-            if (auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window)))
-            {
-                win->toggleFullscreen();
-            }
-        }
-
-        auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
-        if (win && win->getKeyCallback())
-        {
-            win->getKeyCallback()(key, key, action, mods);
+            win->toggleFullscreen();
         }
     }
 
-    void CursorPosCallbackInternal(GLFWwindow *window, double xpos, double ypos)
+    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+    if (win && win->getKeyCallback())
     {
-        spdlog::trace("Mouse moved to ({}, {})", xpos, ypos);
-
-        auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
-        if (win && win->getCursorPosCallback())
-        {
-            win->getCursorPosCallback()(xpos, ypos);
-        }
+        win->getKeyCallback()(key, key, action, mods);
     }
+}
 
-    void MouseButtonCallbackInternal(GLFWwindow *window, int button, int action, int mods)
+void CursorPosCallbackInternal(GLFWwindow *window, double xpos, double ypos)
+{
+    spdlog::trace("Mouse moved to ({}, {})", xpos, ypos);
+
+    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+    if (win && win->getCursorPosCallback())
     {
-        spdlog::trace("Mouse button {} action {}", button, action);
-
-        auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
-        if (win && win->getMouseButtonCallback())
-        {
-            win->getMouseButtonCallback()(button, action, mods);
-        }
+        win->getCursorPosCallback()(xpos, ypos);
     }
+}
 
-    void ScrollCallbackInternal(GLFWwindow *window, double xoffset, double yoffset)
+void MouseButtonCallbackInternal(GLFWwindow *window, int button, int action, int mods)
+{
+    spdlog::trace("Mouse button {} action {}", button, action);
+
+    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+    if (win && win->getMouseButtonCallback())
     {
-        spdlog::trace("Mouse scroll: ({}, {})", xoffset, yoffset);
-
-        auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
-        if (win && win->getScrollCallback())
-        {
-            win->getScrollCallback()(xoffset, yoffset);
-        }
+        win->getMouseButtonCallback()(button, action, mods);
     }
+}
 
-    void WindowCloseCallback(GLFWwindow * /*window*/)
+void ScrollCallbackInternal(GLFWwindow *window, double xoffset, double yoffset)
+{
+    spdlog::trace("Mouse scroll: ({}, {})", xoffset, yoffset);
+
+    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+    if (win && win->getScrollCallback())
     {
-        spdlog::trace("Window closed");
+        win->getScrollCallback()(xoffset, yoffset);
     }
+}
 
-    void WindowIconifyCallback(GLFWwindow *window, int iconified)
-    {
-        auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
-        if (!win) return;
-        
-        // C++ friend class or public setter? We will just cast and set a property.
-        // Actually, we can't easily access _isPaused if it's protected without a friend declaration or public method.
-        // Let's declare friend functions in Window.hpp or use a public method.
-        // Wait, I can just use glfwGetWindowAttrib(window, GLFW_ICONIFIED) in the run loop instead!
-        // The prompt says "Implement GLFW callbacks for minimized, maximized, and occluded window states. Logic: Pause rendering when minimized/occluded to save resources. Add debug logs for state transitions."
-        if (iconified)
-        {
-            spdlog::info("Window minimized");
-        }
-        else
-        {
-            spdlog::info("Window restored from minimized state");
-        }
-    }
+void WindowCloseCallback(GLFWwindow * /*window*/)
+{
+    spdlog::trace("Window closed");
+}
 
-    void WindowMaximizeCallback(GLFWwindow *window, int maximized)
+void WindowIconifyCallback(GLFWwindow *window, int iconified)
+{
+    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+    if (!win)
+        return;
+
+    // C++ friend class or public setter? We will just cast and set a property.
+    // Actually, we can't easily access _isPaused if it's protected without a friend declaration or public method.
+    // Let's declare friend functions in Window.hpp or use a public method.
+    // Wait, I can just use glfwGetWindowAttrib(window, GLFW_ICONIFIED) in the run loop instead!
+    // The prompt says "Implement GLFW callbacks for minimized, maximized, and occluded window states. Logic: Pause
+    // rendering when minimized/occluded to save resources. Add debug logs for state transitions."
+    if (iconified)
     {
-        if (maximized)
-        {
-            spdlog::info("Window maximized");
-        }
-        else
-        {
-            spdlog::info("Window restored from maximized state");
-        }
+        spdlog::info("Window minimized");
     }
+    else
+    {
+        spdlog::info("Window restored from minimized state");
+    }
+}
+
+void WindowMaximizeCallback(GLFWwindow * /*window*/, int maximized)
+{
+    if (maximized)
+    {
+        spdlog::info("Window maximized");
+    }
+    else
+    {
+        spdlog::info("Window restored from maximized state");
+    }
+}
 } // namespace
 
 glm::vec2 Window::getScreenSize() const
@@ -229,7 +231,8 @@ void Window::registerCallbacks()
 
 void Window::toggleFullscreen()
 {
-    if (!_window) return;
+    if (!_window)
+        return;
 
     if (_isFullscreen)
     {
@@ -245,10 +248,10 @@ void Window::toggleFullscreen()
         glfwGetWindowSize(_window, &_windowedWidth, &_windowedHeight);
 
         // Switch to fullscreen
-        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        GLFWmonitor *monitor = glfwGetPrimaryMonitor();
         if (monitor)
         {
-            const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+            const GLFWvidmode *mode = glfwGetVideoMode(monitor);
             glfwSetWindowMonitor(_window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
             _isFullscreen = true;
             spdlog::info("Switched to fullscreen mode");
@@ -262,10 +265,11 @@ void Window::run()
 
     while (!glfwWindowShouldClose(_window))
     {
-        // Pause rendering if iconified (minimized) or occluded (if supported, otherwise we just check iconified/width=0)
+        // Pause rendering if iconified (minimized) or occluded (if supported, otherwise we just check
+        // iconified/width=0)
         int width, height;
         glfwGetFramebufferSize(_window, &width, &height);
-        
+
         bool iconified = glfwGetWindowAttrib(_window, GLFW_ICONIFIED) != 0;
         bool visible = glfwGetWindowAttrib(_window, GLFW_VISIBLE) != 0;
 

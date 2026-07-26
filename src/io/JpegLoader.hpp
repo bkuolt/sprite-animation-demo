@@ -3,30 +3,30 @@
 
 #pragma once
 
-#include "TextureLoader.hpp"
 #include "../gfx/Texture2DArray.hpp"
+#include "TextureLoader.hpp"
 #include <filesystem>
-#include <vector>
 #include <span>
+#include <vector>
 
 namespace bgl::io
 {
-    class JpegLoader final : public bgl::io::ITextureLoader
-    {
-    public:
-        // Load a single JPEG image as a 1-layer 2D Texture Array
-        explicit JpegLoader(const std::filesystem::path &path);
+class JpegLoader final : public bgl::io::ITextureLoader
+{
+  public:
+    // Load a single JPEG image as a 1-layer 2D Texture Array
+    explicit JpegLoader(const std::filesystem::path &path);
 
-        // Load multiple JPEG images into a 2D Texture Array
-        explicit JpegLoader(std::span<const std::filesystem::path> paths);
+    // Load multiple JPEG images into a 2D Texture Array
+    explicit JpegLoader(std::span<const std::filesystem::path> paths);
 
-        ~JpegLoader() override = default;
+    ~JpegLoader() override = default;
 
-        [[nodiscard]] std::unique_ptr<bgl::gfx::Texture2DArray> upload() override;
+    [[nodiscard]] std::unique_ptr<bgl::gfx::Texture2DArray> upload() override;
 
-    private:
-        void loadFile(const std::filesystem::path &path);
+  private:
+    void loadFile(const std::filesystem::path &path);
 
-        std::vector<bgl::gfx::ImageLayer> _layers;
-    };
+    std::vector<bgl::gfx::ImageLayer> _layers;
+};
 } // namespace bgl::io
