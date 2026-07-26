@@ -5,8 +5,10 @@
 
 #include "Character.hpp"
 #include "Window.hpp"
+#include "gfx/Camera.hpp"
 #include "gfx/Font.hpp"
 #include "gfx/Graphics.hpp"
+#include "gfx/Hud.hpp"
 #include "gfx/Text_renderer.hpp"
 
 #include <glad/gl.h>
@@ -45,10 +47,8 @@ class Application
 
     std::optional<Font> m_font;
 
-    float m_zoomLevel = 1.0f;
-    glm::vec2 m_cameraPosition{0.0f, 0.0f};
-    bool m_isPanning = false;
-    glm::vec2 m_lastMousePos{0.0f, 0.0f};
+    gfx::Camera m_camera;
+    gfx::Hud m_hud;
 
     GLuint m_mainProgram = 0;
     GLuint m_textProgram = 0;
@@ -69,10 +69,6 @@ class Application
     double m_lastFpsTime = 0.0;
     int m_frameCounter = 0;
     int m_currentFps = 60;
-    std::string m_lastHudText1;
-    std::string m_lastHudText2;
-    std::optional<TextTexture> m_hudTexture1;
-    std::optional<TextTexture> m_hudTexture2;
 };
 
 } // namespace bgl

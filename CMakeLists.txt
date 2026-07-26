@@ -34,6 +34,8 @@ set(APP_SOURCES
     src/gfx/Font.cpp
     src/gfx/Text_shaper.cpp
     src/gfx/Text_renderer.cpp
+    src/gfx/Camera.cpp
+    src/gfx/Hud.cpp
     src/io/KtxLoader.cpp
     src/io/ShaderLoader.cpp
 )

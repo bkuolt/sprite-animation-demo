@@ -5,6 +5,7 @@
 #include "gfx/Graphics.hpp"
 
 #include <GLFW/glfw3.h>
+#include <glad/gl.h>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 
@@ -278,6 +279,9 @@ void Window::run()
             glfwWaitEvents(); // Wait until state changes to save resources
             continue;
         }
+
+        // Update viewport to match current framebuffer size
+        glViewport(0, 0, width, height);
 
         const auto time = glfwGetTime();
         if (_renderCallback)

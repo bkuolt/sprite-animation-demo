@@ -32,8 +32,6 @@ Application::Application()
 
 Application::~Application()
 {
-    m_hudTexture1.reset();
-    m_hudTexture2.reset();
     m_characters.clear();
 
     if (m_mainProgram != 0)
@@ -63,65 +61,22 @@ Application::~Application()
 
 void Application::setupCallbacks()
 {
-    m_window->setScrollCallback(
-        [this](double /*xoffset*/, double yoffset)
-        {
-            if (yoffset > 0)
-            {
-                m_zoomLevel *= 0.9f;
-            }
-            else if (yoffset < 0)
-            {
-                m_zoomLevel *= 1.1f;
-            }
-            m_zoomLevel = std::clamp(m_zoomLevel, 0.1f, 10.0f);
-            spdlog::info("Camera zoom: {:.2f}", m_zoomLevel);
-        });
+    m_window->setScrollCallback([this](double /*xoffset*/, double yoffset) { m_camera.handleScroll(yoffset); });
 
     m_window->setMouseButtonCallback(
-        [this](int button, int action, int /*mods*/)
-        {
-            if (button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_MIDDLE ||
-                button == GLFW_MOUSE_BUTTON_RIGHT)
-            {
-                if (action == GLFW_PRESS)
-                {
-                    m_isPanning = true;
-                }
-                else if (action == GLFW_RELEASE)
-                {
-                    m_isPanning = false;
-                }
-            }
-        });
+        [this](int button, int action, int /*mods*/) { m_camera.handleMouseButton(button, action); });
 
-    m_window->setCursorPosCallback(
-        [this](double xpos, double ypos)
-        {
-            const glm::vec2 currentPos{static_cast<float>(xpos), static_cast<float>(ypos)};
-            if (m_isPanning)
-            {
-                const glm::vec2 delta = currentPos - m_lastMousePos;
-                const auto winSize = m_window->getWindowSize();
-                const float aspect = winSize.x / winSize.y;
-
-                const float worldWidth = 2.0f * m_zoomLevel * aspect;
-                const float worldHeight = 2.0f * m_zoomLevel;
-
-                m_cameraPosition.x -= delta.x * (worldWidth / winSize.x);
-                m_cameraPosition.y += delta.y * (worldHeight / winSize.y);
-            }
-            m_lastMousePos = currentPos;
-        });
+    m_window->setCursorPosCallback([this](double xpos, double ypos) {
+        const auto winSize = m_window->getWindowSize();
+        m_camera.handleCursorPos(xpos, ypos, static_cast<float>(winSize.x), static_cast<float>(winSize.y));
+    });
 
     m_window->setKeyCallback(
         [this](int key, int /*scancode*/, int action, int /*mods*/)
         {
             if (key == GLFW_KEY_R && action == GLFW_PRESS)
             {
-                m_cameraPosition = {0.0f, 0.0f};
-                m_zoomLevel = 1.0f;
-                spdlog::info("Camera reset to position (0, 0) and zoom 1.0");
+                m_camera.reset();
             }
 
             if (!m_characters.empty())
@@ -272,9 +227,7 @@ void Application::renderFrame(double time)
 
     const auto winSize = m_window->getWindowSize();
     const float aspect = winSize.x / winSize.y;
-    const glm::mat4 projection =
-        glm::ortho(m_cameraPosition.x - m_zoomLevel * aspect, m_cameraPosition.x + m_zoomLevel * aspect,
-                   m_cameraPosition.y - m_zoomLevel, m_cameraPosition.y + m_zoomLevel, -1.0f, 1.0f);
+    const glm::mat4 projection = m_camera.getProjectionMatrix(aspect);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -338,49 +291,9 @@ void Application::renderSnow(double time, const glm::mat4 &projection)
 void Application::renderUI(double /*time*/, const glm::vec2 &winSize)
 {
     auto current_char = !m_characters.empty() ? m_characters[m_currentCharacterIndex] : nullptr;
-    const auto *animState = current_char ? current_char->getCurrentAnimation() : nullptr;
-
-    if (animState && m_font)
+    if (m_font)
     {
-        const std::string currentFilename = fmt::format("{}.ktx2", animState->name);
-        const std::string currentHudText1 = fmt::format("{} FPS", m_currentFps);
-        const std::string currentHudText2 =
-            fmt::format("Char: {}, File: {}, Anim: {}, Frames {}", current_char->getName(), currentFilename,
-                        animState->name, animState->frameCount);
-
-        if (currentHudText1 != m_lastHudText1 || !m_hudTexture1.has_value())
-        {
-            m_lastHudText1 = currentHudText1;
-            m_hudTexture1 =
-                TextRenderer::RenderToTexture(*m_font, currentHudText1, {0, 100, 255, 255}, // Blue text color
-                                              {0, 0, 0, 0},                                 // Transparent background
-                                              4                                             // Padding
-                );
-        }
-
-        if (currentHudText2 != m_lastHudText2 || !m_hudTexture2.has_value())
-        {
-            m_lastHudText2 = currentHudText2;
-            m_hudTexture2 =
-                TextRenderer::RenderToTexture(*m_font, currentHudText2, {0, 100, 255, 255}, // Blue text color
-                                              {0, 0, 0, 0},                                 // Transparent background
-                                              4                                             // Padding
-                );
-        }
-    }
-
-    if (m_hudTexture1 && m_hudTexture1->IsValid())
-    {
-        renderTextOverlay(m_overlayQuad, m_hudTexture1->GetHandle(), m_textProgram, m_hudTexture1->GetWidth(),
-                          m_hudTexture1->GetHeight(), static_cast<uint32_t>(winSize.x),
-                          static_cast<uint32_t>(winSize.y), 15.0f, 15.0f);
-    }
-
-    if (m_hudTexture2 && m_hudTexture2->IsValid() && m_hudTexture1 && m_hudTexture1->IsValid())
-    {
-        renderTextOverlay(m_overlayQuad, m_hudTexture2->GetHandle(), m_textProgram, m_hudTexture2->GetWidth(),
-                          m_hudTexture2->GetHeight(), static_cast<uint32_t>(winSize.x),
-                          static_cast<uint32_t>(winSize.y), 15.0f, 15.0f + m_hudTexture1->GetHeight() + 5.0f);
+        m_hud.updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, current_char);
     }
 }
 
