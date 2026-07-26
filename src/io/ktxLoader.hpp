@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "TextureLoader.hpp"
+#include "textureLoader.hpp"
 #include <filesystem>
 #include <ktx.h>
 

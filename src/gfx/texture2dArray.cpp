@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "Texture2DArray.hpp"
+#include "texture2dArray.hpp"
 #include <algorithm>
 #include <cmath>
 #include <fmt/format.h>

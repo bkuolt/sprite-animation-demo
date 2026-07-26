@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Font.hpp"
+#include "font.hpp"
 
 #include <hb.h>
 

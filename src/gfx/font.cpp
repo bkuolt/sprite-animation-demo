@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "Font.hpp"
+#include "font.hpp"
 
 #include <fontconfig/fontconfig.h>
 #include <spdlog/spdlog.h>

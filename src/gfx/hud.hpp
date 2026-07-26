@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include "Font.hpp"
-#include "Graphics.hpp"
-#include "Text_renderer.hpp"
-#include "../Character.hpp"
+#include "font.hpp"
+#include "graphics.hpp"
+#include "textRenderer.hpp"
+#include "../character.hpp"
 
 #include <glm/vec2.hpp>
 #include <memory>

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "Application.hpp"
+#include "application.hpp"
 #include <csignal>
 #include <cstdlib>
 #include <memory>

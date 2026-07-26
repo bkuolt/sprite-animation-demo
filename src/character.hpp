@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "gfx/Texture2DArray.hpp"
+#include "gfx/texture2dArray.hpp"
 #include <glad/gl.h>
 #include <memory>
 #include <string>

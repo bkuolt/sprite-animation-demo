@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "Camera.hpp"
+#include "camera.hpp"
 
 #include <GLFW/glfw3.h>
 #include <algorithm>

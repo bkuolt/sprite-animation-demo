@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include "Character.hpp"
-#include "Window.hpp"
-#include "gfx/Camera.hpp"
-#include "gfx/Font.hpp"
-#include "gfx/Graphics.hpp"
-#include "gfx/Hud.hpp"
-#include "gfx/Text_renderer.hpp"
+#include "character.hpp"
+#include "windowing/window.hpp"
+#include "gfx/camera.hpp"
+#include "gfx/font.hpp"
+#include "gfx/graphics.hpp"
+#include "gfx/hud.hpp"
+#include "gfx/textRenderer.hpp"
 
 #include <glad/gl.h>
 #include <glm/vec2.hpp>
@@ -41,7 +41,7 @@ class Application
     void renderSnow(double time, const glm::mat4 &projection);
     void renderUI(double time, const glm::vec2 &winSize);
 
-    std::unique_ptr<Window> m_window;
+    std::unique_ptr<bgl::window::Window> m_window;
     std::vector<std::shared_ptr<Character>> m_characters;
     size_t m_currentCharacterIndex = 0;
 

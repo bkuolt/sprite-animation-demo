@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "ShaderLoader.hpp"
+#include "shaderLoader.hpp"
 #include "glad/gl.h"
 
 #include <filesystem>

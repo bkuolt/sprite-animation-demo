@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "Application.hpp"
-#include "gfx/Text_shaper.hpp"
-#include "io/KtxLoader.hpp"
-#include "io/PngLoader.hpp"
-#include "io/ShaderLoader.hpp"
+#include "application.hpp"
+#include "gfx/textShaper.hpp"
+#include "io/ktxLoader.hpp"
+#include "io/pngLoader.hpp"
+#include "io/shaderLoader.hpp"
 
 #include <algorithm>
 #include <array>
@@ -22,7 +22,7 @@ namespace bgl
 
 Application::Application()
 {
-    m_window = std::make_unique<Window>();
+    m_window = std::make_unique<bgl::window::Window>();
 
     setupCallbacks();
     initAssets();
@@ -114,12 +114,12 @@ void Application::initAssets()
     auto hero = std::make_shared<Character>("Hero");
     auto villain = std::make_shared<Character>("Villain");
 
-    const std::array fileNames{std::make_pair("Idle", basePath / "assets" / "idle.ktx2"),
-                               std::make_pair("Walk", basePath / "assets" / "walk.ktx2"),
-                               std::make_pair("Jump", basePath / "assets" / "jump.ktx2"),
-                               std::make_pair("Run", basePath / "assets" / "run.ktx2"),
-                               std::make_pair("Slide", basePath / "assets" / "slide.ktx2"),
-                               std::make_pair("Dead", basePath / "assets" / "dead.ktx2")};
+    const std::array fileNames{std::make_pair("Idle", basePath / "assets" / "textures" / "ktx" / "idle.ktx2"),
+                               std::make_pair("Walk", basePath / "assets" / "textures" / "ktx" / "walk.ktx2"),
+                               std::make_pair("Jump", basePath / "assets" / "textures" / "ktx" / "jump.ktx2"),
+                               std::make_pair("Run", basePath / "assets" / "textures" / "ktx" / "run.ktx2"),
+                               std::make_pair("Slide", basePath / "assets" / "textures" / "ktx" / "slide.ktx2"),
+                               std::make_pair("Dead", basePath / "assets" / "textures" / "ktx" / "dead.ktx2")};
 
     for (const auto &[animName, file] : fileNames)
     {
@@ -146,16 +146,16 @@ void Application::initShaders()
     const auto binaryPath = std::filesystem::read_symlink("/proc/self/exe");
     const auto basePath = binaryPath.parent_path();
 
-    const auto mainVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "main.vert.spv");
-    const auto mainFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "main.frag.spv");
+    const auto mainVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.vert.spv");
+    const auto mainFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.frag.spv");
     m_mainProgram = io::CreateShaderProgramFromSPIRV(mainVsSpv, mainFsSpv);
 
-    const auto textVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "text.vert.spv");
-    const auto textFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "text.frag.spv");
+    const auto textVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.vert.spv");
+    const auto textFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.frag.spv");
     m_textProgram = io::CreateShaderProgramFromSPIRV(textVsSpv, textFsSpv);
 
 #ifdef BGL_ENABLE_GLSL_LOADER
-    const auto srcPath = basePath / ".." / ".." / "src" / "shaders";
+    const auto srcPath = basePath / "assets" / "shaders";
     const auto bgVsSrc = io::LoadShaderFromFile(srcPath / "background.vs");
     const auto bgFsSrc = io::LoadShaderFromFile(srcPath / "background.fs");
     m_bgProgram = io::CreateShaderProgramFromGLSL(bgVsSrc, bgFsSrc);

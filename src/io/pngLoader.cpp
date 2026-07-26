@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "PngLoader.hpp"
+#include "pngLoader.hpp"
 #include <png++/png.hpp>
 #include <spdlog/spdlog.h>
 #include <stdexcept>

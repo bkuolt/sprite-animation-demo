@@ -17,23 +17,14 @@ tasks:
     cmds:
       - conan install . --lockfile=conan.lock --build=missing -c tools.system.package_manager:mode=install
 
-  shaders:
-    desc: Compiles GLSL shaders to SPIR-V binaries
+  assets:
+    desc: Builds shaders and textures via Python script
     cmds:
-      - ./compile-shaders.sh
-    sources:
-      - src/shaders/main.vs
-      - src/shaders/main.fs
-      - src/shaders/text.vs
-      - src/shaders/text.fs
-    generates:
-      - assets/main.vert.spv
-      - assets/main.frag.spv
-      - assets/text.vert.spv
-      - assets/text.frag.spv
+      - python3 tools/buildAssets.py
+
 
   build:
-    deps: [shaders]
+    deps: [assets]
     desc: Configures and builds the project using CMake preset
     cmds:
       - cmake --preset conan-release

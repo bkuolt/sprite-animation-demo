@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "Character.hpp"
+#include "character.hpp"
 #include <spdlog/spdlog.h>
 
 namespace bgl

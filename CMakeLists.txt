@@ -25,27 +25,28 @@ option(BGL_ENABLE_GLSL_LOADER "Enable GLSL runtime shader compiler" ON)
 
 set(APP_SOURCES
     src/main.cpp
-    src/Application.cpp
-    src/Window.cpp
-    src/Character.cpp
-    src/gfx/Graphics.cpp
-    src/gfx/Texture2D.cpp
-    src/gfx/Texture2DArray.cpp
-    src/gfx/Font.cpp
-    src/gfx/Text_shaper.cpp
-    src/gfx/Text_renderer.cpp
-    src/gfx/Camera.cpp
-    src/gfx/Hud.cpp
-    src/io/KtxLoader.cpp
-    src/io/ShaderLoader.cpp
+    src/application.cpp
+    src/windowing/window.cpp
+    src/windowing/inputHandler.cpp
+    src/character.cpp
+    src/gfx/graphics.cpp
+    src/gfx/texture2d.cpp
+    src/gfx/texture2dArray.cpp
+    src/gfx/font.cpp
+    src/gfx/textShaper.cpp
+    src/gfx/textRenderer.cpp
+    src/gfx/camera.cpp
+    src/gfx/hud.cpp
+    src/io/ktxLoader.cpp
+    src/io/shaderLoader.cpp
 )
 
 if(BGL_ENABLE_PNG_LOADER)
-    list(APPEND APP_SOURCES src/io/PngLoader.cpp)
+    list(APPEND APP_SOURCES src/io/pngLoader.cpp)
 endif()
 
 if(BGL_ENABLE_JPEG_LOADER)
-    list(APPEND APP_SOURCES src/io/JpegLoader.cpp)
+    list(APPEND APP_SOURCES src/io/jpegLoader.cpp)
 endif()
 
 # We still compile ShaderLoader.cpp but maybe conditionally enable GLSL compiling
@@ -94,6 +95,8 @@ endif()
 file(GLOB_RECURSE ASSET_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/assets/*.ktx2"
     "${CMAKE_SOURCE_DIR}/assets/*.spv"
+    "${CMAKE_SOURCE_DIR}/assets/*.vs"
+    "${CMAKE_SOURCE_DIR}/assets/*.fs"
     "${CMAKE_SOURCE_DIR}/assets/*.png"
     "${CMAKE_SOURCE_DIR}/assets/*.jpg"
     "${CMAKE_SOURCE_DIR}/assets/*.ttf"
@@ -102,16 +105,20 @@ file(GLOB_RECURSE ASSET_SOURCES CONFIGURE_DEPENDS
 
 set(ASSET_DESTINATIONS "")
 foreach(ASSET_SOURCE ${ASSET_SOURCES})
-    get_filename_component(ASSET_FILENAME ${ASSET_SOURCE} NAME)
-    set(ASSET_DESTINATION "${CMAKE_BINARY_DIR}/assets/${ASSET_FILENAME}")
+    get_filename_component(ASSET_REL_PATH ${ASSET_SOURCE} NAME)
+    # The GLOB_RECURSE gives absolute paths. We just extract the filename and put it in build/assets/
+    # Actually wait, since we restructured to assets/textures/ktx, etc., it's better to preserve the relative path.
+    file(RELATIVE_PATH REL_PATH "${CMAKE_SOURCE_DIR}/assets" "${ASSET_SOURCE}")
+    set(ASSET_DESTINATION "${CMAKE_BINARY_DIR}/assets/${REL_PATH}")
+    get_filename_component(DEST_DIR ${ASSET_DESTINATION} DIRECTORY)
     list(APPEND ASSET_DESTINATIONS ${ASSET_DESTINATION})
 
     add_custom_command(
         OUTPUT ${ASSET_DESTINATION}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/assets"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEST_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ASSET_SOURCE}" "${ASSET_DESTINATION}"
         DEPENDS "${ASSET_SOURCE}"
-        COMMENT "Copying asset: ${ASSET_FILENAME}"
+        COMMENT "Copying asset: ${REL_PATH}"
     )
 endforeach()
 

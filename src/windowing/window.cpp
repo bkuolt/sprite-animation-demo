@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "Window.hpp"
-#include "gfx/Graphics.hpp"
+#include "window.hpp"
+#include "../gfx/graphics.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
@@ -11,61 +11,57 @@
 
 namespace
 {
-void KeyboardCallback(GLFWwindow *window, int key, int /*scancode*/, int action, int mods)
+void KeyboardCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     spdlog::trace("Key {} pressed", key);
-
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
+    if (win)
     {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-        return;
-    }
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        {
+            win->close();
+            return;
+        }
 
-    if (key == GLFW_KEY_F && action == GLFW_PRESS)
-    {
-        if (auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window)))
+        if (key == GLFW_KEY_F && action == GLFW_PRESS)
         {
             win->toggleFullscreen();
         }
-    }
 
-    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getKeyCallback())
-    {
-        win->getKeyCallback()(key, key, action, mods);
+        if (win->getInputHandler().getKeyCallback())
+        {
+            win->getInputHandler().getKeyCallback()(key, scancode, action, mods);
+        }
     }
 }
 
 void CursorPosCallbackInternal(GLFWwindow *window, double xpos, double ypos)
 {
     spdlog::trace("Mouse moved to ({}, {})", xpos, ypos);
-
-    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getCursorPosCallback())
+    auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
+    if (win && win->getInputHandler().getCursorPosCallback())
     {
-        win->getCursorPosCallback()(xpos, ypos);
+        win->getInputHandler().getCursorPosCallback()(xpos, ypos);
     }
 }
 
 void MouseButtonCallbackInternal(GLFWwindow *window, int button, int action, int mods)
 {
     spdlog::trace("Mouse button {} action {}", button, action);
-
-    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getMouseButtonCallback())
+    auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
+    if (win && win->getInputHandler().getMouseButtonCallback())
     {
-        win->getMouseButtonCallback()(button, action, mods);
+        win->getInputHandler().getMouseButtonCallback()(button, action, mods);
     }
 }
 
 void ScrollCallbackInternal(GLFWwindow *window, double xoffset, double yoffset)
 {
     spdlog::trace("Mouse scroll: ({}, {})", xoffset, yoffset);
-
-    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getScrollCallback())
+    auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
+    if (win && win->getInputHandler().getScrollCallback())
     {
-        win->getScrollCallback()(xoffset, yoffset);
+        win->getInputHandler().getScrollCallback()(xoffset, yoffset);
     }
 }
 
@@ -76,16 +72,10 @@ void WindowCloseCallback(GLFWwindow * /*window*/)
 
 void WindowIconifyCallback(GLFWwindow *window, int iconified)
 {
-    auto *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
+    auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
     if (!win)
         return;
 
-    // C++ friend class or public setter? We will just cast and set a property.
-    // Actually, we can't easily access _isPaused if it's protected without a friend declaration or public method.
-    // Let's declare friend functions in Window.hpp or use a public method.
-    // Wait, I can just use glfwGetWindowAttrib(window, GLFW_ICONIFIED) in the run loop instead!
-    // The prompt says "Implement GLFW callbacks for minimized, maximized, and occluded window states. Logic: Pause
-    // rendering when minimized/occluded to save resources. Add debug logs for state transitions."
     if (iconified)
     {
         spdlog::info("Window minimized");
@@ -108,6 +98,9 @@ void WindowMaximizeCallback(GLFWwindow * /*window*/, int maximized)
     }
 }
 } // namespace
+
+namespace bgl::window
+{
 
 glm::vec2 Window::getScreenSize() const
 {
@@ -185,22 +178,22 @@ void Window::setRenderCallback(RenderCallback callback)
 
 void Window::setKeyCallback(KeyCallback callback)
 {
-    _keyCallback = std::move(callback);
+    _inputHandler.setKeyCallback(std::move(callback));
 }
 
 void Window::setScrollCallback(ScrollCallback callback)
 {
-    _scrollCallback = std::move(callback);
+    _inputHandler.setScrollCallback(std::move(callback));
 }
 
 void Window::setCursorPosCallback(CursorPosCallback callback)
 {
-    _cursorPosCallback = std::move(callback);
+    _inputHandler.setCursorPosCallback(std::move(callback));
 }
 
 void Window::setMouseButtonCallback(MouseButtonCallback callback)
 {
-    _mouseButtonCallback = std::move(callback);
+    _inputHandler.setMouseButtonCallback(std::move(callback));
 }
 
 void Window::close()
@@ -299,3 +292,5 @@ void Window::run(RenderCallback callback)
     setRenderCallback(std::move(callback));
     run();
 }
+
+} // namespace bgl::window

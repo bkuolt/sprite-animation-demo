@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "Hud.hpp"
+#include "hud.hpp"
 #include <fmt/format.h>
 
 namespace bgl::gfx
@@ -15,26 +15,28 @@ void Hud::updateAndRender(const Font &font, GLuint textProgram, const QuadMesh &
     if (animState)
     {
         const std::string currentFilename = fmt::format("{}.ktx2", animState->name);
-        const std::string currentHudText1 = fmt::format("{} FPS", currentFps);
-        const std::string currentHudText2 =
-            fmt::format("Char: {}, File: {}, Anim: {}, Frames {}", currentCharacter->getName(), currentFilename,
+        // EXACT requested format string: %i FPS \n File: %s, Animation: %s, Frames %i
+        const std::string fullText =
+            fmt::format("{} FPS \n File: {}, Animation: {}, Frames {}", currentFps, currentFilename,
                         animState->name, animState->frameCount);
 
-        if (currentHudText1 != m_lastHudText1 || !m_hudTexture1.has_value())
+        if (fullText != m_lastHudText1 || !m_hudTexture1.has_value() || !m_hudTexture2.has_value())
         {
-            m_lastHudText1 = currentHudText1;
-            m_hudTexture1 = TextRenderer::RenderToTexture(font, currentHudText1, {0, 100, 255, 255}, // Blue text color
-                                                          {0, 0, 0, 0},                              // Transparent background
-                                                          4                                          // Padding
-            );
-        }
+            m_lastHudText1 = fullText;
+            
+            // Split the fullText into two lines by \n
+            size_t newlinePos = fullText.find('\n');
+            std::string line1 = fullText.substr(0, newlinePos);
+            std::string line2 = fullText.substr(newlinePos + 1);
 
-        if (currentHudText2 != m_lastHudText2 || !m_hudTexture2.has_value())
-        {
-            m_lastHudText2 = currentHudText2;
-            m_hudTexture2 = TextRenderer::RenderToTexture(font, currentHudText2, {0, 100, 255, 255}, // Blue text color
-                                                          {0, 0, 0, 0},                              // Transparent background
-                                                          4                                          // Padding
+            m_hudTexture1 = TextRenderer::RenderToTexture(font, line1, {0, 100, 255, 255}, // Blue text color
+                                                          {0, 0, 0, 0},                    // Transparent background
+                                                          4                                // Padding
+            );
+
+            m_hudTexture2 = TextRenderer::RenderToTexture(font, line2, {0, 100, 255, 255}, // Blue text color
+                                                          {0, 0, 0, 0},                    // Transparent background
+                                                          4                                // Padding
             );
         }
     }

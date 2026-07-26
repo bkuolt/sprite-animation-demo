@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian. All rights reserved.
 
-#include "KtxLoader.hpp"
-#include "../gfx/Texture2DArray.hpp"
+#include "ktxLoader.hpp"
+#include "../gfx/texture2dArray.hpp"
 
 #include <filesystem>
 #include <glad/gl.h>
