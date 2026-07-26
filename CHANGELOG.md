@@ -5,16 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] - 2026-07-26
 ### Added
-- **Entity-Component-System (ECS):** Integrated `EnTT` for highly performant and decoupled architecture.
-- **Event Bus:** Replaced direct input callbacks with `entt::dispatcher` broadcasting `KeyEvent`, `MouseMovedEvent`, and `WindowResizeEvent`.
-- **Doxygen Documentation:** Fully automated HTML API documentation generation via GitBook/Doxygen and CMake.
+- **Core Decoupling & Event Bus:** Integrated the `EnTT` framework to establish a highly performant, type-safe Event Bus architecture (`entt::dispatcher`).
+- **Asynchronous Event Handling:** Input events (`KeyEvent`, `MouseMovedEvent`, `MouseButtonEvent`, `ScrollEvent`, `WindowResizeEvent`) are now broadcast globally, entirely decoupling the `Window` and `InputHandler` from the core `Application` game logic.
+- **Doxygen & GitBook Documentation:** Fully automated HTML API documentation generation via CMake `FetchContent` (using the modern `doxygen-awesome-css` theme). The `docs/` directory is now fully structured for GitBook deployments (`SUMMARY.md`, `architecture.md`, `api.md`).
+- **Agent Memory Guidelines:** Created `AGENT_MEMORY.md` to persistently store architectural constraints (C++23, OpenGL DSA, EnTT ECS) for future AI agent interactions.
+- **High-Quality Placeholder Imagery:** Automatically generated and integrated a professional 16-bit pixel art placeholder screenshot into `README.md`.
 
 ### Changed
-- Refactored entire codebase to strict **C++23** standards with RAII and zero raw pointers.
-- Upgraded graphics API usage to **OpenGL 4.6 Direct State Access (DSA)**.
-- Replaced hardcoded asset arrays with a robust `nlohmann_json` configuration system (`animations.json`).
+- **C++23 Modernization:** Complete refactoring of the entire codebase to strict C++23 standards, eliminating all raw pointers and enforcing rigorous RAII memory safety paradigms via `std::unique_ptr` and `std::shared_ptr`.
+- **OpenGL 4.6 DSA Migration:** Upgraded the graphics pipeline to exclusively utilize OpenGL 4.6 Direct State Access (DSA) for texture, sampler, and buffer object management (`glCreateTextures`, `glCreateSamplers`), significantly reducing state mutation errors.
+- **JSON Asset Pipeline:** Replaced hardcoded C++ asset arrays with a robust runtime configuration system powered by `nlohmann_json`, loading sprite animation definitions directly from `assets/animations.json`.
+- **Global Copyright Header:** Standardized copyright attribution headers across all 38 C++ source and header files globally.
+- **Environment Setup Script:** Enhanced `install.sh` with professional, idiomatic English phrasing, improved layout, and clearer feedback for setting up system packages and Conan dependencies.
 
 ## [0.4.0] - 2026-07-26
 ### Added
