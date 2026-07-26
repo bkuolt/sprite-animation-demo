@@ -4,9 +4,13 @@
 #include "window.hpp"
 #include "gfx/graphics.hpp"
 #include "gfx/shader.hpp"
+#include "gfx/font.hpp"
+#include "gfx/text_shaper.hpp"
+#include "gfx/text_renderer.hpp"
 #include "loaders/ktx.hpp"
 
 #include <spdlog/spdlog.h>
+#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/vec2.hpp>
 #include <csignal>
@@ -16,6 +20,7 @@
 #include <filesystem>
 #include <memory>
 #include <algorithm>
+#include <string>
 
 extern int currentAnimation;
 
@@ -106,7 +111,11 @@ int main()
         const auto binaryPath = std::filesystem::read_symlink("/proc/self/exe");
         const auto basePath = binaryPath.parent_path();
 
-        // 1. Load textures using polymorphic ITextureLoader
+        // 1. Load FreeType & HarfBuzz font
+        const auto fontPath = basePath / "assets" / "font.ttf";
+        bgl::Font font(fontPath.string(), 36);
+
+        // 2. Load animation textures using polymorphic ITextureLoader
         const std::array fileNames{
             basePath / "assets" / "idle.ktx2",
             basePath / "assets" / "walk.ktx2",
@@ -127,23 +136,55 @@ int main()
         {
             textureIDs[i] = loaders[i]->upload();
         }
-
-        // Destroy CPU texture loader instances as GPU textures are now allocated
         loaders.clear();
 
-        // 2. Load SPIR-V shaders
-        const auto vsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.vert.spv");
-        const auto fsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.frag.spv");
-        const GLuint program = bgl::CreateShaderProgramFromSPIRV(vsSpv, fsSpv);
+        // 3. Load SPIR-V shaders from assets directory
+        const auto mainVsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.vert.spv");
+        const auto mainFsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "main.frag.spv");
+        const GLuint mainProgram = bgl::CreateShaderProgramFromSPIRV(mainVsSpv, mainFsSpv);
 
-        // 3. Create mesh
-        bgl::QuadMesh quadMesh = bgl::create2DQuad();
+        const auto textVsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "text.vert.spv");
+        const auto textFsSpv = bgl::LoadSPIRVShaderFromFile(basePath / "assets" / "text.frag.spv");
+        const GLuint textProgram = bgl::CreateShaderProgramFromSPIRV(textVsSpv, textFsSpv);
 
-        // 4. Register render callback in main.cpp
+        // 4. Create meshes
+        bgl::QuadMesh spriteQuad = bgl::create2DQuad();
+        bgl::QuadMesh overlayQuad = bgl::createOverlayQuad();
+
+        // Variables for FPS calculation and text caching
+        double lastFpsTime = 0.0;
+        int frameCounter = 0;
+        int currentFps = 60;
+        std::string lastHudText;
+        std::optional<bgl::TextTexture> hudTexture;
+
+        // 5. Register render callback
         g_window->setRenderCallback([&](double time)
         {
+            frameCounter++;
+            if (time - lastFpsTime >= 0.2)
+            {
+                currentFps = static_cast<int>(std::round(frameCounter / (time - lastFpsTime)));
+                frameCounter = 0;
+                lastFpsTime = time;
+            }
+
             const auto count = static_cast<int>(textureIDs.size());
             const auto currentTexture = static_cast<size_t>(((currentAnimation % count) + count) % count);
+            const std::string currentFilename = fileNames[currentTexture].filename().string();
+            const std::string currentHudText = fmt::format("FPS: {}; {}", currentFps, currentFilename);
+
+            if (currentHudText != lastHudText || !hudTexture.has_value())
+            {
+                lastHudText = currentHudText;
+                hudTexture = bgl::TextRenderer::RenderToTexture(
+                    font,
+                    currentHudText,
+                    {255, 255, 255, 255},  // White text color
+                    {0, 0, 0, 0},          // Transparent background
+                    4                      // Padding
+                );
+            }
 
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -172,12 +213,31 @@ int main()
                 -1.0f, 1.0f
             );
 
-            bgl::renderQuad(quadMesh, textureIDs[currentTexture], program, currentFrame, tweenFactor, projection);
+            // Render background sprite animation quad
+            bgl::renderQuad(spriteQuad, textureIDs[currentTexture], mainProgram, currentFrame, tweenFactor, projection);
+
+            // Render top-left FPS & VRAM text texture overlay
+            if (hudTexture && hudTexture->IsValid())
+            {
+                bgl::renderTextOverlay(
+                    overlayQuad,
+                    hudTexture->GetHandle(),
+                    textProgram,
+                    hudTexture->GetWidth(),
+                    hudTexture->GetHeight(),
+                    static_cast<uint32_t>(winSize.x),
+                    static_cast<uint32_t>(winSize.y),
+                    15.0f,
+                    15.0f
+                );
+            }
         });
 
         g_window->run();
 
-        // Explicit GPU memory deallocation upon main loop exit
+        // GPU resources cleanup
+        hudTexture.reset();
+
         if (!textureIDs.empty())
         {
             glDeleteTextures(static_cast<GLsizei>(textureIDs.size()), textureIDs.data());
@@ -185,14 +245,18 @@ int main()
             textureIDs.clear();
         }
 
-        if (program != 0)
+        if (mainProgram != 0)
         {
-            glDeleteProgram(program);
-            spdlog::info("Released OpenGL shader program handle");
+            glDeleteProgram(mainProgram);
+        }
+        if (textProgram != 0)
+        {
+            glDeleteProgram(textProgram);
         }
 
-        bgl::destroyQuadMesh(quadMesh);
-        spdlog::info("Released Quad VAO/VBO/IBO buffers");
+        bgl::destroyQuadMesh(spriteQuad);
+        bgl::destroyQuadMesh(overlayQuad);
+        spdlog::info("Released VAO/VBO/IBO buffers and shader programs");
     }
     catch (const std::exception &e)
     {

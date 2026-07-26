@@ -22,11 +22,15 @@ tasks:
     cmds:
       - ./compile-shaders.sh
     sources:
-      - src/main.vs
-      - src/main.fs
+      - src/shaders/main.vs
+      - src/shaders/main.fs
+      - src/shaders/text.vs
+      - src/shaders/text.fs
     generates:
       - assets/main.vert.spv
       - assets/main.frag.spv
+      - assets/text.vert.spv
+      - assets/text.frag.spv
 
   build:
     deps: [shaders]

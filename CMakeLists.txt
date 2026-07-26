@@ -14,6 +14,8 @@ find_package(fmt REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PNG REQUIRED)
 find_package(JPEG REQUIRED)
+find_package(freetype REQUIRED)
+find_package(harfbuzz REQUIRED)
 
 add_executable(app
     src/main.cpp
@@ -21,6 +23,9 @@ add_executable(app
     src/gfx/shader.cpp
     src/gfx/graphics.cpp
     src/gfx/texture.cpp
+    src/gfx/font.cpp
+    src/gfx/text_shaper.cpp
+    src/gfx/text_renderer.cpp
     src/loaders/ktx.cpp
     src/loaders/png.cpp
     src/loaders/jpeg.cpp
@@ -36,6 +41,8 @@ target_link_libraries(app PRIVATE
     fmt::fmt
     PNG::PNG
     JPEG::JPEG
+    Freetype::Freetype
+    harfbuzz::harfbuzz
 )
 
 if(MSVC)
@@ -50,6 +57,8 @@ file(GLOB_RECURSE ASSET_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/assets/*.spv"
     "${CMAKE_SOURCE_DIR}/assets/*.png"
     "${CMAKE_SOURCE_DIR}/assets/*.jpg"
+    "${CMAKE_SOURCE_DIR}/assets/*.ttf"
+    "${CMAKE_SOURCE_DIR}/assets/*.otf"
 )
 
 set(ASSET_DESTINATIONS "")

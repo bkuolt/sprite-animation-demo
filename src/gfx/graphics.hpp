@@ -6,6 +6,7 @@
 #include "glad/gl.h"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
+#include <cstdint>
 
 namespace bgl
 {
@@ -17,10 +18,21 @@ namespace bgl
         unsigned int indexCount{0};
     };
 
+    struct OverlayVertex
+    {
+        glm::vec2 pos;
+        glm::vec2 uv;
+    };
+
     void InitializeGLAD();
     void IntitializeOpenGL();
 
     [[nodiscard]] QuadMesh create2DQuad();
+    [[nodiscard]] QuadMesh createOverlayQuad();
     void destroyQuadMesh(QuadMesh &quad);
+
     void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor, const glm::mat4 &projection);
+    void renderTextOverlay(const QuadMesh &quad, GLuint textureID, GLuint textShaderProgram, uint32_t texWidth, uint32_t texHeight, uint32_t winWidth, uint32_t winHeight, float paddingX = 15.0f, float paddingY = 15.0f);
+
+    [[nodiscard]] int GetVRAMUsageMB();
 } // namespace bgl

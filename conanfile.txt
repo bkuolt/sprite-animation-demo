@@ -7,6 +7,8 @@ fmt/11.0.2
 spdlog/1.15.0
 libpng/1.6.43
 libjpeg/9e
+freetype/2.13.2
+harfbuzz/8.3.0
 
 [generators]
 CMakeDeps

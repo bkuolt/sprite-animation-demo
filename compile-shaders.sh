@@ -1,43 +1,27 @@
 #!/bin/bash
-#
-# This script compiles the project's GLSL shaders into the SPIR-V format.
-# Aborts immediately on error.
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2024-2026 Bastian. All rights reserved.
+
 set -e
 
-# --- Configuration ---
 COMPILER="glslangValidator"
-SRC_DIR="src"
+SRC_DIR="src/shaders"
 OUT_DIR="assets"
 
-VERTEX_SHADER="$SRC_DIR/main.vs"
-FRAGMENT_SHADER="$SRC_DIR/main.fs"
-
-# --- Logic ---
-
-# 1. Check if the compiler is available
-if ! command -v $COMPILER &> /dev/null
-then
+if ! command -v $COMPILER &> /dev/null; then
     echo "Error: '$COMPILER' not found."
     echo "Please install 'glslang-tools' (e.g., with 'sudo apt install glslang-tools')."
     exit 1
 fi
 
-# 2. Check if the source files exist
-if [ ! -f "$VERTEX_SHADER" ] || [ ! -f "$FRAGMENT_SHADER" ]; then
-    echo "Error: Shader source files not found."
-    echo "  Expected: $VERTEX_SHADER"
-    echo "  Expected: $FRAGMENT_SHADER"
-    exit 1
-fi
-
-# 3. Ensure the output directory exists
 mkdir -p "$OUT_DIR"
 
-echo "Compiling shaders to SPIR-V with $COMPILER..."
+echo "Compiling GLSL shaders in $SRC_DIR to SPIR-V..."
 
-# We use -S <stage> to ensure compatibility with older versions of glslangValidator.
-# -G generates SPIR-V for OpenGL, which allows for loose uniforms.
-$COMPILER -G -S vert "$VERTEX_SHADER" -o "$OUT_DIR/main.vert.spv" && echo "  [OK] $VERTEX_SHADER -> $OUT_DIR/main.vert.spv"
-$COMPILER -G -S frag "$FRAGMENT_SHADER" -o "$OUT_DIR/main.frag.spv" && echo "  [OK] $FRAGMENT_SHADER -> $OUT_DIR/main.frag.spv"
+$COMPILER -G -S vert "$SRC_DIR/main.vs" -o "$OUT_DIR/main.vert.spv" && echo "  [OK] $SRC_DIR/main.vs -> $OUT_DIR/main.vert.spv"
+$COMPILER -G -S frag "$SRC_DIR/main.fs" -o "$OUT_DIR/main.frag.spv" && echo "  [OK] $SRC_DIR/main.fs -> $OUT_DIR/main.frag.spv"
+
+$COMPILER -G -S vert "$SRC_DIR/text.vs" -o "$OUT_DIR/text.vert.spv" && echo "  [OK] $SRC_DIR/text.vs -> $OUT_DIR/text.vert.spv"
+$COMPILER -G -S frag "$SRC_DIR/text.fs" -o "$OUT_DIR/text.frag.spv" && echo "  [OK] $SRC_DIR/text.fs -> $OUT_DIR/text.frag.spv"
 
 echo "Shader compilation completed successfully."
