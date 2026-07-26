@@ -16,14 +16,13 @@ void Hud::updateAndRender(const Font &font, GLuint textProgram, const QuadMesh &
     {
         const std::string currentFilename = fmt::format("{}.ktx2", animState->name);
         // EXACT requested format string: %i FPS \n File: %s, Animation: %s, Frames %i
-        const std::string fullText =
-            fmt::format("{} FPS \n File: {}, Animation: {}, Frames {}", currentFps, currentFilename,
-                        animState->name, animState->frameCount);
+        const std::string fullText = fmt::format("{} FPS \n File: {}, Animation: {}, Frames {}", currentFps,
+                                                 currentFilename, animState->name, animState->frameCount);
 
         if (fullText != m_lastHudText1 || !m_hudTexture1.has_value() || !m_hudTexture2.has_value())
         {
             m_lastHudText1 = fullText;
-            
+
             // Split the fullText into two lines by \n
             size_t newlinePos = fullText.find('\n');
             std::string line1 = fullText.substr(0, newlinePos);

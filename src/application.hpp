@@ -4,17 +4,17 @@
 #pragma once
 
 #include "character.hpp"
-#include "windowing/window.hpp"
 #include "gfx/camera.hpp"
 #include "gfx/font.hpp"
 #include "gfx/graphics.hpp"
 #include "gfx/hud.hpp"
 #include "gfx/textRenderer.hpp"
+#include "windowing/window.hpp"
 
+#include "events/event.hpp"
+#include <entt/entt.hpp>
 #include <glad/gl.h>
 #include <glm/vec2.hpp>
-#include <entt/entt.hpp>
-#include "events/event.hpp"
 #include <memory>
 #include <optional>
 #include <string>
@@ -37,10 +37,10 @@ class Application
     void initMeshes();
     void setupCallbacks();
 
-    void onKeyEvent(const events::KeyEvent& event);
-    void onScrollEvent(const events::ScrollEvent& event);
-    void onCursorPosEvent(const events::MouseMovedEvent& event);
-    void onMouseButtonEvent(const events::MouseButtonEvent& event);
+    void onKeyEvent(const events::KeyEvent &event);
+    void onScrollEvent(const events::ScrollEvent &event);
+    void onCursorPosEvent(const events::MouseMovedEvent &event);
+    void onMouseButtonEvent(const events::MouseButtonEvent &event);
 
     void renderFrame(double time);
     void renderBackground(const glm::mat4 &projection);

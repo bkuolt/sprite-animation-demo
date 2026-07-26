@@ -15,15 +15,18 @@ class InputHandler
   public:
     InputHandler() = default;
 
-    void setEventDispatcher(entt::dispatcher* dispatcher)
+    void setEventDispatcher(entt::dispatcher *dispatcher)
     {
         _dispatcher = dispatcher;
     }
 
-    [[nodiscard]] entt::dispatcher* getEventDispatcher() const { return _dispatcher; }
+    [[nodiscard]] entt::dispatcher *getEventDispatcher() const
+    {
+        return _dispatcher;
+    }
 
   private:
-    entt::dispatcher* _dispatcher{nullptr};
+    entt::dispatcher *_dispatcher{nullptr};
 };
 
 } // namespace bgl::window

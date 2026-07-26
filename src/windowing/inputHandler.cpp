@@ -9,5 +9,4 @@ namespace bgl::window
 {
 
 
-
 } // namespace bgl::window

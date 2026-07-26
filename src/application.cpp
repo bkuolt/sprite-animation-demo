@@ -2,18 +2,18 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "application.hpp"
+#include "gfx/sampler.hpp"
 #include "gfx/textShaper.hpp"
 #include "io/ktxLoader.hpp"
 #include "io/shaderLoader.hpp"
-#include "gfx/sampler.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
-#include <fstream>
 #include <fmt/format.h>
+#include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/vec2.hpp>
 #include <nlohmann/json.hpp>
@@ -72,7 +72,7 @@ void Application::setupCallbacks()
     m_eventDispatcher.sink<events::KeyEvent>().connect<&Application::onKeyEvent>(this);
 }
 
-void Application::onKeyEvent(const events::KeyEvent& event)
+void Application::onKeyEvent(const events::KeyEvent &event)
 {
     if (event.key == GLFW_KEY_R && event.action == GLFW_PRESS)
     {
@@ -102,18 +102,18 @@ void Application::onKeyEvent(const events::KeyEvent& event)
     }
 }
 
-void Application::onScrollEvent(const events::ScrollEvent& event)
+void Application::onScrollEvent(const events::ScrollEvent &event)
 {
     m_camera.handleScroll(event.yoffset);
 }
 
-void Application::onCursorPosEvent(const events::MouseMovedEvent& event)
+void Application::onCursorPosEvent(const events::MouseMovedEvent &event)
 {
     const auto winSize = m_window->getWindowSize();
     m_camera.handleCursorPos(event.xpos, event.ypos, static_cast<float>(winSize.x), static_cast<float>(winSize.y));
 }
 
-void Application::onMouseButtonEvent(const events::MouseButtonEvent& event)
+void Application::onMouseButtonEvent(const events::MouseButtonEvent &event)
 {
     m_camera.handleMouseButton(event.button, event.action);
 }
@@ -134,32 +134,34 @@ void Application::initAssets()
         spdlog::error("Failed to open animations.json at {}", jsonPath.string());
         return;
     }
-    
+
     nlohmann::json data;
     try
     {
         data = nlohmann::json::parse(f);
     }
-    catch (const nlohmann::json::parse_error& e)
+    catch (const nlohmann::json::parse_error &e)
     {
         spdlog::error("JSON parse error: {}", e.what());
         return;
     }
 
-    if (!data.contains("characters")) return;
+    if (!data.contains("characters"))
+        return;
 
-    for (const auto& charNode : data["characters"])
+    for (const auto &charNode : data["characters"])
     {
         std::string charName = charNode.value("name", "Unknown");
         auto character = std::make_shared<Character>(charName);
 
         if (charNode.contains("animations"))
         {
-            for (const auto& animNode : charNode["animations"])
+            for (const auto &animNode : charNode["animations"])
             {
                 std::string animName = animNode.value("name", "Unknown");
                 std::string animFile = animNode.value("file", "");
-                if (animFile.empty()) continue;
+                if (animFile.empty())
+                    continue;
 
                 auto file = basePath / "assets" / animFile;
                 io::KtxLoader loader(file, KTX_TTF_BC3_RGBA);

@@ -2,8 +2,8 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "graphics.hpp"
-#include "sampler.hpp"
 #include "../math.hpp"
+#include "sampler.hpp"
 
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>

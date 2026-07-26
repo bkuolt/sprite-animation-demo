@@ -9,7 +9,7 @@ namespace bgl::gfx
 {
 /**
  * @brief Wrapper for an OpenGL Sampler Object.
- * 
+ *
  * Provides Direct State Access (DSA) for texture sampling configuration,
  * decoupling filtering and wrapping state from the Texture Objects themselves.
  */
@@ -20,7 +20,7 @@ class Sampler
      * @brief Creates a new OpenGL Sampler object.
      */
     Sampler();
-    
+
     /**
      * @brief Destroys the Sampler object and frees GPU resources.
      */

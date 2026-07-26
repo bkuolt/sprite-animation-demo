@@ -2,8 +2,8 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "window.hpp"
-#include "../gfx/graphics.hpp"
 #include "../events/event.hpp"
+#include "../gfx/graphics.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
@@ -29,7 +29,7 @@ void KeyboardCallback(GLFWwindow *window, int key, int scancode, int action, int
             win->toggleFullscreen();
         }
 
-        auto* dispatcher = win->getInputHandler().getEventDispatcher();
+        auto *dispatcher = win->getInputHandler().getEventDispatcher();
         if (dispatcher)
         {
             dispatcher->trigger(bgl::events::KeyEvent{key, scancode, action, mods});
@@ -177,7 +177,6 @@ void Window::setRenderCallback(RenderCallback callback)
 {
     _renderCallback = std::move(callback);
 }
-
 
 
 void Window::close()

@@ -4,11 +4,10 @@
 #pragma once
 
 #include "glad/gl.h"
-#include "glad/gl.h"
 #include <cstdint>
-#include <memory>
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
+#include <memory>
 
 namespace bgl
 {
@@ -26,8 +25,9 @@ struct OverlayVertex
     glm::vec2 uv;
 };
 
-namespace gfx {
-    class Sampler;
+namespace gfx
+{
+class Sampler;
 }
 
 void InitializeGLAD();

@@ -4,10 +4,10 @@
 #pragma once
 
 #include "glad/gl.h"
-#include <GLFW/glfw3.h>
-#include <glm/vec2.hpp>
-#include <entt/entt.hpp>
 #include "inputHandler.hpp"
+#include <GLFW/glfw3.h>
+#include <entt/entt.hpp>
+#include <glm/vec2.hpp>
 
 namespace bgl::window
 {
@@ -25,11 +25,17 @@ class Window
     Window(Window &&) noexcept = default;
     Window &operator=(Window &&) noexcept = default;
 
-    [[nodiscard]] InputHandler &getInputHandler() noexcept { return _inputHandler; }
-    [[nodiscard]] const InputHandler &getInputHandler() const noexcept { return _inputHandler; }
+    [[nodiscard]] InputHandler &getInputHandler() noexcept
+    {
+        return _inputHandler;
+    }
+    [[nodiscard]] const InputHandler &getInputHandler() const noexcept
+    {
+        return _inputHandler;
+    }
 
     void setRenderCallback(RenderCallback callback);
-    void setEventDispatcher(entt::dispatcher* dispatcher)
+    void setEventDispatcher(entt::dispatcher *dispatcher)
     {
         _inputHandler.setEventDispatcher(dispatcher);
     }
