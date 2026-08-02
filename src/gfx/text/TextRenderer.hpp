@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "font.hpp"
-#include "textShaper.hpp"
-#include "textureAtlas.hpp"
+#include "Font.hpp"
+#include "TextShaper.hpp"
+#include "TextureAtlas.hpp"
 
 #include <glad/gl.h>
 #include <glm/vec2.hpp>

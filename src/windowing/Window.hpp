@@ -4,7 +4,7 @@
 #pragma once
 
 #include "glad/gl.h"
-#include "inputHandler.hpp"
+#include "InputHandler.hpp"
 #include <GLFW/glfw3.h>
 #include <entt/entt.hpp>
 #include <glm/vec2.hpp>

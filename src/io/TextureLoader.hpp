@@ -5,7 +5,7 @@
 
 #include <glad/gl.h>
 
-#include "../gfx/texture2dArray.hpp"
+#include "../gfx/Texture2DArray.hpp"
 #include <memory>
 
 namespace bgl::io

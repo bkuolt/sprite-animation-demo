@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
-#include "window.hpp"
-#include "../events/event.hpp"
-#include "../gfx/graphics.hpp"
+#include "Window.hpp"
+#include "../events/Event.hpp"
+#include "../gfx/Graphics.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>

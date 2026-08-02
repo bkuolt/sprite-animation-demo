@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
-#include "hud.hpp"
+#include "Hud.hpp"
 #include <fmt/format.h>
 
 namespace bgl::gfx

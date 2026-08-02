@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
-#include "textureAtlas.hpp"
+#include "TextureAtlas.hpp"
 
 #define STB_RECT_PACK_IMPLEMENTATION
-#include "stb_rect_pack.h"
+#include "StbRectPack.h"
 
 #include <algorithm>
 #include <cmath>

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
-#include "graphics.hpp"
-#include "../math.hpp"
-#include "sampler.hpp"
+#include "Graphics.hpp"
+#include "../Math.hpp"
+#include "Sampler.hpp"
 
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>
@@ -217,10 +217,10 @@ QuadMesh createOverlayQuad()
     QuadMesh quad;
     quad.indexCount = 6;
 
-    constexpr std::array<OverlayVertex, 4> vertices = {{{{-1.0f, -1.0f}, {0.0f, 1.0f}},
-                                                        {{1.0f, -1.0f}, {1.0f, 1.0f}},
-                                                        {{1.0f, 1.0f}, {1.0f, 0.0f}},
-                                                        {{-1.0f, 1.0f}, {0.0f, 0.0f}}}};
+    constexpr std::array<OverlayVertex, 4> vertices = {{{{-1.0f, -1.0f}, {0.0f, 0.0f}},
+                                                        {{1.0f, -1.0f}, {1.0f, 0.0f}},
+                                                        {{1.0f, 1.0f}, {1.0f, 1.0f}},
+                                                        {{-1.0f, 1.0f}, {0.0f, 1.0f}}}};
 
     constexpr std::array<GLuint, 6> indices = {0, 1, 2, 2, 3, 0};
 

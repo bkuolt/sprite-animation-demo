@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "font.hpp"
+#include "Font.hpp"
 
 #include <glad/gl.h>
 #include <glm/vec4.hpp>

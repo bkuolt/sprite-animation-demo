@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "../gfx/texture2dArray.hpp"
-#include "textureLoader.hpp"
+#include "../gfx/Texture2DArray.hpp"
+#include "TextureLoader.hpp"
 #include <filesystem>
 #include <span>
 #include <vector>

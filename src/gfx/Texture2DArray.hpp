@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "texture2d.hpp" // For bgl::gfx::ImageLayer
+#include "Texture2D.hpp" // For bgl::gfx::ImageLayer
 #include <glad/gl.h>
 #include <ktx.h>
 #include <span>

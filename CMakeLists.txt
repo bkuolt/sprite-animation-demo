@@ -121,11 +121,12 @@ foreach(ASSET_SOURCE ${ASSET_SOURCES})
     list(APPEND ASSET_DESTINATIONS ${ASSET_DESTINATION})
 
     add_custom_command(
-        OUTPUT ${ASSET_DESTINATION}
+        OUTPUT "${ASSET_DESTINATION}"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${DEST_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ASSET_SOURCE}" "${ASSET_DESTINATION}"
         DEPENDS "${ASSET_SOURCE}"
         COMMENT "Copying asset: ${REL_PATH}"
+        VERBATIM
     )
 endforeach()
 

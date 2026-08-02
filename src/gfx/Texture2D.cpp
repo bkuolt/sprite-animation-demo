@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
-#include "texture2d.hpp"
+#include "Texture2D.hpp"
 #include <algorithm>
 #include <cmath>
 #include <fmt/format.h>
