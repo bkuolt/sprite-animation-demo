@@ -84,6 +84,7 @@ task run
 
 ## 🎮 Controls
 
+- **`TAB`**: Wechselt zwischen den geladenen Charakteren (Mädchen, Santa, Items).
 - **`Pfeil-links` / `Pfeil-rechts`**: Charakter nach links oder rechts bewegen (Lauf-Animation).
 - **`Leertaste`**: Charakter springen lassen (Sprung-Animation mit Schwerkraft).
 - **`Maus drag (Gedrückte Maustaste + Ziehen)`**: Kamera pannen (Verschieben der 2D-Kameraansicht).

@@ -60,8 +60,10 @@ def process_character_animations(png_dir: Path, ktx_dir: Path):
             cmd = [
                 "toktx",
                 "--t2",
+                "--encode", "uastc",
                 "--zcmp", "20",
                 "--genmipmap",
+                "--layers", str(len(frames)),
                 str(out_file)
             ] + [str(f) for f in frames]
             

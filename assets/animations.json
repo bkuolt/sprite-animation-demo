@@ -1,25 +1,32 @@
 {
   "characters": [
     {
-      "name": "Hero",
+      "name": "Girl",
       "animations": [
-        { "name": "Idle", "file": "textures/ktx/idle.ktx2" },
-        { "name": "Walk", "file": "textures/ktx/walk.ktx2" },
-        { "name": "Jump", "file": "textures/ktx/jump.ktx2" },
-        { "name": "Run", "file": "textures/ktx/run.ktx2" },
-        { "name": "Slide", "file": "textures/ktx/slide.ktx2" },
-        { "name": "Dead", "file": "textures/ktx/dead.ktx2" }
+        { "name": "Idle", "file": "textures/ktx/girl/idle.ktx2" },
+        { "name": "Walk", "file": "textures/ktx/girl/walk.ktx2" },
+        { "name": "Jump", "file": "textures/ktx/girl/jump.ktx2" },
+        { "name": "Run", "file": "textures/ktx/girl/run.ktx2" },
+        { "name": "Dead", "file": "textures/ktx/girl/dead.ktx2" }
       ]
     },
     {
-      "name": "Villain",
+      "name": "Santa",
       "animations": [
-        { "name": "Idle", "file": "textures/ktx/idle.ktx2" },
-        { "name": "Walk", "file": "textures/ktx/walk.ktx2" },
-        { "name": "Jump", "file": "textures/ktx/jump.ktx2" },
-        { "name": "Run", "file": "textures/ktx/run.ktx2" },
-        { "name": "Slide", "file": "textures/ktx/slide.ktx2" },
-        { "name": "Dead", "file": "textures/ktx/dead.ktx2" }
+        { "name": "Idle", "file": "textures/ktx/santa/idle.ktx2" },
+        { "name": "Walk", "file": "textures/ktx/santa/walk.ktx2" },
+        { "name": "Jump", "file": "textures/ktx/santa/jump.ktx2" },
+        { "name": "Run", "file": "textures/ktx/santa/run.ktx2" },
+        { "name": "Slide", "file": "textures/ktx/santa/slide.ktx2" },
+        { "name": "Dead", "file": "textures/ktx/santa/dead.ktx2" }
+      ]
+    },
+    {
+      "name": "Items",
+      "animations": [
+        { "name": "Idle", "file": "textures/ktx/items/items.ktx2" },
+        { "name": "Walk", "file": "textures/ktx/items/items.ktx2" },
+        { "name": "Jump", "file": "textures/ktx/items/items.ktx2" }
       ]
     }
   ]
