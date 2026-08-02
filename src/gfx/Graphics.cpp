@@ -265,11 +265,12 @@ void destroyQuadMesh(QuadMesh &quad)
 }
 
 void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor,
-                const glm::mat4 &projection)
+                const glm::mat4 &projection, const glm::mat4 &model)
 {
     glProgramUniform1i(shaderProgram, 3, currentFrameIndex);
     glProgramUniform1f(shaderProgram, 4, tweenFactor);
     glProgramUniformMatrix4fv(shaderProgram, 5, 1, GL_FALSE, glm::value_ptr(projection));
+    glProgramUniformMatrix4fv(shaderProgram, 6, 1, GL_FALSE, glm::value_ptr(model));
     glUseProgram(shaderProgram);
 
     glBindTextureUnit(0, textureID);

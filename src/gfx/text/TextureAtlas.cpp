@@ -4,7 +4,7 @@
 #include "TextureAtlas.hpp"
 
 #define STB_RECT_PACK_IMPLEMENTATION
-#include "StbRectPack.h"
+#include <stb_rect_pack.h>
 
 #include <algorithm>
 #include <cmath>

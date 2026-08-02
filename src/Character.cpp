@@ -22,6 +22,19 @@ void Character::setAnimationIndex(size_t index)
     }
 }
 
+bool Character::setAnimationByName(const std::string &name)
+{
+    for (size_t i = 0; i < m_animations.size(); ++i)
+    {
+        if (m_animations[i].name == name)
+        {
+            m_currentAnimationIndex = i;
+            return true;
+        }
+    }
+    return false;
+}
+
 void Character::nextAnimation()
 {
     if (!m_animations.empty())

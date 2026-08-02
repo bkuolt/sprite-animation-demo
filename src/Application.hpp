@@ -76,8 +76,12 @@ class Application
     GLuint m_quadIBO = 0;
 
     double m_lastFpsTime = 0.0;
+    double m_lastFrameTime = 0.0;
     int m_frameCounter = 0;
     int m_currentFps = 60;
+
+    bool m_leftPressed = false;
+    bool m_rightPressed = false;
 };
 
 } // namespace bgl

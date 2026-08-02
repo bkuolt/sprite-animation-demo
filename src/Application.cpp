@@ -90,14 +90,18 @@ void Application::onKeyEvent(const events::KeyEvent &event)
         {
             current_char->previousAnimation();
         }
-        else if (event.key == GLFW_KEY_RIGHT && event.action == GLFW_PRESS)
+        else if (event.key == GLFW_KEY_TAB && event.action == GLFW_PRESS)
         {
             m_currentCharacterIndex = (m_currentCharacterIndex + 1) % m_characters.size();
         }
-        else if (event.key == GLFW_KEY_LEFT && event.action == GLFW_PRESS)
+        
+        if (event.key == GLFW_KEY_RIGHT)
         {
-            m_currentCharacterIndex =
-                (m_currentCharacterIndex > 0) ? (m_currentCharacterIndex - 1) : (m_characters.size() - 1);
+            m_rightPressed = (event.action != GLFW_RELEASE);
+        }
+        else if (event.key == GLFW_KEY_LEFT)
+        {
+            m_leftPressed = (event.action != GLFW_RELEASE);
         }
     }
 }
@@ -259,6 +263,40 @@ void Application::renderFrame(double time)
         m_lastFpsTime = time;
     }
 
+    if (m_lastFrameTime == 0.0) m_lastFrameTime = time;
+    double dt = time - m_lastFrameTime;
+    m_lastFrameTime = time;
+
+    if (!m_characters.empty())
+    {
+        auto &current_char = m_characters[m_currentCharacterIndex];
+        float speed = 2.0f; // units per second
+        bool isMoving = false;
+        glm::vec2 pos = current_char->getPosition();
+        if (m_rightPressed)
+        {
+            pos.x += speed * static_cast<float>(dt);
+            current_char->setFlipped(false);
+            isMoving = true;
+        }
+        else if (m_leftPressed)
+        {
+            pos.x -= speed * static_cast<float>(dt);
+            current_char->setFlipped(true);
+            isMoving = true;
+        }
+        current_char->setPosition(pos);
+
+        if (isMoving)
+        {
+            current_char->setAnimationByName("Walk");
+        }
+        else
+        {
+            current_char->setAnimationByName("Idle");
+        }
+    }
+
     const auto winSize = m_window->getWindowSize();
     const float aspect = winSize.x / winSize.y;
     const glm::mat4 projection = m_camera.getProjectionMatrix(aspect);
@@ -297,9 +335,8 @@ void Application::renderBackground(const glm::mat4 &projection)
 void Application::renderCharacter(double time, const glm::mat4 &projection)
 {
     auto current_char = !m_characters.empty() ? m_characters[m_currentCharacterIndex] : nullptr;
-    const auto *animState = current_char ? current_char->getCurrentAnimation() : nullptr;
 
-    if (animState && animState->texture)
+    if (auto animState = current_char->getCurrentAnimation())
     {
         const auto num_frames = animState->frameCount > 0 ? animState->frameCount : 1;
         constexpr double target_fps = 24.0;
@@ -308,7 +345,13 @@ void Application::renderCharacter(double time, const glm::mat4 &projection)
         const int currentFrame = static_cast<int>(std::floor(totalFrames)) % num_frames;
         const float tweenFactor = static_cast<float>(totalFrames - std::floor(totalFrames));
 
-        renderQuad(m_spriteQuad, animState->texture->getHandle(), m_mainProgram, currentFrame, tweenFactor, projection);
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(current_char->getPosition(), 0.0f));
+        if (current_char->isFlipped())
+        {
+            model = glm::scale(model, glm::vec3(-1.0f, 1.0f, 1.0f));
+        }
+
+        renderQuad(m_spriteQuad, animState->texture->getHandle(), m_mainProgram, currentFrame, tweenFactor, projection, model);
     }
 }
 

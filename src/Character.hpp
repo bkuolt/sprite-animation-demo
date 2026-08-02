@@ -5,6 +5,7 @@
 
 #include "gfx/Texture2DArray.hpp"
 #include <glad/gl.h>
+#include <glm/vec2.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -43,9 +44,31 @@ class Character
         return m_animations.size();
     }
 
+    bool setAnimationByName(const std::string &name);
+
+    [[nodiscard]] const glm::vec2 &getPosition() const
+    {
+        return m_position;
+    }
+    void setPosition(const glm::vec2 &position)
+    {
+        m_position = position;
+    }
+
+    [[nodiscard]] bool isFlipped() const
+    {
+        return m_isFlipped;
+    }
+    void setFlipped(bool flipped)
+    {
+        m_isFlipped = flipped;
+    }
+
   private:
     std::string m_name;
     std::vector<AnimationState> m_animations;
     size_t m_currentAnimationIndex{0};
+    glm::vec2 m_position{0.0f, 0.0f};
+    bool m_isFlipped{false};
 };
 } // namespace bgl
