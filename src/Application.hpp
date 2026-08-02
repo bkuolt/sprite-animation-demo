@@ -67,12 +67,22 @@ class Application
     void renderBackground(const glm::mat4 &projection);
     void renderCharacter(double time, const glm::mat4 &projection);
     void renderSnow(double time, const glm::mat4 &projection);
+    void renderItems(double time, const glm::mat4 &projection);
     void renderUI(double time, const glm::vec2 &winSize);
 
     entt::dispatcher m_eventDispatcher;
     std::unique_ptr<bgl::window::Window> m_window;
     std::vector<std::shared_ptr<Character>> m_characters;
     size_t m_currentCharacterIndex{0};
+
+    struct WorldItem {
+        glm::vec2 pos;
+        float scale;
+        float timeOffset;
+    };
+    std::vector<WorldItem> m_worldItems;
+    std::shared_ptr<gfx::Texture2DArray> m_itemTexture;
+    uint32_t m_itemFrameCount{0};
 
     std::optional<Font> m_font;
 

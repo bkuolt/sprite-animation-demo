@@ -177,6 +177,17 @@ void Application::initAssets()
         }
         m_characters.push_back(character);
     }
+
+    // Load items texture explicitly for world items
+    auto itemFile = basePath / "assets" / "textures" / "ktx" / "items" / "items.ktx2";
+    if (std::filesystem::exists(itemFile))
+    {
+        io::KtxLoader itemLoader(itemFile, KTX_TTF_BC3_RGBA);
+        m_itemTexture = itemLoader.upload();
+        GLint layers = 0;
+        glGetTextureLevelParameteriv(m_itemTexture->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
+        m_itemFrameCount = static_cast<uint32_t>(layers > 0 ? layers : 1);
+    }
 }
 
 void Application::initShaders()
@@ -210,12 +221,12 @@ void Application::initMeshes()
     m_overlayQuad = createOverlayQuad();
     m_bgQuad = create2DQuad();
 
-    constexpr int NUM_SNOW_PARTICLES = 1500;
+    constexpr int NUM_SNOW_PARTICLES = 150000;
     std::vector<glm::vec2> snowOffsets(NUM_SNOW_PARTICLES);
     for (int i = 0; i < NUM_SNOW_PARTICLES; ++i)
     {
-        float rx = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 20.0f - 10.0f;
-        float ry = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 20.0f - 10.0f;
+        float rx = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 40.0f - 20.0f;
+        float ry = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 40.0f - 20.0f;
         snowOffsets[i] = glm::vec2(rx, ry);
     }
 
@@ -245,6 +256,18 @@ void Application::initMeshes()
     glVertexArrayAttribFormat(m_snowVAO, 1, 2, GL_FLOAT, GL_FALSE, 0);
     glVertexArrayAttribBinding(m_snowVAO, 1, 1);
     glVertexArrayBindingDivisor(m_snowVAO, 1, 1);
+
+    // Generate random items
+    if (m_itemFrameCount > 0)
+    {
+        for (int i = 0; i < 5; ++i)
+        {
+            float rx = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 16.0f - 8.0f;
+            float scale = 0.3f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.2f;
+            float tOffset = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.0f;
+            m_worldItems.push_back({glm::vec2(rx, GROUND_Y - 0.2f), scale, tOffset});
+        }
+    }
 }
 
 void Application::run()
@@ -339,6 +362,7 @@ void Application::renderFrame(double time)
 
     renderBackground(projection);
     renderSnow(time, projection);
+    renderItems(time, projection);
     renderCharacter(time, projection);
     renderUI(time, winSize);
 }
@@ -392,7 +416,7 @@ void Application::renderSnow(double time, const glm::mat4 &projection)
         glUseProgram(m_snowProgram);
 
         glBindVertexArray(m_snowVAO);
-        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, 1500);
+        glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, 150000);
     }
 }
 
@@ -402,6 +426,25 @@ void Application::renderUI(double /*time*/, const glm::vec2 &winSize)
     if (m_font)
     {
         m_hud.updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, current_char);
+    }
+}
+
+void Application::renderItems(double time, const glm::mat4 &projection)
+{
+    if (!m_itemTexture || !m_itemTexture->isValid() || m_itemFrameCount == 0 || m_worldItems.empty())
+        return;
+
+    for (const auto &item : m_worldItems)
+    {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(item.pos, 0.0f));
+        model = glm::scale(model, glm::vec3(item.scale));
+
+        const double itemTime = time + item.timeOffset;
+        const double target_fps = 10.0;
+        const double totalFrames = itemTime * target_fps;
+        const int currentFrame = static_cast<int>(std::floor(totalFrames)) % m_itemFrameCount;
+
+        renderQuad(m_spriteQuad, m_itemTexture->getHandle(), m_mainProgram, currentFrame, 0.0f, projection, model);
     }
 }
 

@@ -24,9 +24,9 @@ void main()
     float x = aOffset.x + sway;
     float y = aOffset.y - time * speed;
     
-    // Wrap around screen
-    x = mod(x + 2.0, 4.0) - 2.0; // Assume scene width is roughly [-2, 2]
-    y = mod(y + 2.0, 4.0) - 2.0; // Assume scene height is roughly [-2, 2]
+    // Wrap around screen to a large area to allow zooming out
+    x = mod(x + 20.0, 40.0) - 20.0;
+    y = mod(y + 20.0, 40.0) - 20.0;
     
     // Scale particle
     float scale = 0.005 + hash(aOffset + vec2(1.0)) * 0.015;
