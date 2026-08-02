@@ -16,8 +16,7 @@ class PngLoader final : public bgl::io::ITextureLoader
   public:
     // Load a single PNG image as a 1-layer 2D Texture Array
     explicit PngLoader(const std::filesystem::path &path);
-
-    // Load multiple PNG images (e.g. sequence of animation frames) into a 2D Texture Array
+    explicit PngLoader(std::span<const std::byte> memoryBuffer);
     explicit PngLoader(std::span<const std::filesystem::path> paths);
 
     ~PngLoader() override = default;

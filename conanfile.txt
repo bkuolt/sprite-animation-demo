@@ -14,6 +14,7 @@ pngpp/0.2.10
 nlohmann_json/3.11.3
 entt/3.13.0
 stb/cci.20240531
+openal-soft/1.24.3
 
 
 

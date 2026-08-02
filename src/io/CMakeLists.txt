@@ -1,6 +1,7 @@
 add_library(bgl_io STATIC
     KtxLoader.cpp
     ShaderLoader.cpp
+    TextureLoader.cpp
 )
 
 if(BGL_ENABLE_PNG_LOADER)

@@ -21,6 +21,7 @@ find_package(pngpp REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(EnTT REQUIRED)
 find_package(stb REQUIRED)
+find_package(OpenAL REQUIRED)
 
 option(BGL_ENABLE_PNG_LOADER "Enable PNG texture loader" ON)
 option(BGL_ENABLE_JPEG_LOADER "Enable JPEG texture loader" OFF)
@@ -33,11 +34,17 @@ set(APP_SOURCES
     src/windowing/InputHandler.cpp
     src/Character.cpp
     src/gfx/Graphics.cpp
+    src/gfx/GLContext.cpp
+    src/gfx/QuadMesh.cpp
+    src/gfx/TileMap.cpp
     src/gfx/Texture2D.cpp
     src/gfx/Texture2DArray.cpp
     src/gfx/Sampler.cpp
     src/gfx/Camera.cpp
     src/gfx/Hud.cpp
+    src/audio/AudioEngine.cpp
+    src/audio/SoundBuffer.cpp
+    src/audio/SoundSource.cpp
 )
 
 # Subdirectories for static libraries
@@ -55,6 +62,7 @@ target_link_libraries(app PRIVATE
     fmt::fmt
     nlohmann_json::nlohmann_json
     EnTT::EnTT
+    OpenAL::OpenAL
     bgl_text
     bgl_io
 )

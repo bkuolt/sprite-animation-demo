@@ -5,6 +5,8 @@
 
 #include "Character.hpp"
 #include "events/Event.hpp"
+#include "audio/AudioEngine.hpp"
+#include "gfx/TileMap.hpp"
 #include "gfx/Camera.hpp"
 #include "gfx/Graphics.hpp"
 #include "gfx/Hud.hpp"
@@ -88,6 +90,8 @@ class Application
 
     gfx::Camera m_camera;
     gfx::Hud m_hud;
+    gfx::TileMap m_tileMap;
+    audio::AudioEngine m_audioEngine;
 
     GLuint m_mainProgram{0};
     GLuint m_textProgram{0};

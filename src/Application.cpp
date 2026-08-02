@@ -168,25 +168,49 @@ void Application::initAssets()
                     continue;
 
                 auto file = basePath / "assets" / animFile;
-                io::KtxLoader loader(file, KTX_TTF_BC3_RGBA);
-                auto tex = loader.upload();
-                GLint layers = 0;
-                glGetTextureLevelParameteriv(tex->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
-                character->addAnimation(animName, std::move(tex), static_cast<uint32_t>(layers > 0 ? layers : 1));
+                auto tex = io::loadTexture(file);
+                if (tex)
+                {
+                    GLint layers = 0;
+                    glGetTextureLevelParameteriv(tex->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
+                    character->addAnimation(animName, std::move(tex), static_cast<uint32_t>(layers > 0 ? layers : 1));
+                }
             }
         }
         m_characters.push_back(character);
     }
 
-    // Load items texture explicitly for world items
+    for (size_t i = 0; i < m_characters.size(); ++i) {
+        if (m_characters[i]->getName() == "Santa") {
+            m_currentCharacterIndex = i;
+            break;
+        }
+    }
+
+    // Load items texture explicitly for world items using automatic texture loader
     auto itemFile = basePath / "assets" / "textures" / "ktx" / "items" / "items.ktx2";
     if (std::filesystem::exists(itemFile))
     {
-        io::KtxLoader itemLoader(itemFile, KTX_TTF_BC3_RGBA);
-        m_itemTexture = itemLoader.upload();
-        GLint layers = 0;
-        glGetTextureLevelParameteriv(m_itemTexture->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
-        m_itemFrameCount = static_cast<uint32_t>(layers > 0 ? layers : 1);
+        m_itemTexture = io::loadTexture(itemFile);
+        if (m_itemTexture)
+        {
+            GLint layers = 0;
+            glGetTextureLevelParameteriv(m_itemTexture->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
+            m_itemFrameCount = static_cast<uint32_t>(layers > 0 ? layers : 1);
+        }
+    }
+
+    // Load TileMap level design from JSON
+    auto levelJson = basePath / "assets" / "level.json";
+    if (std::filesystem::exists(levelJson))
+    {
+        m_tileMap.loadFromFile(levelJson);
+    }
+
+    auto tilesFile = basePath / "assets" / "textures" / "ktx" / "tiles" / "tiles.ktx2";
+    if (std::filesystem::exists(tilesFile))
+    {
+        m_tileMap.setTexture(io::loadTexture(tilesFile));
     }
 }
 
@@ -272,6 +296,8 @@ void Application::initMeshes()
 
 void Application::run()
 {
+    m_audioEngine.init();
+    m_audioEngine.playJingleBells();
     m_window->setRenderCallback([this](double time) { renderFrame(time); });
     m_window->run();
 }
@@ -289,6 +315,8 @@ void Application::renderFrame(double time)
     if (m_lastFrameTime == 0.0) m_lastFrameTime = time;
     double dt = time - m_lastFrameTime;
     m_lastFrameTime = time;
+
+    m_audioEngine.update(static_cast<float>(dt));
 
     if (!m_characters.empty())
     {
@@ -312,6 +340,7 @@ void Application::renderFrame(double time)
         {
             current_char->setVelocityY(JUMP_FORCE);
             current_char->setJumping(true);
+            m_audioEngine.playJumpSound();
         }
 
         if (current_char->isJumping() || pos.y > GROUND_Y)
@@ -361,6 +390,7 @@ void Application::renderFrame(double time)
     glClear(GL_COLOR_BUFFER_BIT);
 
     renderBackground(projection);
+    m_tileMap.render(m_mainProgram, m_spriteQuad, projection);
     renderSnow(time, projection);
     renderItems(time, projection);
     renderCharacter(time, projection);

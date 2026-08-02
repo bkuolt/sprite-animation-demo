@@ -61,6 +61,21 @@ KtxLoader::KtxLoader(const std::filesystem::path &path, ktx_transcode_fmt_e targ
     transcode();
 }
 
+KtxLoader::KtxLoader(std::span<const std::byte> memoryBuffer, ktx_transcode_fmt_e targetFormat) : _targetFormat(targetFormat)
+{
+    KTX_error_code result = ktxTexture2_CreateFromMemory(
+        reinterpret_cast<const ktx_uint8_t *>(memoryBuffer.data()),
+        memoryBuffer.size(),
+        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+        &_texture);
+
+    if (result != KTX_SUCCESS)
+    {
+        throw std::runtime_error(fmt::format("Failed to load KTX from memory. Error: {}", ktxErrorString(result)));
+    }
+    transcode();
+}
+
 KtxLoader::~KtxLoader()
 {
     if (_texture)

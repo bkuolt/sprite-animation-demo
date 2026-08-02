@@ -16,6 +16,7 @@ class KtxLoader final : public bgl::io::ITextureLoader
 {
   public:
     KtxLoader(const std::filesystem::path &path, ktx_transcode_fmt_e targetFormat);
+    KtxLoader(std::span<const std::byte> memoryBuffer, ktx_transcode_fmt_e targetFormat);
     ~KtxLoader() override;
 
     [[nodiscard]] std::unique_ptr<bgl::gfx::Texture2DArray> upload() override;

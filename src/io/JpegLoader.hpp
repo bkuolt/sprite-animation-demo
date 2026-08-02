@@ -16,8 +16,7 @@ class JpegLoader final : public bgl::io::ITextureLoader
   public:
     // Load a single JPEG image as a 1-layer 2D Texture Array
     explicit JpegLoader(const std::filesystem::path &path);
-
-    // Load multiple JPEG images into a 2D Texture Array
+    explicit JpegLoader(std::span<const std::byte> memoryBuffer);
     explicit JpegLoader(std::span<const std::filesystem::path> paths);
 
     ~JpegLoader() override = default;
