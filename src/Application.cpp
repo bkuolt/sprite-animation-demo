@@ -82,11 +82,7 @@ void Application::onKeyEvent(const events::KeyEvent &event)
     if (!m_characters.empty())
     {
         auto &current_char = m_characters[m_currentCharacterIndex];
-        if ((event.key == GLFW_KEY_SPACE || event.key == GLFW_KEY_UP) && event.action == GLFW_PRESS)
-        {
-            current_char->nextAnimation();
-        }
-        else if (event.key == GLFW_KEY_DOWN && event.action == GLFW_PRESS)
+        if (event.key == GLFW_KEY_DOWN && event.action == GLFW_PRESS)
         {
             current_char->previousAnimation();
         }
@@ -102,6 +98,10 @@ void Application::onKeyEvent(const events::KeyEvent &event)
         else if (event.key == GLFW_KEY_LEFT)
         {
             m_leftPressed = (event.action != GLFW_RELEASE);
+        }
+        else if (event.key == GLFW_KEY_SPACE)
+        {
+            m_spacePressed = (event.action != GLFW_RELEASE);
         }
     }
 }
@@ -270,24 +270,48 @@ void Application::renderFrame(double time)
     if (!m_characters.empty())
     {
         auto &current_char = m_characters[m_currentCharacterIndex];
-        float speed = 2.0f; // units per second
         bool isMoving = false;
         glm::vec2 pos = current_char->getPosition();
         if (m_rightPressed)
         {
-            pos.x += speed * static_cast<float>(dt);
+            pos.x += CHARACTER_SPEED * static_cast<float>(dt);
             current_char->setFlipped(false);
             isMoving = true;
         }
         else if (m_leftPressed)
         {
-            pos.x -= speed * static_cast<float>(dt);
+            pos.x -= CHARACTER_SPEED * static_cast<float>(dt);
             current_char->setFlipped(true);
             isMoving = true;
         }
+
+        if (m_spacePressed && !current_char->isJumping())
+        {
+            current_char->setVelocityY(JUMP_FORCE);
+            current_char->setJumping(true);
+        }
+
+        if (current_char->isJumping() || pos.y > GROUND_Y)
+        {
+            float vY = current_char->getVelocityY() - (GRAVITY * static_cast<float>(dt));
+            pos.y += vY * static_cast<float>(dt);
+            current_char->setVelocityY(vY);
+
+            if (pos.y <= GROUND_Y)
+            {
+                pos.y = GROUND_Y;
+                current_char->setVelocityY(0.0f);
+                current_char->setJumping(false);
+            }
+        }
+
         current_char->setPosition(pos);
 
-        if (isMoving)
+        if (current_char->isJumping())
+        {
+            current_char->setAnimationByName("Jump");
+        }
+        else if (isMoving)
         {
             current_char->setAnimationByName("Walk");
         }
@@ -323,9 +347,10 @@ void Application::renderBackground(const glm::mat4 &projection)
 {
     if (m_bgProgram != 0)
     {
-        glUseProgram(m_bgProgram);
         const GLint projLoc = glGetUniformLocation(m_bgProgram, "projection");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
+        glProgramUniformMatrix4fv(m_bgProgram, projLoc, 1, GL_FALSE, &projection[0][0]);
+        
+        glUseProgram(m_bgProgram);
 
         glBindVertexArray(m_bgQuad.VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
@@ -359,11 +384,12 @@ void Application::renderSnow(double time, const glm::mat4 &projection)
 {
     if (m_snowProgram != 0)
     {
-        glUseProgram(m_snowProgram);
         const GLint projLoc = glGetUniformLocation(m_snowProgram, "projection");
         const GLint timeLoc = glGetUniformLocation(m_snowProgram, "time");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
-        glUniform1f(timeLoc, static_cast<float>(time));
+        glProgramUniformMatrix4fv(m_snowProgram, projLoc, 1, GL_FALSE, &projection[0][0]);
+        glProgramUniform1f(m_snowProgram, timeLoc, static_cast<float>(time));
+
+        glUseProgram(m_snowProgram);
 
         glBindVertexArray(m_snowVAO);
         glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, 1500);

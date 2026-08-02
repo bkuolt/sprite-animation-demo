@@ -36,29 +36,13 @@ set(APP_SOURCES
     src/gfx/Texture2D.cpp
     src/gfx/Texture2DArray.cpp
     src/gfx/Sampler.cpp
-    src/gfx/text/Font.cpp
-    src/gfx/text/TextShaper.cpp
-    src/gfx/text/TextRenderer.cpp
-    src/gfx/text/TextureAtlas.cpp
     src/gfx/Camera.cpp
     src/gfx/Hud.cpp
-    src/io/KtxLoader.cpp
-    src/io/ShaderLoader.cpp
 )
 
-if(BGL_ENABLE_PNG_LOADER)
-    list(APPEND APP_SOURCES src/io/PngLoader.cpp)
-endif()
-
-if(BGL_ENABLE_JPEG_LOADER)
-    list(APPEND APP_SOURCES src/io/JpegLoader.cpp)
-endif()
-
-# We still compile ShaderLoader.cpp but maybe conditionally enable GLSL compiling
-# The prompt says "exclude GLSL source loaders entirely". Wait, we use ShaderLoader.cpp for SPIR-V too.
-# Let's compile ShaderLoader.cpp, but wait, the prompt says "exclude GLSL source loaders entirely". 
-# Maybe we keep ShaderLoader.cpp but guard the GLSL parts in C++ or rename it to GlslLoader. 
-# But for now I'll just keep ShaderLoader in the build for SPIRV.
+# Subdirectories for static libraries
+add_subdirectory(src/gfx/text)
+add_subdirectory(src/io)
 
 add_executable(app ${APP_SOURCES})
 
@@ -67,30 +51,15 @@ target_link_libraries(app PRIVATE
     OpenGL::GL
     glfw
     glm::glm
-    KTX::ktx
     spdlog::spdlog
     fmt::fmt
-    Freetype::Freetype
-    harfbuzz::harfbuzz
-    Fontconfig::Fontconfig
     nlohmann_json::nlohmann_json
     EnTT::EnTT
-    stb::stb
+    bgl_text
+    bgl_io
 )
 
-if(BGL_ENABLE_PNG_LOADER)
-    target_link_libraries(app PRIVATE PNG::PNG pngpp::pngpp)
-    target_compile_definitions(app PRIVATE BGL_ENABLE_PNG_LOADER)
-endif()
 
-if(BGL_ENABLE_JPEG_LOADER)
-    target_link_libraries(app PRIVATE JPEG::JPEG)
-    target_compile_definitions(app PRIVATE BGL_ENABLE_JPEG_LOADER)
-endif()
-
-if(BGL_ENABLE_GLSL_LOADER)
-    target_compile_definitions(app PRIVATE BGL_ENABLE_GLSL_LOADER)
-endif()
 
 
 if(MSVC)

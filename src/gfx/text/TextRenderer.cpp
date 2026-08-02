@@ -273,7 +273,7 @@ TextTexture TextRenderer::RenderShapedToTexture(const Font &font, const ShapedTe
 
         glUseProgram(s_ssboProgram);
         const GLint sizeLoc = glGetUniformLocation(s_ssboProgram, "u_TargetSize");
-        glUniform2f(sizeLoc, static_cast<float>(totalWidth), static_cast<float>(totalHeight));
+        glProgramUniform2f(s_ssboProgram, sizeLoc, static_cast<float>(totalWidth), static_cast<float>(totalHeight));
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
