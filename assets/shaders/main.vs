@@ -12,7 +12,7 @@ layout(location = 1) flat out int v_FrameIndex;
 layout(location = 2) out float v_TweenFactor;
 
 void main() {
-    v_TexCoords = (aPos / 1.5) + 0.5;
+    v_TexCoords = (aPos / 2.0) + 0.5;
     v_TexCoords.y = 1.0 - v_TexCoords.y;
 
     v_FrameIndex = u_FrameIndex;
