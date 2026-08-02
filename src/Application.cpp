@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
-#include "application.hpp"
-#include "gfx/sampler.hpp"
-#include "gfx/textShaper.hpp"
-#include "io/ktxLoader.hpp"
-#include "io/shaderLoader.hpp"
+#include "Application.hpp"
+#include "gfx/Sampler.hpp"
+#include "gfx/text/TextShaper.hpp"
+#include "io/KtxLoader.hpp"
+#include "io/ShaderLoader.hpp"
 
 #include <algorithm>
 #include <array>

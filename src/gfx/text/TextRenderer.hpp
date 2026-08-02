@@ -5,12 +5,14 @@
 
 #include "font.hpp"
 #include "textShaper.hpp"
+#include "textureAtlas.hpp"
 
 #include <glad/gl.h>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
 #include <cstdint>
+#include <memory>
 #include <string_view>
 #include <vector>
 
@@ -56,6 +58,13 @@ class TextTexture
     uint32_t m_height{0};
 };
 
+struct TextQuadInstance
+{
+    glm::vec4 pos;   // x0, y0, x1, y1 in pixels
+    glm::vec4 uv;    // u0, v0, u1, v1 in atlas
+    glm::vec4 color; // normalized RGBA
+};
+
 class TextRenderer
 {
   public:
@@ -68,5 +77,14 @@ class TextRenderer
                                                            glm::u8vec4 textColor = {255, 255, 255, 255},
                                                            glm::u8vec4 backgroundColor = {0, 0, 0, 160},
                                                            uint32_t padding = 6);
+
+  private:
+    static void InitSsboPipeline();
+
+    static GLuint s_ssboProgram;
+    static GLuint s_ssboBuffer;
+    static GLuint s_emptyVao;
+    static GLuint s_fbo;
 };
+
 } // namespace bgl

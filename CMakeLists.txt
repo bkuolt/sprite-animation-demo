@@ -27,29 +27,30 @@ option(BGL_ENABLE_GLSL_LOADER "Enable GLSL runtime shader compiler" ON)
 
 set(APP_SOURCES
     src/main.cpp
-    src/application.cpp
-    src/windowing/window.cpp
-    src/windowing/inputHandler.cpp
-    src/character.cpp
-    src/gfx/graphics.cpp
-    src/gfx/texture2d.cpp
-    src/gfx/texture2dArray.cpp
-    src/gfx/sampler.cpp
-    src/gfx/font.cpp
-    src/gfx/textShaper.cpp
-    src/gfx/textRenderer.cpp
-    src/gfx/camera.cpp
-    src/gfx/hud.cpp
-    src/io/ktxLoader.cpp
-    src/io/shaderLoader.cpp
+    src/Application.cpp
+    src/windowing/Window.cpp
+    src/windowing/InputHandler.cpp
+    src/Character.cpp
+    src/gfx/Graphics.cpp
+    src/gfx/Texture2D.cpp
+    src/gfx/Texture2DArray.cpp
+    src/gfx/Sampler.cpp
+    src/gfx/text/Font.cpp
+    src/gfx/text/TextShaper.cpp
+    src/gfx/text/TextRenderer.cpp
+    src/gfx/text/TextureAtlas.cpp
+    src/gfx/Camera.cpp
+    src/gfx/Hud.cpp
+    src/io/KtxLoader.cpp
+    src/io/ShaderLoader.cpp
 )
 
 if(BGL_ENABLE_PNG_LOADER)
-    list(APPEND APP_SOURCES src/io/pngLoader.cpp)
+    list(APPEND APP_SOURCES src/io/PngLoader.cpp)
 endif()
 
 if(BGL_ENABLE_JPEG_LOADER)
-    list(APPEND APP_SOURCES src/io/jpegLoader.cpp)
+    list(APPEND APP_SOURCES src/io/JpegLoader.cpp)
 endif()
 
 # We still compile ShaderLoader.cpp but maybe conditionally enable GLSL compiling

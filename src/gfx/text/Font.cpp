@@ -4,6 +4,7 @@
 #include "font.hpp"
 
 #include <fontconfig/fontconfig.h>
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <utility>
@@ -51,6 +52,7 @@ Font Font::LoadSystemFont(std::string_view fontName, uint32_t pixelSize)
     spdlog::info("Fontconfig resolved '{}' to '{}'", fontName, fontPath);
     return Font(fontPath, pixelSize);
 }
+
 FontLibrary &FontLibrary::Instance()
 {
     static FontLibrary instance;

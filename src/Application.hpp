@@ -3,15 +3,14 @@
 
 #pragma once
 
-#include "character.hpp"
-#include "gfx/camera.hpp"
-#include "gfx/font.hpp"
-#include "gfx/graphics.hpp"
-#include "gfx/hud.hpp"
-#include "gfx/textRenderer.hpp"
-#include "windowing/window.hpp"
-
-#include "events/event.hpp"
+#include "Character.hpp"
+#include "events/Event.hpp"
+#include "gfx/Camera.hpp"
+#include "gfx/Graphics.hpp"
+#include "gfx/Hud.hpp"
+#include "gfx/text/Font.hpp"
+#include "gfx/text/TextRenderer.hpp"
+#include "windowing/Window.hpp"
 #include <entt/entt.hpp>
 #include <glad/gl.h>
 #include <glm/vec2.hpp>

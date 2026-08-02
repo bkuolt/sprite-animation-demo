@@ -1,64 +1,85 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2026 Bastian. All rights reserved.
+# Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
-import argparse
+import os
+import re
 import subprocess
 import sys
 from pathlib import Path
+from collections import defaultdict
 
-def convert_to_ktx2(input_path: Path, output_path: Path):
+def natural_sort_key(s):
+    """Sort strings with embedded numbers naturally (e.g. 2 before 10)"""
+    return [int(text) if text.isdigit() else text.lower()
+            for text in re.split(r'(\d+)', str(s))]
+
+def process_character_animations(png_dir: Path, ktx_dir: Path):
     """
-    Converts a PNG image into a KTX2 texture array using Basis Universal
-    compression and Zstandard.
+    Finds all PNG frames for characters in png_dir, groups them by animation,
+    sorts them numerically, and combines them into 2D Array KTX2 files.
     """
-    if not input_path.exists():
-        print(f"Error: Input file '{input_path}' does not exist.")
+    if not png_dir.exists():
+        print(f"Error: Directory '{png_dir}' does not exist.")
         sys.exit(1)
     
-    # Ensure output directory exists
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Command for toktx:
-    # --t2: Create a KTX2 file
-    # --bcmp: Use Basis Universal supercompression
-    # --zcmp 20: Use Zstandard supercompression level 20
-    # --genmipmap: Generate mipmaps
-    cmd = [
-        "toktx",
-        "--t2",
-        "--bcmp",
-        "--zcmp", "20",
-        "--genmipmap",
-        str(output_path),
-        str(input_path)
-    ]
-
-    print(f"Converting '{input_path}' to '{output_path}'...")
+    # Ensure toktx is available and LD_LIBRARY_PATH is set (handled in install.sh, but we can try)
     try:
-        subprocess.run(cmd, check=True)
-        print(f"Successfully created '{output_path}'")
-    except subprocess.CalledProcessError as e:
-        print(f"Error during conversion: {e}")
+        subprocess.run(["toktx", "--version"], capture_output=True, check=True)
+    except Exception:
+        print("Error: 'toktx' command not found or fails to run.")
+        print("Please run ./install.sh to install KTX-Software.")
         sys.exit(1)
-    except FileNotFoundError:
-        print("Error: 'toktx' command not found. Please install KTX-Software tools.")
-        sys.exit(1)
+
+    characters = [d for d in png_dir.iterdir() if d.is_dir()]
+    
+    for char_dir in characters:
+        char_name = char_dir.name
+        
+        # Group PNG files by animation prefix (e.g., "Dead (1).png" -> "Dead")
+        # Assuming format: "AnimationName (Number).png" or "AnimationName_Number.png"
+        animations = defaultdict(list)
+        for img in char_dir.glob("*.png"):
+            # Strip number and extension
+            match = re.match(r'([A-Za-z_]+)', img.name)
+            if match:
+                anim_name = match.group(1).strip()
+                animations[anim_name].append(img)
+                
+        # For each animation, sort naturally and generate KTX2
+        for anim_name, frames in animations.items():
+            # Natural sort frames
+            frames.sort(key=lambda p: natural_sort_key(p.name))
+            
+            out_dir = ktx_dir / char_name
+            out_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Use lowercase for standardizing
+            out_file = out_dir / f"{anim_name.lower()}.ktx2"
+            
+            cmd = [
+                "toktx",
+                "--t2",
+                "--zcmp", "20",
+                "--genmipmap",
+                str(out_file)
+            ] + [str(f) for f in frames]
+            
+            print(f"[{char_name}] Generating {out_file.name} from {len(frames)} frames...")
+            try:
+                subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL)
+            except subprocess.CalledProcessError as e:
+                print(f"Failed to generate {out_file}: {e}")
+                sys.exit(1)
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert PNG images to KTX2 textures using Basis Universal and Zstd.")
-    parser.add_argument("input", type=Path, help="Input PNG file")
-    parser.add_argument("-o", "--output", type=Path, help="Output KTX2 file (optional, defaults to same name with .ktx2 extension)")
+    base_dir = Path(__file__).resolve().parent.parent
+    png_dir = base_dir / "assets" / "textures" / "png"
+    ktx_dir = base_dir / "assets" / "textures" / "ktx"
     
-    args = parser.parse_args()
-    
-    input_path = args.input
-    output_path = args.output
-    
-    if not output_path:
-        output_path = input_path.with_suffix(".ktx2")
-        
-    convert_to_ktx2(input_path, output_path)
+    print("Starting PNG to KTX2 pipeline...")
+    process_character_animations(png_dir, ktx_dir)
+    print("Pipeline complete!")
 
 if __name__ == "__main__":
     main()
