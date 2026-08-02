@@ -12,14 +12,16 @@ Modernized C++23 OpenGL sprite animation demonstration featuring Direct State Ac
 
 ## ✨ Features
 
-- **Modern Graphics Pipeline**: Utilizes Direct State Access (DSA) in OpenGL 4.6 for a clean, state-decoupled, and efficient rendering pipeline.
+- **Modern Graphics Pipeline**: Strict adherence to Direct State Access (DSA) in OpenGL 4.6 for a clean, state-decoupled, and highly efficient rendering pipeline.
+- **Physics & Animation States**: Built-in character physics engine (gravity, velocity, floor collisions) with automatic, state-driven animation transitions (Idle, Walk, Jump).
+- **Modular Subsystems**: Core systems like text rendering (`bgl_text`) and asset I/O (`bgl_io`) are decoupled into standalone C++23 static libraries.
 - **Interactive 2D Camera**: Orthographic camera (`glm::ortho`) with mouse-drag panning, mouse-wheel zoom, camera position reset (`R` key), and aspect-ratio preservation.
 - **Polymorphic Texture Loaders**: Abstracted texture loading interface (`bgl::ITextureLoader`) supporting `KTX2` (Basis Universal compressed), `PNG` (`libpng`), and `JPEG` (`libjpeg`) textures uploaded to `GL_TEXTURE_2D_ARRAY`.
-- **Callback-Driven Architecture**: Decoupled rendering and event handling where application logic resides in `main.cpp` and window management is delegated to `Window`.
-- **SPIR-V Shaders**: Pre-compiled SPIR-V binary shaders loaded directly via OpenGL 4.6 `glShaderBinary` and specialized with `glSpecializeShaderARB`.
+- **Callback-Driven Architecture**: Decoupled rendering and event handling via EnTT event dispatchers where application logic resides in `Application` and window management is delegated to `Window`.
+- **SPIR-V Shaders**: Pre-compiled SPIR-V binary shaders loaded directly via OpenGL 4.6 `glShaderBinary`.
 - **GPU-based Animation & Interpolation**: Smooth frame-to-frame tweening performed directly on the GPU within `sampler2DArray` textures.
-- **Modern C++23 Standard**: Written in strict C++23 using modern language features (`std::span`, `std::println`, smart pointers, `#pragma once`, zero macro pollution).
-- **CMake Options**: Modular build with optional `PNG`, `JPEG`, and `GLSL` source loader support (`BGL_ENABLE_PNG_LOADER`, `BGL_ENABLE_JPEG_LOADER`, `BGL_ENABLE_GLSL_LOADER`).
+- **Modern C++23 Standard**: Written in strict C++23 using modern language features (`std::span`, `std::println`, smart pointers, `#pragma once`, zero macro pollution) explicitly enforced in CMake.
+- **CMake Options**: Modular build with optional `PNG`, `JPEG`, and `GLSL` source loader support.
 - **Asset Pipeline**: Includes `tools/convert_to_ktx2.py` for automated PNG to KTX2 conversions using Basis Universal and Zstandard.
 - **Graceful Shutdown**: Intercepts `SIGINT` / `SIGTERM` signals for clean resource release and window termination.
 - **Build System**: Clean build setup with CMake 3.20+, Conan 2.x (with `conan.lock`), and Taskfile automation.
@@ -35,10 +37,12 @@ Modernized C++23 OpenGL sprite animation demonstration featuring Direct State Ac
   - `glad`: OpenGL 4.6 Loader
   - `glm`: OpenGL Mathematics
   - `ktx`: Khronos KTX2 & Basis Universal Transcoder
-  - `libpng` & `libjpeg`: PNG and JPEG fallback loaders
+  - `stb`: STB single-file public domain libraries for texture packing
   - `fontconfig` & `freetype`: System font resolution and text shaping
   - `harfbuzz`: Advanced text shaping for UI overlays
   - `spdlog` & `fmt`: Fast logging and string formatting
+  - `nlohmann_json`: JSON configuration parsing
+  - `entt`: Event dispatching and ECS
 - **Build Automation**:
   - `CMake`: Build System
   - `Conan`: Package Manager
@@ -80,12 +84,11 @@ task run
 
 ## 🎮 Controls
 
+- **`Pfeil-links` / `Pfeil-rechts`**: Charakter nach links oder rechts bewegen (Lauf-Animation).
+- **`Leertaste`**: Charakter springen lassen (Sprung-Animation mit Schwerkraft).
 - **`Maus drag (Gedrückte Maustaste + Ziehen)`**: Kamera pannen (Verschieben der 2D-Kameraansicht).
 - **`Mausrad Hoch / Runter`**: Rein- und Rauszoomen (Kamera-Zoom).
 - **`Taste R`**: Kamera zurücksetzen (Position `(0, 0)` & Zoom `1.0`).
-- **`Pfeil-oben` / `Leertaste`**: Schaltet zur nächsten Animation des aktuellen Charakters.
-- **`Pfeil-unten`**: Schaltet zur vorherigen Animation.
-- **`Pfeil-links` / `Pfeil-rechts`**: Wechselt zwischen den geladenen Charakteren (z.B. "Hero" und "Villain").
 - **`ESC` / `Ctrl+C`**: Anwendung sauber beenden.
 
 ---
