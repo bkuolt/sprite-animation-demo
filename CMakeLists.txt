@@ -22,6 +22,7 @@ find_package(nlohmann_json REQUIRED)
 find_package(EnTT REQUIRED)
 find_package(stb REQUIRED)
 find_package(OpenAL REQUIRED)
+find_package(fastgltf CONFIG REQUIRED)
 
 option(BGL_ENABLE_PNG_LOADER "Enable PNG texture loader" ON)
 option(BGL_ENABLE_JPEG_LOADER "Enable JPEG texture loader" OFF)
@@ -50,6 +51,7 @@ set(APP_SOURCES
 # Subdirectories for static libraries
 add_subdirectory(src/gfx/text)
 add_subdirectory(src/io)
+add_subdirectory(src/gltf)
 
 add_executable(app ${APP_SOURCES})
 
@@ -65,6 +67,7 @@ target_link_libraries(app PRIVATE
     OpenAL::OpenAL
     bgl_text
     bgl_io
+    bgl_gltf
 )
 
 
