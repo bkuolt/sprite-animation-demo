@@ -3,23 +3,56 @@
 
 #include "QuadMesh.hpp"
 
-#include <glad/gl.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 #include <array>
 
 namespace bgl
 {
+// --- QuadMesh RAII ---
+
+QuadMesh::~QuadMesh()
+{
+    if (VAO) { glDeleteVertexArrays(1, &VAO); VAO = 0; }
+    if (VBO) { glDeleteBuffers(1, &VBO); VBO = 0; }
+    if (IBO) { glDeleteBuffers(1, &IBO); IBO = 0; }
+}
+
+QuadMesh::QuadMesh(QuadMesh &&other) noexcept
+    : VAO(other.VAO), VBO(other.VBO), IBO(other.IBO), indexCount(other.indexCount)
+{
+    other.VAO = other.VBO = other.IBO = 0;
+    other.indexCount = 0;
+}
+
+QuadMesh &QuadMesh::operator=(QuadMesh &&other) noexcept
+{
+    if (this != &other)
+    {
+        if (VAO) glDeleteVertexArrays(1, &VAO);
+        if (VBO) glDeleteBuffers(1, &VBO);
+        if (IBO) glDeleteBuffers(1, &IBO);
+
+        VAO = other.VAO; VBO = other.VBO; IBO = other.IBO;
+        indexCount = other.indexCount;
+        other.VAO = other.VBO = other.IBO = 0;
+        other.indexCount = 0;
+    }
+    return *this;
+}
+
+// --- Factories ---
+
 QuadMesh create2DQuad()
 {
+    constexpr std::array<glm::vec2, 4> vertices = {
+        glm::vec2(-0.75f, -0.75f), glm::vec2(0.75f, -0.75f),
+        glm::vec2(0.75f,  0.75f),  glm::vec2(-0.75f, 0.75f)
+    };
+    constexpr std::array<GLuint, 6> indices = {0, 1, 2, 2, 3, 0};
+
     QuadMesh quad;
     quad.indexCount = 6;
-
-    constexpr std::array<glm::vec2, 4> vertices = {glm::vec2(-0.75f, -0.75f), glm::vec2(0.75f, -0.75f),
-                                                   glm::vec2(0.75f, 0.75f), glm::vec2(-0.75f, 0.75f)};
-
-    constexpr std::array<GLuint, 6> indices = {0, 1, 2, 2, 3, 0};
 
     glCreateVertexArrays(1, &quad.VAO);
     glCreateBuffers(1, &quad.VBO);
@@ -40,15 +73,16 @@ QuadMesh create2DQuad()
 
 QuadMesh createOverlayQuad()
 {
+    constexpr std::array<OverlayVertex, 4> vertices = {{
+        {{-1.0f, -1.0f}, {0.0f, 0.0f}},
+        {{ 1.0f, -1.0f}, {1.0f, 0.0f}},
+        {{ 1.0f,  1.0f}, {1.0f, 1.0f}},
+        {{-1.0f,  1.0f}, {0.0f, 1.0f}}
+    }};
+    constexpr std::array<GLuint, 6> indices = {0, 1, 2, 2, 3, 0};
+
     QuadMesh quad;
     quad.indexCount = 6;
-
-    constexpr std::array<OverlayVertex, 4> vertices = {{{{-1.0f, -1.0f}, {0.0f, 0.0f}},
-                                                        {{1.0f, -1.0f}, {1.0f, 0.0f}},
-                                                        {{1.0f, 1.0f}, {1.0f, 1.0f}},
-                                                        {{-1.0f, 1.0f}, {0.0f, 1.0f}}}};
-
-    constexpr std::array<GLuint, 6> indices = {0, 1, 2, 2, 3, 0};
 
     glCreateVertexArrays(1, &quad.VAO);
     glCreateBuffers(1, &quad.VBO);
@@ -71,26 +105,12 @@ QuadMesh createOverlayQuad()
     return quad;
 }
 
-void destroyQuadMesh(QuadMesh &quad)
-{
-    if (quad.VAO != 0)
-    {
-        glDeleteVertexArrays(1, &quad.VAO);
-        quad.VAO = 0;
-    }
-    if (quad.VBO != 0)
-    {
-        glDeleteBuffers(1, &quad.VBO);
-        quad.VBO = 0;
-    }
-    if (quad.IBO != 0)
-    {
-        glDeleteBuffers(1, &quad.IBO);
-        quad.IBO = 0;
-    }
-}
+// --- Render helpers ---
 
-void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex, float tweenFactor,
+// Uniform binding layout (GLSL layout(location=N)):
+//   3 = currentFrame, 4 = tweenFactor, 5 = projection, 6 = model
+void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram,
+                int currentFrameIndex, float tweenFactor,
                 const glm::mat4 &projection, const glm::mat4 &model)
 {
     glProgramUniform1i(shaderProgram, 3, currentFrameIndex);
@@ -101,35 +121,38 @@ void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, in
 
     glBindTextureUnit(0, textureID);
     glBindVertexArray(quad.VAO);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(quad.indexCount), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, quad.indexCount, GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
     glUseProgram(0);
 }
 
-void renderTextOverlay(const QuadMesh &quad, GLuint textureID, GLuint textShaderProgram, uint32_t texWidth,
-                       uint32_t texHeight, uint32_t winWidth, uint32_t winHeight, float paddingX, float paddingY)
+void renderTextOverlay(const QuadMesh &quad, GLuint textureID, GLuint textShaderProgram,
+                       uint32_t texWidth, uint32_t texHeight,
+                       uint32_t winWidth, uint32_t winHeight,
+                       float paddingX, float paddingY)
 {
     if (winWidth == 0 || winHeight == 0 || textureID == 0)
     {
         return;
     }
 
-    const float scaleX = static_cast<float>(texWidth) / static_cast<float>(winWidth);
+    const float scaleX = static_cast<float>(texWidth)  / static_cast<float>(winWidth);
     const float scaleY = static_cast<float>(texHeight) / static_cast<float>(winHeight);
 
-    const float posX = -1.0f + 2.0f * (paddingX / static_cast<float>(winWidth)) + scaleX;
-    const float posY = 1.0f - 2.0f * (paddingY / static_cast<float>(winHeight)) - scaleY;
+    const float posX = -1.0f + 2.0f * (paddingX / static_cast<float>(winWidth))  + scaleX;
+    const float posY =  1.0f - 2.0f * (paddingY / static_cast<float>(winHeight)) - scaleY;
 
-    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(posX, posY, 0.0f)) *
-                          glm::scale(glm::mat4(1.0f), glm::vec3(scaleX, scaleY, 1.0f));
+    const glm::mat4 transform =
+        glm::translate(glm::mat4(1.0f), glm::vec3(posX, posY, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(scaleX, scaleY, 1.0f));
 
     glProgramUniformMatrix4fv(textShaderProgram, 5, 1, GL_FALSE, glm::value_ptr(transform));
     glUseProgram(textShaderProgram);
 
     glBindTextureUnit(0, textureID);
     glBindVertexArray(quad.VAO);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(quad.indexCount), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, quad.indexCount, GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
     glUseProgram(0);

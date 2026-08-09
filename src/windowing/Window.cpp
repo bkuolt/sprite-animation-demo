@@ -161,7 +161,7 @@ Window::Window()
     glfwSwapInterval(1);
 
     bgl::InitializeGLAD();
-    bgl::IntitializeOpenGL();
+    bgl::InitializeOpenGL();
 }
 
 Window::~Window()

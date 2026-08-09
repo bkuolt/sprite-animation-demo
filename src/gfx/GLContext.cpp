@@ -127,7 +127,7 @@ void InitializeGLAD()
                  static_cast<int>(GLAD_VERSION_MINOR(gladVersion)));
 }
 
-void IntitializeOpenGL()
+void InitializeOpenGL()
 {
     const auto *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
     spdlog::info("OpenGL Version: {}", version);

@@ -5,8 +5,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# --- Conan dependencies ---
 find_package(glfw3 CONFIG REQUIRED)
-find_package(glm REQUIRED)  
+find_package(glm REQUIRED)
 find_package(Ktx REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(spdlog REQUIRED)
@@ -23,55 +24,46 @@ find_package(EnTT REQUIRED)
 find_package(stb REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(fastgltf CONFIG REQUIRED)
+find_package(lua REQUIRED)
+find_package(sol2 REQUIRED)
 
-option(BGL_ENABLE_PNG_LOADER "Enable PNG texture loader" ON)
-option(BGL_ENABLE_JPEG_LOADER "Enable JPEG texture loader" OFF)
+# --- Build options ---
+option(BGL_ENABLE_PNG_LOADER  "Enable PNG texture loader"           ON)
+option(BGL_ENABLE_JPEG_LOADER "Enable JPEG texture loader"          OFF)
 option(BGL_ENABLE_GLSL_LOADER "Enable GLSL runtime shader compiler" ON)
 
-set(APP_SOURCES
+# --- Static library modules ---
+add_subdirectory(src/gfx/text)    # bgl_text
+add_subdirectory(src/io)          # bgl_io
+add_subdirectory(src/gfx)         # bgl_gfx
+add_subdirectory(src/audio)       # bgl_audio
+add_subdirectory(src/windowing)   # bgl_windowing
+add_subdirectory(src/gltf)        # bgl_gltf
+add_subdirectory(src/script)      # bgl_script
+
+# --- Application executable ---
+add_executable(app
     src/main.cpp
     src/Application.cpp
-    src/windowing/Window.cpp
-    src/windowing/InputHandler.cpp
     src/Character.cpp
-    src/gfx/Graphics.cpp
-    src/gfx/GLContext.cpp
-    src/gfx/QuadMesh.cpp
-    src/gfx/TileMap.cpp
-    src/gfx/Texture2D.cpp
-    src/gfx/Texture2DArray.cpp
-    src/gfx/Sampler.cpp
-    src/gfx/Camera.cpp
-    src/gfx/Hud.cpp
-    src/audio/AudioEngine.cpp
-    src/audio/SoundBuffer.cpp
-    src/audio/SoundSource.cpp
 )
 
-# Subdirectories for static libraries
-add_subdirectory(src/gfx/text)
-add_subdirectory(src/io)
-add_subdirectory(src/gltf)
-
-add_executable(app ${APP_SOURCES})
+target_include_directories(app PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_compile_features(app PRIVATE cxx_std_23)
 
 target_link_libraries(app PRIVATE
-    glad::glad
-    OpenGL::GL
-    glfw
-    glm::glm
+    bgl_gfx
+    bgl_io
+    bgl_audio
+    bgl_windowing
+    bgl_gltf
+    bgl_script
+    bgl_text
+    EnTT::EnTT
+    nlohmann_json::nlohmann_json
     spdlog::spdlog
     fmt::fmt
-    nlohmann_json::nlohmann_json
-    EnTT::EnTT
-    OpenAL::OpenAL
-    bgl_text
-    bgl_io
-    bgl_gltf
 )
-
-
-
 
 if(MSVC)
     target_compile_options(app PRIVATE /W4 /utf-8)
@@ -90,13 +82,11 @@ file(GLOB_RECURSE ASSET_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/assets/*.ttf"
     "${CMAKE_SOURCE_DIR}/assets/*.otf"
     "${CMAKE_SOURCE_DIR}/assets/*.json"
+    "${CMAKE_SOURCE_DIR}/assets/*.lua"
 )
 
 set(ASSET_DESTINATIONS "")
 foreach(ASSET_SOURCE ${ASSET_SOURCES})
-    get_filename_component(ASSET_REL_PATH ${ASSET_SOURCE} NAME)
-    # The GLOB_RECURSE gives absolute paths. We just extract the filename and put it in build/assets/
-    # Actually wait, since we restructured to assets/textures/ktx, etc., it's better to preserve the relative path.
     file(RELATIVE_PATH REL_PATH "${CMAKE_SOURCE_DIR}/assets" "${ASSET_SOURCE}")
     set(ASSET_DESTINATION "${CMAKE_BINARY_DIR}/assets/${REL_PATH}")
     get_filename_component(DEST_DIR ${ASSET_DESTINATION} DIRECTORY)
@@ -117,12 +107,12 @@ add_dependencies(app copy_assets)
 
 # --- Documentation ---
 find_package(Doxygen)
-if (DOXYGEN_FOUND)
+if(DOXYGEN_FOUND)
     include(FetchContent)
     FetchContent_Declare(
-      doxygen-awesome-css
-      GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
-      GIT_TAG v2.3.3
+        doxygen-awesome-css
+        GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
+        GIT_TAG v2.3.3
     )
     FetchContent_MakeAvailable(doxygen-awesome-css)
 

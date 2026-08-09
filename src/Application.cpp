@@ -4,19 +4,17 @@
 #include "Application.hpp"
 #include "gfx/Sampler.hpp"
 #include "gfx/text/TextShaper.hpp"
-#include "io/KtxLoader.hpp"
 #include "io/ShaderLoader.hpp"
+#include "io/TextureLoader.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstdlib>
 #include <filesystem>
-#include <fmt/format.h>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/vec2.hpp>
 #include <nlohmann/json.hpp>
+#include <random>
 #include <spdlog/spdlog.h>
 
 namespace bgl
@@ -37,31 +35,19 @@ Application::Application()
 
 Application::~Application()
 {
-    m_characters.clear();
+    // QuadMesh members are RAII — they release GPU resources automatically.
+    // Explicit program + buffer cleanup for handles not wrapped in RAII types.
+    if (m_mainProgram)  glDeleteProgram(m_mainProgram);
+    if (m_textProgram)  glDeleteProgram(m_textProgram);
+    if (m_bgProgram)    glDeleteProgram(m_bgProgram);
+    if (m_snowProgram)  glDeleteProgram(m_snowProgram);
 
-    if (m_mainProgram != 0)
-        glDeleteProgram(m_mainProgram);
-    if (m_textProgram != 0)
-        glDeleteProgram(m_textProgram);
-    if (m_bgProgram != 0)
-        glDeleteProgram(m_bgProgram);
-    if (m_snowProgram != 0)
-        glDeleteProgram(m_snowProgram);
+    if (m_snowVAO) glDeleteVertexArrays(1, &m_snowVAO);
+    if (m_snowVBO) glDeleteBuffers(1, &m_snowVBO);
+    if (m_quadVBO) glDeleteBuffers(1, &m_quadVBO);
+    if (m_quadIBO) glDeleteBuffers(1, &m_quadIBO);
 
-    if (m_snowVAO != 0)
-        glDeleteVertexArrays(1, &m_snowVAO);
-    if (m_snowVBO != 0)
-        glDeleteBuffers(1, &m_snowVBO);
-    if (m_quadVBO != 0)
-        glDeleteBuffers(1, &m_quadVBO);
-    if (m_quadIBO != 0)
-        glDeleteBuffers(1, &m_quadIBO);
-
-    bgl::destroyQuadMesh(m_spriteQuad);
-    bgl::destroyQuadMesh(m_overlayQuad);
-    bgl::destroyQuadMesh(m_bgQuad);
-
-    spdlog::info("Released VAO/VBO/IBO buffers and shader programs");
+    spdlog::info("Application resources released.");
 }
 
 void Application::setupCallbacks()
@@ -247,11 +233,15 @@ void Application::initMeshes()
 
     constexpr int NUM_SNOW_PARTICLES = 150000;
     std::vector<glm::vec2> snowOffsets(NUM_SNOW_PARTICLES);
-    for (int i = 0; i < NUM_SNOW_PARTICLES; ++i)
     {
-        float rx = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 40.0f - 20.0f;
-        float ry = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 40.0f - 20.0f;
-        snowOffsets[i] = glm::vec2(rx, ry);
+        // Use a properly seeded Mersenne Twister — std::rand() is non-uniform and
+        // not seeded here, producing identical sequences across runs.
+        std::mt19937 rng(std::random_device{}());
+        std::uniform_real_distribution<float> dist(-20.0f, 20.0f);
+        for (auto &offset : snowOffsets)
+        {
+            offset = glm::vec2(dist(rng), dist(rng));
+        }
     }
 
     glCreateBuffers(1, &m_snowVBO);
@@ -281,15 +271,21 @@ void Application::initMeshes()
     glVertexArrayAttribBinding(m_snowVAO, 1, 1);
     glVertexArrayBindingDivisor(m_snowVAO, 1, 1);
 
-    // Generate random items
+    // Generate random world items using a seeded RNG.
     if (m_itemFrameCount > 0)
     {
+        std::mt19937 rng(std::random_device{}());
+        std::uniform_real_distribution<float> xDist(-8.0f, 8.0f);
+        std::uniform_real_distribution<float> scaleDist(0.3f, 0.5f);
+        std::uniform_real_distribution<float> timeDist(0.0f, 10.0f);
+
         for (int i = 0; i < 5; ++i)
         {
-            float rx = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 16.0f - 8.0f;
-            float scale = 0.3f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.2f;
-            float tOffset = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.0f;
-            m_worldItems.push_back({glm::vec2(rx, GROUND_Y - 0.2f), scale, tOffset});
+            m_worldItems.push_back({
+                glm::vec2(xDist(rng), GROUND_Y - 0.2f),
+                scaleDist(rng),
+                timeDist(rng)
+            });
         }
     }
 }

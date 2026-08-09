@@ -95,21 +95,45 @@ Grid::Grid()
 {
     glCreateVertexArrays(1, &_vao);
 
-    GLuint vert = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vert, 1, &gridVertSource, nullptr);
-    glCompileShader(vert);
+    auto compileShader = [](GLenum type, const char *src) -> GLuint {
+        GLuint shader = glCreateShader(type);
+        glShaderSource(shader, 1, &src, nullptr);
+        glCompileShader(shader);
 
-    GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(frag, 1, &gridFragSource, nullptr);
-    glCompileShader(frag);
+        GLint ok = 0;
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
+        if (!ok)
+        {
+            char log[512];
+            glGetShaderInfoLog(shader, 512, nullptr, log);
+            glDeleteShader(shader);
+            throw std::runtime_error(std::string("Grid shader compile error: ") + log);
+        }
+        return shader;
+    };
+
+    const GLuint vert = compileShader(GL_VERTEX_SHADER, gridVertSource);
+    const GLuint frag = compileShader(GL_FRAGMENT_SHADER, gridFragSource);
 
     _program = glCreateProgram();
     glAttachShader(_program, vert);
     glAttachShader(_program, frag);
     glLinkProgram(_program);
 
+    // Shaders are no longer needed after linking.
     glDeleteShader(vert);
     glDeleteShader(frag);
+
+    GLint ok = 0;
+    glGetProgramiv(_program, GL_LINK_STATUS, &ok);
+    if (!ok)
+    {
+        char log[512];
+        glGetProgramInfoLog(_program, 512, nullptr, log);
+        glDeleteProgram(_program);
+        _program = 0;
+        throw std::runtime_error(std::string("Grid program link error: ") + log);
+    }
 
     _uViewLoc = glGetUniformLocation(_program, "uView");
     _uProjLoc = glGetUniformLocation(_program, "uProjection");

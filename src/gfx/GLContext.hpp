@@ -15,7 +15,7 @@ void InitializeGLAD();
 /**
  * @brief Sets up OpenGL debug logging, capabilities, and state options.
  */
-void IntitializeOpenGL();
+void InitializeOpenGL();
 
 /**
  * @brief Queries current estimated VRAM usage in megabytes.
