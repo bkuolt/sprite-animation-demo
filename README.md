@@ -15,6 +15,7 @@ A modern C++23 OpenGL engine demonstrating sprite animation, 3D glTF rendering, 
 - **Modular Architecture**: Every subsystem is a standalone C++23 static library (`bgl_gfx`, `bgl_io`, `bgl_audio`, `bgl_windowing`, `bgl_gltf`, `bgl_text`, `bgl_script`). The application executable only links these — it compiles nothing itself beyond `Application.cpp`, `main.cpp`, and `Character.cpp`.
 - **Modern Graphics Pipeline**: Strict OpenGL 4.6 Direct State Access (DSA) throughout — no legacy `glBind*` state machine usage.
 - **glTF 3D Rendering**: Full glTF/GLB scene graph loader (`bgl_gltf`) using `fastgltf` with mmap-based buffer loading, Phong shading, and an infinite procedural XZ grid.
+- **3D Skybox**: Immersive 3D background rendering powered by a KTX2 uncompressed cubemap and inverse-projection matrix scaling to the far plane.
 - **3D Camera**: Orbit camera (`glm::lookAt` + `glm::perspective`) with GLFW scroll/cursor/mouse-button callbacks for zoom, orbit, and pan.
 - **Lua Scripting Engine**: Embedded Lua 5.4 via sol2, accessible through `bgl::script::ScriptEngine`. A startup script runs before the engine loop and can optionally load `assets/startup.lua` from disk.
 - **RAII Resource Management**: All OpenGL objects (textures, VAOs, programs, buffers) are owned by RAII wrappers. No manual `delete`/`glDelete` in application logic.

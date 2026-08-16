@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2] - 2026-08-16
+### Fixed
+- **Skybox Cubemap Format**: Fixed a critical texture skewing issue where uncompressed RGB cubemaps were incorrectly uploaded as RGBA to the GPU, causing scrambled colorful noise. The pipeline now dynamically determines the proper `GL_RGB` vs `GL_RGBA` alignment via `ktxTexture_GetElementSize`.
+- **Skybox Assets**: Generated and included a proper gradient skybox texture (`skybox.ktx2`) to replace the placeholder colored cubes.
+
 ## [0.7.1] - 2026-08-16
 ### Fixed
 - **PBR Color Space Correction**: Fixed physically based rendering math breaking down due to incorrect sRGB to Linear space mapping of BaseColor and Emissive textures.
