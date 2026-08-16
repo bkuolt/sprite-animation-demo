@@ -21,7 +21,8 @@
 // Forward declarations — heavy enough that every translation unit does NOT need
 // their full definition to compile.
 namespace bgl::window  { class Window; }
-namespace bgl::gfx     { class Camera; class Hud; class TileMap; class Texture2DArray; class Sampler; class Scene; class GltfRenderer; class Grid; class Camera3D; }
+namespace bgl::gl      { class Texture2DArray; class Sampler; }
+namespace bgl::gfx     { class Camera; class Hud; class TileMap; class Scene; class GltfRenderer; class Grid; class Camera3D; }
 namespace bgl::audio   { class AudioEngine; }
 
 namespace bgl
@@ -92,7 +93,7 @@ class Application
     std::unique_ptr<bgl::gfx::Hud>              m_hud;
     std::unique_ptr<bgl::gfx::TileMap>          m_tileMap;
     std::unique_ptr<bgl::audio::AudioEngine>    m_audioEngine;
-    std::unique_ptr<bgl::gfx::Sampler>          m_defaultSampler;
+    std::unique_ptr<bgl::gl::Sampler>          m_defaultSampler;
 
     // --- 3D Scene ---
     std::shared_ptr<bgl::gfx::Scene>            m_scene;
@@ -126,15 +127,15 @@ class Application
     QuadMesh m_bgQuad;
 
     // --- RAII-wrapped GL handles ---
-    bgl::gfx::ProgramHandle m_mainProgram;
-    bgl::gfx::ProgramHandle m_textProgram;
-    bgl::gfx::ProgramHandle m_bgProgram;
-    bgl::gfx::ProgramHandle m_snowProgram;
+    bgl::gl::ProgramHandle m_mainProgram;
+    bgl::gl::ProgramHandle m_textProgram;
+    bgl::gl::ProgramHandle m_bgProgram;
+    bgl::gl::ProgramHandle m_snowProgram;
 
-    bgl::gfx::VAOHandle m_snowVAO;
-    bgl::gfx::BufferHandle m_snowVBO;
-    bgl::gfx::BufferHandle m_quadVBO;
-    bgl::gfx::BufferHandle m_quadIBO;
+    bgl::gl::VAOHandle m_snowVAO;
+    bgl::gl::BufferHandle m_snowVBO;
+    bgl::gl::BufferHandle m_quadVBO;
+    bgl::gl::BufferHandle m_quadIBO;
 
     // --- Frame timing ---
     double m_lastFpsTime{0.0};

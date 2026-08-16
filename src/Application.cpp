@@ -6,7 +6,7 @@
 #include "audio/AudioEngine.hpp"
 #include "gfx/Camera.hpp"
 #include "gfx/Hud.hpp"
-#include "gfx/Sampler.hpp"
+#include "gl/Sampler.hpp"
 #include "gfx/TileMap.hpp"
 #include "gfx/text/Font.hpp"
 #include "gfx/text/TextShaper.hpp"
@@ -213,7 +213,7 @@ void Application::initAssets()
     // Load glTF 3D Model
     {
         bgl::io::GltfLoader gltfLoader;
-        auto modelPath = basePath / "assets" / "models" / "DamagedHelmet.glb";
+        auto modelPath = basePath / "assets" / "models" / "Sponza" / "Sponza.gltf";
         if (std::filesystem::exists(modelPath))
         {
             m_scene = gltfLoader.loadFromFile(modelPath);
@@ -262,23 +262,23 @@ void Application::initShaders()
 {
     const auto &basePath = getExecutableDir();
 
-    const auto mainVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.vert.spv");
-    const auto mainFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.frag.spv");
-    m_mainProgram.reset(io::CreateShaderProgramFromSPIRV(mainVsSpv, mainFsSpv));
+    const auto mainVsSpv = gl::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.vert.spv");
+    const auto mainFsSpv = gl::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.frag.spv");
+    m_mainProgram.reset(gl::CreateShaderProgramFromSPIRV(mainVsSpv, mainFsSpv));
 
-    const auto textVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.vert.spv");
-    const auto textFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.frag.spv");
-    m_textProgram.reset(io::CreateShaderProgramFromSPIRV(textVsSpv, textFsSpv));
+    const auto textVsSpv = gl::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.vert.spv");
+    const auto textFsSpv = gl::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.frag.spv");
+    m_textProgram.reset(gl::CreateShaderProgramFromSPIRV(textVsSpv, textFsSpv));
 
 #ifdef BGL_ENABLE_GLSL_LOADER
     const auto srcPath = basePath / "assets" / "shaders";
-    const auto bgVsSrc = io::LoadShaderFromFile(srcPath / "background.vs");
-    const auto bgFsSrc = io::LoadShaderFromFile(srcPath / "background.fs");
-    m_bgProgram.reset(io::CreateShaderProgramFromGLSL(bgVsSrc, bgFsSrc));
+    const auto bgVsSrc = gl::LoadShaderFromFile(srcPath / "background.vs");
+    const auto bgFsSrc = gl::LoadShaderFromFile(srcPath / "background.fs");
+    m_bgProgram.reset(gl::CreateShaderProgramFromGLSL(bgVsSrc, bgFsSrc));
 
-    const auto snowVsSrc = io::LoadShaderFromFile(srcPath / "snow.vs");
-    const auto snowFsSrc = io::LoadShaderFromFile(srcPath / "snow.fs");
-    m_snowProgram.reset(io::CreateShaderProgramFromGLSL(snowVsSrc, snowFsSrc));
+    const auto snowVsSrc = gl::LoadShaderFromFile(srcPath / "snow.vs");
+    const auto snowFsSrc = gl::LoadShaderFromFile(srcPath / "snow.fs");
+    m_snowProgram.reset(gl::CreateShaderProgramFromGLSL(snowVsSrc, snowFsSrc));
 #endif
 }
 
@@ -447,11 +447,14 @@ void Application::renderFrame(double time)
     glClearColor(c * 0.2f, c * 0.1f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    renderBackground(projection);
-    m_tileMap->render(m_mainProgram, m_spriteQuad, projection);
-    renderSnow(time, projection);
-    renderItems(time, projection);
-    renderCharacter(time, projection);
+    if (0)
+    {
+        renderBackground(projection);
+        m_tileMap->render(m_mainProgram, m_spriteQuad, projection);
+        renderSnow(time, projection);
+        renderItems(time, projection);
+        renderCharacter(time, projection);
+    }
 
     // --- 3D Render Pass ---
     glEnable(GL_DEPTH_TEST);
