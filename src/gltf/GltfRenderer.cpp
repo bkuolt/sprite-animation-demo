@@ -81,8 +81,10 @@ vec3 getNormalFromMap()
     vec2 st2 = dFdy(TexCoord);
 
     vec3 N   = normalize(Normal);
-    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 B  = -normalize(cross(N, T));
+    vec3 T_vec = Q1*st2.t - Q2*st1.t;
+    vec3 T = length(T_vec) > 0.0001 ? normalize(T_vec) : vec3(1.0, 0.0, 0.0);
+    vec3 B_vec = cross(N, T);
+    vec3 B = length(B_vec) > 0.0001 ? -normalize(B_vec) : vec3(0.0, 1.0, 0.0);
     mat3 TBN = mat3(T, B, N);
 
     return normalize(TBN * tangentNormal);

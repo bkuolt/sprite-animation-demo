@@ -537,7 +537,7 @@ void Application::renderSkybox(const glm::mat4 &view, const glm::mat4 &projectio
 
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
-        glEnable(GL_CULL_FACE); // Re-enable for model rendering
+        glDisable(GL_CULL_FACE); // Keep disabled for model rendering to prevent interior culling
     }
     else
     {
