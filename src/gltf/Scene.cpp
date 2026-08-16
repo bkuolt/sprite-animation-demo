@@ -13,9 +13,13 @@ Scene::Scene(std::string name)
 
 void Scene::addRootNode(std::shared_ptr<Node> node)
 {
-    if (node)
-    {
-        _rootNodes.push_back(std::move(node));
+    _rootNodes.push_back(std::move(node));
+}
+
+void Scene::keepTextureAlive(std::shared_ptr<class Texture2DArray> tex)
+{
+    if (tex) {
+        _textures.push_back(std::move(tex));
     }
 }
 

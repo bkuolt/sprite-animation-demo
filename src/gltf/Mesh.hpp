@@ -26,9 +26,12 @@ struct Primitive
 
     // Material properties
     glm::vec4 baseColorFactor{1.0f};
+    glm::vec3 emissiveFactor{0.0f};
     GLuint baseColorTexture{0};
     GLuint metallicRoughnessTexture{0};
     GLuint normalTexture{0};
+    GLuint emissiveTexture{0};
+    GLuint occlusionTexture{0};
     float metallicFactor{1.0f};
     float roughnessFactor{1.0f};
 };

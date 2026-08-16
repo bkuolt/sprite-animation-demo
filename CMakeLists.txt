@@ -23,13 +23,13 @@ find_package(nlohmann_json REQUIRED)
 find_package(EnTT REQUIRED)
 find_package(stb REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(fastgltf CONFIG REQUIRED)
+find_package(fastgltf REQUIRED)
 find_package(lua REQUIRED)
 find_package(sol2 REQUIRED)
 
 # --- Build options ---
 option(BGL_ENABLE_PNG_LOADER  "Enable PNG texture loader"           ON)
-option(BGL_ENABLE_JPEG_LOADER "Enable JPEG texture loader"          OFF)
+option(BGL_ENABLE_JPEG_LOADER "Enable JPEG texture loader"          ON)
 option(BGL_ENABLE_GLSL_LOADER "Enable GLSL runtime shader compiler" ON)
 
 # --- Static library modules ---
@@ -83,6 +83,7 @@ file(GLOB_RECURSE ASSET_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/assets/*.otf"
     "${CMAKE_SOURCE_DIR}/assets/*.json"
     "${CMAKE_SOURCE_DIR}/assets/*.lua"
+    "${CMAKE_SOURCE_DIR}/assets/models/*.glb"
 )
 
 set(ASSET_DESTINATIONS "")

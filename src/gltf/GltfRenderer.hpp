@@ -28,6 +28,7 @@ class GltfRenderer
     GLuint createProgram(const char *vertSrc, const char *fragSrc);
 
     GLuint _program{0};
+    GLint _uProgram{0};
     GLint _uModelLoc{-1};
     GLint _uViewLoc{-1};
     GLint _uProjLoc{-1};
@@ -35,6 +36,19 @@ class GltfRenderer
     GLint _uBaseColorFactorLoc{-1};
     GLint _uHasBaseColorTexLoc{-1};
     GLint _uBaseColorTexLoc{-1};
+
+    GLint _uEmissiveFactorLoc{-1};
+    GLint _uMetallicFactorLoc{-1};
+    GLint _uRoughnessFactorLoc{-1};
+    GLint _uMetallicRoughnessTexLoc{-1};
+    GLint _uNormalTexLoc{-1};
+    GLint _uEmissiveTexLoc{-1};
+    GLint _uOcclusionTexLoc{-1};
+    GLint _uHasMetallicRoughnessTexLoc{-1};
+    GLint _uHasNormalTexLoc{-1};
+    GLint _uHasEmissiveTexLoc{-1};
+    GLint _uHasOcclusionTexLoc{-1};
+
     GLint _uLightPosLoc{-1};
     GLint _uLightColorLoc{-1};
     GLint _uViewPosLoc{-1};

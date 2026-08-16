@@ -1,4 +1,6 @@
-// SPDX-License-Identifier: MIT
+import os
+
+cpp_code = r"""// SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "GltfRenderer.hpp"
@@ -368,3 +370,7 @@ GLuint GltfRenderer::createProgram(const char *vertSrc, const char *fragSrc)
     return prog;
 }
 } // namespace bgl::gfx
+"""
+
+with open("src/gltf/GltfRenderer.cpp", "w") as f:
+    f.write(cpp_code)

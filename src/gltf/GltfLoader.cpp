@@ -221,14 +221,25 @@ std::shared_ptr<bgl::gfx::Scene> GltfLoader::loadFromFile(const std::filesystem:
                 bglPrim.metallicFactor = mat.pbrData.metallicFactor;
                 bglPrim.roughnessFactor = mat.pbrData.roughnessFactor;
 
-                if (mat.pbrData.baseColorTexture.has_value())
-                {
-                    const auto &tex = asset.textures[mat.pbrData.baseColorTexture->textureIndex];
-                    if (tex.imageIndex.has_value())
-                    {
-                        bglPrim.baseColorTexture = getOrLoadTexture(tex.imageIndex.value());
+                bglPrim.emissiveFactor = glm::vec3(
+                    mat.emissiveFactor[0],
+                    mat.emissiveFactor[1],
+                    mat.emissiveFactor[2]);
+
+                auto loadTex = [&](const auto &textureInfo, GLuint &outTex) {
+                    if (textureInfo.has_value()) {
+                        const auto &tex = asset.textures[textureInfo->textureIndex];
+                        if (tex.imageIndex.has_value()) {
+                            outTex = getOrLoadTexture(tex.imageIndex.value());
+                        }
                     }
-                }
+                };
+
+                loadTex(mat.pbrData.baseColorTexture, bglPrim.baseColorTexture);
+                loadTex(mat.pbrData.metallicRoughnessTexture, bglPrim.metallicRoughnessTexture);
+                loadTex(mat.normalTexture, bglPrim.normalTexture);
+                loadTex(mat.emissiveTexture, bglPrim.emissiveTexture);
+                loadTex(mat.occlusionTexture, bglPrim.occlusionTexture);
             }
 
             bglMesh->addPrimitive(bglPrim);
@@ -288,6 +299,11 @@ std::shared_ptr<bgl::gfx::Scene> GltfLoader::loadFromFile(const std::filesystem:
                 bglScene->addRootNode(bglNodes[rootNodeIdx]);
             }
         }
+    }
+
+    for (auto &[idx, tex] : loadedTextures)
+    {
+        bglScene->keepTextureAlive(tex);
     }
 
     bglScene->updateTransforms();

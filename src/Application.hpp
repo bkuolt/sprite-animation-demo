@@ -20,7 +20,7 @@
 // Forward declarations — heavy enough that every translation unit does NOT need
 // their full definition to compile.
 namespace bgl::window  { class Window; }
-namespace bgl::gfx     { class Camera; class Hud; class TileMap; class Texture2DArray; class Sampler; }
+namespace bgl::gfx     { class Camera; class Hud; class TileMap; class Texture2DArray; class Sampler; class Scene; class GltfRenderer; class Grid; class Camera3D; }
 namespace bgl::audio   { class AudioEngine; }
 
 namespace bgl
@@ -92,6 +92,12 @@ class Application
     std::unique_ptr<bgl::gfx::TileMap>          m_tileMap;
     std::unique_ptr<bgl::audio::AudioEngine>    m_audioEngine;
     std::unique_ptr<bgl::gfx::Sampler>          m_defaultSampler;
+
+    // --- 3D Scene ---
+    std::shared_ptr<bgl::gfx::Scene>            m_scene;
+    std::unique_ptr<bgl::gfx::GltfRenderer>     m_gltfRenderer;
+    std::unique_ptr<bgl::gfx::Grid>             m_grid;
+    std::unique_ptr<bgl::gfx::Camera3D>         m_camera3D;
 
     // --- Characters ---
     std::vector<std::shared_ptr<Character>>     m_characters;

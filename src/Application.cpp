@@ -10,6 +10,10 @@
 #include "gfx/TileMap.hpp"
 #include "gfx/text/Font.hpp"
 #include "gfx/text/TextShaper.hpp"
+#include "gltf/Camera3D.hpp"
+#include "gltf/GltfLoader.hpp"
+#include "gltf/GltfRenderer.hpp"
+#include "gltf/Grid.hpp"
 #include "io/ShaderLoader.hpp"
 #include "io/TextureLoader.hpp"
 #include "windowing/Window.hpp"
@@ -60,6 +64,10 @@ Application::Application()
     m_hud          = std::make_unique<bgl::gfx::Hud>();
     m_tileMap      = std::make_unique<bgl::gfx::TileMap>();
     m_audioEngine  = std::make_unique<bgl::audio::AudioEngine>();
+
+    m_gltfRenderer = std::make_unique<bgl::gfx::GltfRenderer>();
+    m_grid         = std::make_unique<bgl::gfx::Grid>();
+    m_camera3D     = std::make_unique<bgl::gfx::Camera3D>();
 
     m_window->setEventDispatcher(&m_eventDispatcher);
 
@@ -200,9 +208,25 @@ void Application::initAssets()
                 }
             }
         }
-        m_characters.push_back(character);
+        m_characters.push_back(std::move(character));
     }
 
+    // Load glTF 3D Model
+    {
+        bgl::io::GltfLoader gltfLoader;
+        auto modelPath = basePath / "assets" / "models" / "DamagedHelmet.glb";
+        if (std::filesystem::exists(modelPath))
+        {
+            m_scene = gltfLoader.loadFromFile(modelPath);
+            spdlog::info("Loaded glTF model: {}", modelPath.string());
+        }
+        else
+        {
+            spdlog::warn("glTF model not found: {}", modelPath.string());
+        }
+    }
+
+    m_tileMap->setTexture(m_itemTexture);
     for (size_t i = 0; i < m_characters.size(); ++i) {
         if (m_characters[i]->getName() == "Santa") {
             m_currentCharacterIndex = i;
@@ -424,6 +448,28 @@ void Application::renderFrame(double time)
     renderSnow(time, projection);
     renderItems(time, projection);
     renderCharacter(time, projection);
+
+    // --- 3D Render Pass ---
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_DEPTH_BUFFER_BIT); // Clear depth for 3D drawing over 2D background, or keep 2D behind
+
+    const float aspect3D = winSize.y > 0 ? (winSize.x / winSize.y) : 1.0f;
+    const glm::mat4 proj3D = glm::perspective(glm::radians(45.0f), aspect3D, 0.1f, 100.0f);
+    
+    // Rotate the view slowly around the object to orbit it automatically
+    glm::mat4 view3D = m_camera3D->getViewMatrix();
+    view3D = glm::rotate(view3D, static_cast<float>(time * 0.5), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    if (m_grid)
+    {
+        m_grid->render(view3D, proj3D);
+    }
+    if (m_scene && m_gltfRenderer)
+    {
+        m_gltfRenderer->render(m_scene, view3D, proj3D, m_camera3D->getPosition());
+    }
+    glDisable(GL_DEPTH_TEST);
+
     renderUI(time, winSize);
 }
 

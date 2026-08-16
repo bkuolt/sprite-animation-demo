@@ -1,0 +1,324 @@
+task: [assets] python3 tools/buildAssets.py
+assets/shaders/main.vs
+assets/shaders/main.fs
+assets/shaders/text.vs
+assets/shaders/text.fs
+Building Shaders...
+Compiling assets/shaders/main.vs -> assets/shaders/main.vert.spv
+Compiling assets/shaders/main.fs -> assets/shaders/main.frag.spv
+Compiling assets/shaders/text.vs -> assets/shaders/text.vert.spv
+Compiling assets/shaders/text.fs -> assets/shaders/text.frag.spv
+Asset build complete.
+task: [build] cmake --preset conan-release
+-- Using Conan toolchain: /home/bastian/code/sprite-animation-demo/build/Release/generators/conan_toolchain.cmake
+-- Conan toolchain: Defining architecture flag: -m64
+-- Conan toolchain: C++ Standard 17 with extensions ON
+-- Warning: Standard CMAKE_CXX_STANDARD value defined in conan_toolchain.cmake to 17 has been modified to 23 by /home/bastian/code/sprite-animation-demo/CMakeLists.txt
+-- Conan: Target declared 'glfw'
+-- Conan: Target declared 'opengl::opengl'
+-- Conan: Component target declared 'xorg::x11'
+-- Conan: Component target declared 'xorg::x11-xcb'
+-- Conan: Component target declared 'xorg::fontenc'
+-- Conan: Component target declared 'xorg::ice'
+-- Conan: Component target declared 'xorg::xau'
+-- Conan: Component target declared 'xorg::xaw7'
+-- Conan: Component target declared 'xorg::xcomposite'
+-- Conan: Component target declared 'xorg::xcursor'
+-- Conan: Component target declared 'xorg::xdamage'
+-- Conan: Component target declared 'xorg::xdmcp'
+-- Conan: Component target declared 'xorg::xext'
+-- Conan: Component target declared 'xorg::xfixes'
+-- Conan: Component target declared 'xorg::xi'
+-- Conan: Component target declared 'xorg::xinerama'
+-- Conan: Component target declared 'xorg::xkbfile'
+-- Conan: Component target declared 'xorg::xmu'
+-- Conan: Component target declared 'xorg::xmuu'
+-- Conan: Component target declared 'xorg::xpm'
+-- Conan: Component target declared 'xorg::xrandr'
+-- Conan: Component target declared 'xorg::xrender'
+-- Conan: Component target declared 'xorg::xres'
+-- Conan: Component target declared 'xorg::xscrnsaver'
+-- Conan: Component target declared 'xorg::xt'
+-- Conan: Component target declared 'xorg::xtst'
+-- Conan: Component target declared 'xorg::xv'
+-- Conan: Component target declared 'xorg::xxf86vm'
+-- Conan: Component target declared 'xorg::xcb-xkb'
+-- Conan: Component target declared 'xorg::xcb-icccm'
+-- Conan: Component target declared 'xorg::xcb-image'
+-- Conan: Component target declared 'xorg::xcb-keysyms'
+-- Conan: Component target declared 'xorg::xcb-randr'
+-- Conan: Component target declared 'xorg::xcb-render'
+-- Conan: Component target declared 'xorg::xcb-renderutil'
+-- Conan: Component target declared 'xorg::xcb-shape'
+-- Conan: Component target declared 'xorg::xcb-shm'
+-- Conan: Component target declared 'xorg::xcb-sync'
+-- Conan: Component target declared 'xorg::xcb-xfixes'
+-- Conan: Component target declared 'xorg::xcb-xinerama'
+-- Conan: Component target declared 'xorg::xcb'
+-- Conan: Component target declared 'xorg::xcb-atom'
+-- Conan: Component target declared 'xorg::xcb-aux'
+-- Conan: Component target declared 'xorg::xcb-event'
+-- Conan: Component target declared 'xorg::xcb-util'
+-- Conan: Component target declared 'xorg::xcb-dri3'
+-- Conan: Component target declared 'xorg::xcb-cursor'
+-- Conan: Component target declared 'xorg::xcb-dri2'
+-- Conan: Component target declared 'xorg::xcb-glx'
+-- Conan: Component target declared 'xorg::xcb-present'
+-- Conan: Component target declared 'xorg::xcb-composite'
+-- Conan: Component target declared 'xorg::xcb-ewmh'
+-- Conan: Component target declared 'xorg::xcb-res'
+-- Conan: Component target declared 'xorg::uuid'
+-- Conan: Component target declared 'xorg::sm'
+-- Conan: Target declared 'xorg::xorg'
+-- Conan: Target declared 'glm::glm-header-only'
+-- Conan: Component target declared 'KTX::ktx'
+-- Conan: Component target declared 'fmt::fmt'
+-- Conan: Component target declared 'zstd::libzstd_static'
+-- Conan: Target declared 'glad::glad'
+-- Conan: Component target declared 'spdlog::spdlog'
+-- Conan: Target declared 'PNG::PNG'
+-- Conan: Target declared 'ZLIB::ZLIB'
+-- Conan: Target declared 'JPEG::JPEG'
+-- Conan: Target declared 'Freetype::Freetype'
+-- Conan: Target declared 'BZip2::BZip2'
+-- Conan: Including build module from '/home/bastian/.conan2/p/b/bzip252fb87fce5c64/p/lib/cmake/conan-official-bzip2-variables.cmake'
+-- Conan: Component target declared 'brotli::brotlicommon'
+-- Conan: Component target declared 'brotli::brotlidec'
+-- Conan: Component target declared 'brotli::brotlienc'
+-- Conan: Target declared 'brotli::brotli'
+-- Conan: Including build module from '/home/bastian/.conan2/p/b/freetff2a0bc036f4a/p/lib/cmake/conan-official-freetype-variables.cmake'
+-- Conan: Target declared 'harfbuzz::harfbuzz'
+-- Conan: Component target declared 'glib::glib-2.0'
+-- Conan: Component target declared 'glib::gresource'
+-- Conan: Component target declared 'glib::gmodule-no-export-2.0'
+-- Conan: Component target declared 'glib::gobject-2.0'
+-- Conan: Component target declared 'glib::gthread-2.0'
+-- Conan: Component target declared 'glib::gmodule-export-2.0'
+-- Conan: Component target declared 'glib::gmodule-2.0'
+-- Conan: Component target declared 'glib::gio-2.0'
+-- Conan: Component target declared 'glib::gio-unix-2.0'
+-- Conan: Target declared 'glib::glib'
+-- Conan: Target declared 'libffi::libffi'
+-- Conan: Component target declared 'elfutils::libelf'
+-- Conan: Component target declared 'elfutils::libdw'
+-- Conan: Component target declared 'elfutils::libasm'
+-- Conan: Target declared 'elfutils::elfutils'
+-- Conan: Target declared 'LibLZMA::LibLZMA'
+-- Conan: Including build module from '/home/bastian/.conan2/p/b/xz_uta66fa801c95b9/p/lib/cmake/conan-official-xz_utils-variables.cmake'
+-- Conan: Component target declared 'libmount::libblkid'
+-- Conan: Component target declared 'libmount::libmount'
+-- Conan: Component target declared 'libselinux::sepol'
+-- Conan: Component target declared 'libselinux::selinux'
+-- Conan: Target declared 'libselinux::libselinux'
+-- Conan: Component target declared 'PCRE2::8BIT'
+-- Conan: Component target declared 'PCRE2::16BIT'
+-- Conan: Component target declared 'PCRE2::32BIT'
+-- Conan: Component target declared 'PCRE2::POSIX'
+-- Conan: Target declared 'pcre2::pcre2'
+-- Conan: Target declared 'Fontconfig::Fontconfig'
+-- Conan: Target declared 'expat::expat'
+-- Conan: Target declared 'pngpp::pngpp'
+-- Conan: Target declared 'nlohmann_json::nlohmann_json'
+-- Conan: Target declared 'EnTT::EnTT'
+-- Conan: Target declared 'stb::stb'
+-- Conan: Target declared 'OpenAL::OpenAL'
+-- Conan: Target declared 'ALSA::ALSA'
+-- Conan: Including build module from '/home/bastian/.conan2/p/b/opena1b53f059501c1/p/lib/cmake/conan-official-openal-soft-variables.cmake'
+-- Conan: Target declared 'fastgltf::fastgltf'
+-- Conan: Target declared 'simdjson::simdjson'
+-- Conan: Target declared 'lua::lua'
+-- Conan: Target declared 'sol2::sol2'
+-- Configuring done (0.6s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/bastian/code/sprite-animation-demo/build/Release
+task: [build] cmake --build --preset conan-release
+[  2%] Built target bgl_script
+[  2%] Built target bgl_audio
+[  2%] Copying asset: shaders/text.vert.spv
+[  2%] Copying asset: shaders/main.vert.spv
+[  2%] Copying asset: shaders/text.frag.spv
+[  2%] Copying asset: shaders/main.frag.spv
+[  3%] Built target bgl_text
+[  4%] Built target bgl_io
+[ 95%] Built target copy_assets
+[ 97%] Built target bgl_gfx
+[100%] Built target bgl_gltf
+[100%] Built target bgl_windowing
+[100%] Built target app
+task: [run] ./build/Release/app
+[2026-08-16 14:28:19.142] [info] [Lua] Startup script running.
+[2026-08-16 14:28:19.142] [info] [Lua] Engine: BGL Engine 0.1 (C++23 / OpenGL 4.6)
+[2026-08-16 14:28:19.142] [info] [Lua] External startup.lua loaded successfully.
+[2026-08-16 14:28:19.142] [info] [Lua] Engine version: BGL Engine 0.1 (C++23 / OpenGL 4.6)
+[2026-08-16 14:28:19.222] [info] GLAD Version: 4.6
+[2026-08-16 14:28:19.222] [info] OpenGL Version: 4.6 (Core Profile) Mesa 26.0.3-1ubuntu1
+[2026-08-16 14:28:19.222] [info] Vendor: AMD
+[2026-08-16 14:28:19.222] [info] Renderer: AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 7.0.0-28-generic)
+[2026-08-16 14:28:19.222] [info] GLSL Version: 4.60
+[2026-08-16 14:28:19.222] [info] MSAA enabled if supported by the windowing system.
+[2026-08-16 14:28:19.222] [info] Extensions: GL_EXT_texture_compression_dxt1, GL_EXT_texture_compression_rgtc, GL_EXT_texture_compression_s3tc
+[2026-08-16 14:28:19.270] [info] [Audio] OpenAL device: OpenAL Soft
+Fontconfig error: Cannot load default config file: No such file: (null)
+[2026-08-16 14:28:19.314] [info] Fontconfig resolved 'sans-serif:bold' to '/usr/share/fonts/opentype/freefont/FreeSerifBold.otf'
+[2026-08-16 14:28:19.314] [info] FreeType library initialized successfully
+[2026-08-16 14:28:19.314] [info] Successfully loaded font: /usr/share/fonts/opentype/freefont/FreeSerifBold.otf at 36px
+[2026-08-16 14:28:19.320] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/girl/idle.ktx2
+[2026-08-16 14:28:19.364] [info] Transcoded KTX texture - compressed: 3 MB, uncompressed: 3 MB
+[2026-08-16 14:28:19.364] [info] KTX layers: 16, levels: 9
+[2026-08-16 14:28:19.367] [info] Created Texture2DArray (KTX2) with GL ID: 1
+[2026-08-16 14:28:19.368] [info] Added animation 'Idle' to character 'Girl'
+[2026-08-16 14:28:19.373] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/girl/walk.ktx2
+[2026-08-16 14:28:19.398] [info] Transcoded KTX texture - compressed: 4 MB, uncompressed: 4 MB
+[2026-08-16 14:28:19.398] [info] KTX layers: 20, levels: 9
+[2026-08-16 14:28:19.400] [info] Created Texture2DArray (KTX2) with GL ID: 2
+[2026-08-16 14:28:19.401] [info] Added animation 'Walk' to character 'Girl'
+[2026-08-16 14:28:19.408] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/girl/jump.ktx2
+[2026-08-16 14:28:19.446] [info] Transcoded KTX texture - compressed: 7 MB, uncompressed: 7 MB
+[2026-08-16 14:28:19.446] [info] KTX layers: 30, levels: 9
+[2026-08-16 14:28:19.449] [info] Created Texture2DArray (KTX2) with GL ID: 3
+[2026-08-16 14:28:19.450] [info] Added animation 'Jump' to character 'Girl'
+[2026-08-16 14:28:19.455] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/girl/run.ktx2
+[2026-08-16 14:28:19.479] [info] Transcoded KTX texture - compressed: 4 MB, uncompressed: 4 MB
+[2026-08-16 14:28:19.479] [info] KTX layers: 20, levels: 9
+[2026-08-16 14:28:19.481] [info] Created Texture2DArray (KTX2) with GL ID: 4
+[2026-08-16 14:28:19.481] [info] Added animation 'Run' to character 'Girl'
+[2026-08-16 14:28:19.491] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/girl/dead.ktx2
+[2026-08-16 14:28:19.534] [info] Transcoded KTX texture - compressed: 11 MB, uncompressed: 11 MB
+[2026-08-16 14:28:19.534] [info] KTX layers: 30, levels: 10
+[2026-08-16 14:28:19.538] [info] Created Texture2DArray (KTX2) with GL ID: 5
+[2026-08-16 14:28:19.539] [info] Added animation 'Dead' to character 'Girl'
+[2026-08-16 14:28:19.551] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/santa/idle.ktx2
+[2026-08-16 14:28:19.612] [info] Transcoded KTX texture - compressed: 12 MB, uncompressed: 12 MB
+[2026-08-16 14:28:19.612] [info] KTX layers: 16, levels: 10
+[2026-08-16 14:28:19.616] [info] Created Texture2DArray (KTX2) with GL ID: 6
+[2026-08-16 14:28:19.618] [info] Added animation 'Idle' to character 'Santa'
+[2026-08-16 14:28:19.623] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/santa/walk.ktx2
+[2026-08-16 14:28:19.668] [info] Transcoded KTX texture - compressed: 9 MB, uncompressed: 9 MB
+[2026-08-16 14:28:19.668] [info] KTX layers: 13, levels: 10
+[2026-08-16 14:28:19.671] [info] Created Texture2DArray (KTX2) with GL ID: 7
+[2026-08-16 14:28:19.671] [info] Added animation 'Walk' to character 'Santa'
+[2026-08-16 14:28:19.676] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/santa/jump.ktx2
+[2026-08-16 14:28:19.732] [info] Transcoded KTX texture - compressed: 12 MB, uncompressed: 12 MB
+[2026-08-16 14:28:19.732] [info] KTX layers: 16, levels: 10
+[2026-08-16 14:28:19.736] [info] Created Texture2DArray (KTX2) with GL ID: 8
+[2026-08-16 14:28:19.736] [info] Added animation 'Jump' to character 'Santa'
+[2026-08-16 14:28:19.741] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/santa/run.ktx2
+[2026-08-16 14:28:19.776] [info] Transcoded KTX texture - compressed: 8 MB, uncompressed: 8 MB
+[2026-08-16 14:28:19.776] [info] KTX layers: 11, levels: 10
+[2026-08-16 14:28:19.778] [info] Created Texture2DArray (KTX2) with GL ID: 9
+[2026-08-16 14:28:19.779] [info] Added animation 'Run' to character 'Santa'
+[2026-08-16 14:28:19.782] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/santa/slide.ktx2
+[2026-08-16 14:28:19.819] [info] Transcoded KTX texture - compressed: 8 MB, uncompressed: 8 MB
+[2026-08-16 14:28:19.819] [info] KTX layers: 11, levels: 10
+[2026-08-16 14:28:19.822] [info] Created Texture2DArray (KTX2) with GL ID: 10
+[2026-08-16 14:28:19.822] [info] Added animation 'Slide' to character 'Santa'
+[2026-08-16 14:28:19.828] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/santa/dead.ktx2
+[2026-08-16 14:28:19.886] [info] Transcoded KTX texture - compressed: 13 MB, uncompressed: 13 MB
+[2026-08-16 14:28:19.886] [info] KTX layers: 17, levels: 10
+[2026-08-16 14:28:19.889] [info] Created Texture2DArray (KTX2) with GL ID: 11
+[2026-08-16 14:28:19.890] [info] Added animation 'Dead' to character 'Santa'
+[2026-08-16 14:28:19.892] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/items/items.ktx2
+[2026-08-16 14:28:19.911] [info] Transcoded KTX texture - compressed: 1 MB, uncompressed: 1 MB
+[2026-08-16 14:28:19.911] [info] KTX layers: 60, levels: 8
+[2026-08-16 14:28:19.913] [info] Created Texture2DArray (KTX2) with GL ID: 12
+[2026-08-16 14:28:19.913] [info] Added animation 'Idle' to character 'Items'
+[2026-08-16 14:28:19.914] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/items/items.ktx2
+[2026-08-16 14:28:19.933] [info] Transcoded KTX texture - compressed: 1 MB, uncompressed: 1 MB
+[2026-08-16 14:28:19.933] [info] KTX layers: 60, levels: 8
+[2026-08-16 14:28:19.935] [info] Created Texture2DArray (KTX2) with GL ID: 13
+[2026-08-16 14:28:19.935] [info] Added animation 'Walk' to character 'Items'
+[2026-08-16 14:28:19.937] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/items/items.ktx2
+[2026-08-16 14:28:19.955] [info] Transcoded KTX texture - compressed: 1 MB, uncompressed: 1 MB
+[2026-08-16 14:28:19.956] [info] KTX layers: 60, levels: 8
+[2026-08-16 14:28:19.957] [info] Created Texture2DArray (KTX2) with GL ID: 14
+[2026-08-16 14:28:19.957] [info] Added animation 'Jump' to character 'Items'
+[2026-08-16 14:28:20.002] [info] Loaded JPEG from memory (2048x2048)
+[2026-08-16 14:28:20.012] [info] Created Texture2DArray (Raw, 1 layers) with GL ID: 15
+[2026-08-16 14:28:20.113] [info] Loaded JPEG from memory (2048x2048)
+[2026-08-16 14:28:20.123] [info] Created Texture2DArray (Raw, 1 layers) with GL ID: 16
+[2026-08-16 14:28:20.166] [info] Loaded JPEG from memory (2048x2048)
+[2026-08-16 14:28:20.173] [info] Created Texture2DArray (Raw, 1 layers) with GL ID: 17
+[2026-08-16 14:28:20.196] [info] Loaded JPEG from memory (2048x2048)
+[2026-08-16 14:28:20.204] [info] Created Texture2DArray (Raw, 1 layers) with GL ID: 18
+[2026-08-16 14:28:20.234] [info] Loaded JPEG from memory (2048x2048)
+[2026-08-16 14:28:20.241] [info] Created Texture2DArray (Raw, 1 layers) with GL ID: 19
+[2026-08-16 14:28:20.241] [info] Successfully loaded glTF asset: /home/bastian/code/sprite-animation-demo/build/Release/assets/models/DamagedHelmet.glb
+[2026-08-16 14:28:20.241] [info] Loaded glTF model: /home/bastian/code/sprite-animation-demo/build/Release/assets/models/DamagedHelmet.glb
+[2026-08-16 14:28:20.243] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/items/items.ktx2
+[2026-08-16 14:28:20.262] [info] Transcoded KTX texture - compressed: 1 MB, uncompressed: 1 MB
+[2026-08-16 14:28:20.262] [info] KTX layers: 60, levels: 8
+[2026-08-16 14:28:20.264] [info] Created Texture2DArray (KTX2) with GL ID: 20
+[2026-08-16 14:28:20.264] [info] Loaded TileMap level 'Winter Platformer Level' (20x10) from JSON
+[2026-08-16 14:28:20.264] [info] Loaded KTX file: /home/bastian/code/sprite-animation-demo/build/Release/assets/textures/ktx/tiles/tiles.ktx2
+[2026-08-16 14:28:20.267] [info] Transcoded KTX texture - compressed: 0 MB, uncompressed: 0 MB
+[2026-08-16 14:28:20.267] [info] KTX layers: 18, levels: 8
+[2026-08-16 14:28:20.268] [info] Created Texture2DArray (KTX2) with GL ID: 21
+Loaded SPIR-V file: /home/bastian/code/sprite-animation-demo/build/Release/assets/shaders/main.vert.spv (1824 bytes)
+Loaded SPIR-V file: /home/bastian/code/sprite-animation-demo/build/Release/assets/shaders/main.frag.spv (1516 bytes)
+Creating shader program from SPIR-V binaries...
+SPIR-V shader specialized successfully (Vertex).
+SPIR-V shader specialized successfully (Fragment).
+SPIR-V shader program created successfully.
+Loaded SPIR-V file: /home/bastian/code/sprite-animation-demo/build/Release/assets/shaders/text.vert.spv (1228 bytes)
+Loaded SPIR-V file: /home/bastian/code/sprite-animation-demo/build/Release/assets/shaders/text.frag.spv (568 bytes)
+Creating shader program from SPIR-V binaries...
+SPIR-V shader specialized successfully (Vertex).
+SPIR-V shader specialized successfully (Fragment).
+SPIR-V shader program created successfully.
+Creating shader program from GLSL source...
+GLSL shader compiled successfully (Vertex).
+GLSL shader compiled successfully (Fragment).
+GLSL shader program created successfully.
+Creating shader program from GLSL source...
+GLSL shader compiled successfully (Vertex).
+GLSL shader compiled successfully (Fragment).
+GLSL shader program created successfully.
+[2026-08-16 14:28:20.273] [info] Enabled Anisotropic Filtering (Max: 16)
+[2026-08-16 14:28:20.277] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:20.277] [info] Rendered SSBO Quad Text Texture ID 23 (109x38, 4 quads, mipmapped)
+[2026-08-16 14:28:20.278] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:20.279] [info] Rendered SSBO Quad Text Texture ID 24 (655x44, 38 quads, mipmapped)
+[2026-08-16 14:28:20.280] [info] Camera reset to position (0, 0) and zoom 1.0
+[2026-08-16 14:28:20.488] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:20.488] [info] Rendered SSBO Quad Text Texture ID 25 (127x38, 5 quads, mipmapped)
+[2026-08-16 14:28:20.489] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:20.491] [info] Rendered SSBO Quad Text Texture ID 23 (655x44, 38 quads, mipmapped)
+[2026-08-16 14:28:20.688] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:20.688] [info] Rendered SSBO Quad Text Texture ID 24 (127x38, 5 quads, mipmapped)
+[2026-08-16 14:28:20.689] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:20.689] [info] Rendered SSBO Quad Text Texture ID 25 (655x44, 38 quads, mipmapped)
+[2026-08-16 14:28:22.533] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:22.533] [info] Rendered SSBO Quad Text Texture ID 23 (127x38, 5 quads, mipmapped)
+[2026-08-16 14:28:22.534] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:22.535] [info] Rendered SSBO Quad Text Texture ID 24 (655x44, 38 quads, mipmapped)
+[2026-08-16 14:28:22.742] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:22.742] [info] Rendered SSBO Quad Text Texture ID 25 (127x38, 5 quads, mipmapped)
+[2026-08-16 14:28:22.743] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:22.744] [info] Rendered SSBO Quad Text Texture ID 23 (655x44, 38 quads, mipmapped)
+[2026-08-16 14:28:22.954] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:22.954] [info] Rendered SSBO Quad Text Texture ID 24 (127x38, 5 quads, mipmapped)
+[2026-08-16 14:28:22.955] [info] Generated Font Texture Atlas ID 22 (512x512, 126 glyphs packed, 10 mip levels)
+[2026-08-16 14:28:22.955] [info] Rendered SSBO Quad Text Texture ID 25 (655x44, 38 quads, mipmapped)
+[2026-08-16 14:28:24.741] [info] Application resources released.
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 20
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 1
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 2
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 3
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 4
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 5
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 6
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 7
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 8
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 9
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 10
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 11
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 12
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 13
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 14
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 19
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 18
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 17
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 16
+[2026-08-16 14:28:24.742] [info] Deleted Texture2DArray GL ID: 15
+[2026-08-16 14:28:24.743] [info] [Audio] AudioEngine shut down cleanly.
+[2026-08-16 14:28:24.743] [info] Deleted Texture2DArray GL ID: 21

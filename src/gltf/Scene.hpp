@@ -22,11 +22,14 @@ class Scene
     void addRootNode(std::shared_ptr<Node> node);
     [[nodiscard]] const std::vector<std::shared_ptr<Node>> &getRootNodes() const noexcept;
 
+    void keepTextureAlive(std::shared_ptr<class Texture2DArray> tex);
+
     void updateTransforms();
     [[nodiscard]] const std::string &getName() const noexcept;
 
   private:
     std::string _name;
     std::vector<std::shared_ptr<Node>> _rootNodes;
+    std::vector<std::shared_ptr<class Texture2DArray>> _textures;
 };
 } // namespace bgl::gfx
