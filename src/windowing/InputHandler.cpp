@@ -2,7 +2,6 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "InputHandler.hpp"
-#include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
 namespace bgl::window

@@ -4,7 +4,7 @@
 #include "GLContext.hpp"
 
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
+#include <QOpenGLContext>
 
 #include <fmt/ranges.h>
 #include <spdlog/spdlog.h>
@@ -117,10 +117,20 @@ namespace bgl::gl
 {
 void InitializeGLAD()
 {
-    const int gladVersion = gladLoadGL(glfwGetProcAddress);
+    auto *ctx = QOpenGLContext::currentContext();
+    if (!ctx)
+    {
+        throw std::runtime_error("No active QOpenGLContext found when initializing GLAD");
+    }
+
+    const int gladVersion = gladLoadGL(reinterpret_cast<GLADloadfunc>(+[](const char *name) -> void * {
+        auto *c = QOpenGLContext::currentContext();
+        return c ? reinterpret_cast<void *>(c->getProcAddress(name)) : nullptr;
+    }));
+
     if (gladVersion == 0)
     {
-        throw std::runtime_error("Failed to initialize GLAD");
+        throw std::runtime_error("Failed to initialize GLAD via Qt QOpenGLContext");
     }
 
     spdlog::info("GLAD Version: {}.{}", static_cast<int>(GLAD_VERSION_MAJOR(gladVersion)),

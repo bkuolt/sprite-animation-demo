@@ -12,7 +12,6 @@ target_include_directories(bgl_gfx PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(bgl_gfx PUBLIC
     glad::glad
     OpenGL::GL
-    glfw
     glm::glm
     KTX::ktx
     spdlog::spdlog

@@ -17,7 +17,9 @@
 #include "gl/Shader.hpp"
 #include "gl/TextureCube.hpp"
 #include "io/TextureLoader.hpp"
+#include "script/ScriptEngine.hpp"
 #include "windowing/Window.hpp"
+#include <QKeyEvent>
 
 #include <algorithm>
 #include <array>
@@ -66,8 +68,6 @@ Application::Application()
     m_tileMap      = std::make_unique<bgl::gfx::TileMap>();
     m_audioEngine  = std::make_unique<bgl::audio::AudioEngine>();
 
-    m_gltfRenderer = std::make_unique<bgl::gfx::GltfRenderer>();
-    m_grid         = std::make_unique<bgl::gfx::Grid>();
     m_camera3D     = std::make_unique<bgl::gfx::Camera3D>();
     m_camera3D->setTarget(glm::vec3(0.0f, 5.0f, 0.0f));
     m_camera3D->setDistance(30.0f);
@@ -77,11 +77,16 @@ Application::Application()
     m_window->setEventDispatcher(&m_eventDispatcher);
 
     setupCallbacks();
-    initAssets();
-    initShaders();
-    initMeshes();
 
-    m_defaultSampler = bgl::CreateDefaultSampler();
+    m_scriptEngine = std::make_unique<bgl::script::ScriptEngine>();
+    m_scriptEngine->bindCamera(m_camera3D.get());
+    m_scriptEngine->bindHud(m_hud.get());
+
+    const auto startupScript = getExecutableDir() / "assets" / "startup.lua";
+    if (std::filesystem::exists(startupScript))
+    {
+        m_scriptEngine->executeFile(startupScript);
+    }
 }
 
 Application::~Application()
@@ -101,7 +106,7 @@ void Application::setupCallbacks()
 
 void Application::onKeyEvent(const events::KeyEvent &event)
 {
-    if (event.key == GLFW_KEY_R && event.action == GLFW_PRESS)
+    if ((event.key == Qt::Key_R || event.key == 'R') && event.action == 1)
     {
         m_camera->reset();
     }
@@ -109,26 +114,26 @@ void Application::onKeyEvent(const events::KeyEvent &event)
     if (!m_characters.empty())
     {
         auto &current_char = m_characters[m_currentCharacterIndex];
-        if (event.key == GLFW_KEY_DOWN && event.action == GLFW_PRESS)
+        if (event.key == Qt::Key_Down && event.action == 1)
         {
             current_char->previousAnimation();
         }
-        else if (event.key == GLFW_KEY_TAB && event.action == GLFW_PRESS)
+        else if (event.key == Qt::Key_Tab && event.action == 1)
         {
             m_currentCharacterIndex = (m_currentCharacterIndex + 1) % m_characters.size();
         }
         
-        if (event.key == GLFW_KEY_RIGHT)
+        if (event.key == Qt::Key_Right)
         {
-            m_rightPressed = (event.action != GLFW_RELEASE);
+            m_rightPressed = (event.action != 0);
         }
-        else if (event.key == GLFW_KEY_LEFT)
+        else if (event.key == Qt::Key_Left)
         {
-            m_leftPressed = (event.action != GLFW_RELEASE);
+            m_leftPressed = (event.action != 0);
         }
-        else if (event.key == GLFW_KEY_SPACE)
+        else if (event.key == Qt::Key_Space)
         {
-            m_spacePressed = (event.action != GLFW_RELEASE);
+            m_spacePressed = (event.action != 0);
         }
     }
 }
@@ -379,6 +384,16 @@ void Application::run()
 
 void Application::renderFrame(double time)
 {
+    if (!m_defaultSampler)
+    {
+        m_gltfRenderer   = std::make_unique<bgl::gfx::GltfRenderer>();
+        m_grid           = std::make_unique<bgl::gfx::Grid>();
+        initAssets();
+        initShaders();
+        initMeshes();
+        m_defaultSampler = bgl::CreateDefaultSampler();
+    }
+
     m_frameCounter++;
     if (time - m_lastFpsTime >= 0.2)
     {
@@ -484,15 +499,15 @@ void Application::renderFrame(double time)
 
     renderSkybox(view3D, proj3D);
 
-    if (m_grid)
-    {
-        m_grid->render(view3D, proj3D);
-    }
     if (m_scene && m_gltfRenderer)
     {
         glm::mat4 rootTransform = glm::mat4(1.0f); // Scale 1.0 for Sponza
         m_scene->updateTransforms(rootTransform);
         m_gltfRenderer->render(m_scene, view3D, proj3D, m_camera3D->getPosition());
+    }
+    if (m_grid)
+    {
+        m_grid->render(view3D, proj3D);
     }
     glDisable(GL_DEPTH_TEST);
 

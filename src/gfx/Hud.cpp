@@ -8,6 +8,17 @@
 namespace bgl::gfx
 {
 
+void Hud::addText(std::string text, float x, float y, glm::u8vec4 color)
+{
+    m_customTexts.push_back({std::move(text), x, y, color});
+}
+
+void Hud::clearCustomTexts()
+{
+    m_customTexts.clear();
+    m_customTextTextures.clear();
+}
+
 void Hud::updateAndRender(const Font &font, GLuint textProgram, const QuadMesh &overlayQuad, const glm::vec2 &winSize,
                           int currentFps, const std::string &modelName)
 {
@@ -61,6 +72,30 @@ void Hud::updateAndRender(const Font &font, GLuint textProgram, const QuadMesh &
         renderTextOverlay(overlayQuad, m_hudTexture3->GetHandle(), textProgram, m_hudTexture3->GetWidth(),
                           m_hudTexture3->GetHeight(), static_cast<uint32_t>(winSize.x),
                           static_cast<uint32_t>(winSize.y), 15.0f, currentY);
+    }
+
+    // Render custom Lua-placed text overlays
+    if (m_customTextTextures.size() != m_customTexts.size())
+    {
+        m_customTextTextures.clear();
+        for (const auto &item : m_customTexts)
+        {
+            m_customTextTextures.push_back(
+                TextRenderer::RenderToTexture(font, item.text, item.color, {15, 23, 42, 220}, 6)
+            );
+        }
+    }
+
+    for (size_t i = 0; i < m_customTexts.size(); ++i)
+    {
+        if (i < m_customTextTextures.size() && m_customTextTextures[i].IsValid())
+        {
+            const auto &item = m_customTexts[i];
+            const auto &tex  = m_customTextTextures[i];
+            renderTextOverlay(overlayQuad, tex.GetHandle(), textProgram, tex.GetWidth(),
+                              tex.GetHeight(), static_cast<uint32_t>(winSize.x),
+                              static_cast<uint32_t>(winSize.y), item.x, item.y);
+        }
     }
 }
 

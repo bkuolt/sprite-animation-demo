@@ -10,6 +10,8 @@ target_link_libraries(bgl_script PUBLIC
     lua::lua
     sol2::sol2
     spdlog::spdlog
+    bgl_gltf
+    bgl_gfx
 )
 
 target_compile_definitions(bgl_script PUBLIC SOL_ALL_SAFETIES_ON=1)

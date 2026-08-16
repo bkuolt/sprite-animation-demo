@@ -87,6 +87,9 @@ void main() {
     float fading = max(0.0, (0.99 - linearDepth));
 
     gridColor.a *= fading;
+    
+    if (gridColor.a < 0.01) discard;
+
     FragColor = gridColor;
 }
 )";
@@ -151,6 +154,7 @@ void Grid::render(const glm::mat4 &view, const glm::mat4 &projection)
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE); // Grid is transparent and should not block other geometry
 
     glUseProgram(_program);
     glUniformMatrix4fv(_uViewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -159,6 +163,7 @@ void Grid::render(const glm::mat4 &view, const glm::mat4 &projection)
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+    glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
 }
 } // namespace bgl::gfx

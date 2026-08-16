@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# --- Conan dependencies ---
-find_package(glfw3 CONFIG REQUIRED)
+# --- Conan & System dependencies ---
+find_package(Qt6 COMPONENTS Core Gui OpenGL REQUIRED)
 find_package(glm REQUIRED)
 find_package(Ktx REQUIRED)
 find_package(glad CONFIG REQUIRED)
@@ -53,6 +53,9 @@ target_include_directories(app PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_compile_features(app PRIVATE cxx_std_23)
 
 target_link_libraries(app PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::OpenGL
     bgl_gl
     bgl_gfx
     bgl_io

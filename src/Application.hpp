@@ -24,6 +24,7 @@ namespace bgl::window  { class Window; }
 namespace bgl::gl      { class Texture2DArray; class Sampler; class TextureCube; }
 namespace bgl::gfx     { class Camera; class Hud; class TileMap; class Scene; class GltfRenderer; class Grid; class Camera3D; }
 namespace bgl::audio   { class AudioEngine; }
+namespace bgl::script  { class ScriptEngine; }
 
 namespace bgl
 {
@@ -94,6 +95,7 @@ class Application
     std::unique_ptr<bgl::gfx::Hud>              m_hud;
     std::unique_ptr<bgl::gfx::TileMap>          m_tileMap;
     std::unique_ptr<bgl::audio::AudioEngine>    m_audioEngine;
+    std::unique_ptr<bgl::script::ScriptEngine>   m_scriptEngine;
     std::unique_ptr<bgl::gl::Sampler>          m_defaultSampler;
 
     // --- 3D Scene ---

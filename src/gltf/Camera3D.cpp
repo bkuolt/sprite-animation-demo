@@ -88,13 +88,13 @@ void Camera3D::handleCursorPos(double xpos, double ypos)
 
 void Camera3D::handleMouseButton(int button, int action)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT)
+    if (button == 0) // Left Mouse Button
     {
-        _isRotating = (action == GLFW_PRESS);
+        _isRotating = (action == 1); // 1 = Press
     }
-    else if (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_MIDDLE)
+    else if (button == 1 || button == 2) // Right or Middle Mouse Button
     {
-        _isPanning = (action == GLFW_PRESS);
+        _isPanning = (action == 1);
     }
 }
 } // namespace bgl::gfx

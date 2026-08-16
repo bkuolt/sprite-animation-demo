@@ -1,5 +1,4 @@
 [requires]
-glfw/3.4
 glm/1.0.1
 ktx/4.4.2
 glad/2.0.8
@@ -18,9 +17,6 @@ openal-soft/1.24.3
 fastgltf/0.8.0
 lua/5.4.6
 sol2/3.5.0
-
-
-
 
 [generators]
 CMakeDeps

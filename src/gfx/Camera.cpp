@@ -3,7 +3,6 @@
 
 #include "Camera.hpp"
 
-#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <spdlog/spdlog.h>
@@ -26,13 +25,13 @@ void Camera::handleScroll(double yoffset)
 
 void Camera::handleMouseButton(int button, int action)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_MIDDLE || button == GLFW_MOUSE_BUTTON_RIGHT)
+    if (button == 0 || button == 1 || button == 2)
     {
-        if (action == GLFW_PRESS)
+        if (action == 1)
         {
             m_isPanning = true;
         }
-        else if (action == GLFW_RELEASE)
+        else if (action == 0)
         {
             m_isPanning = false;
         }

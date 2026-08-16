@@ -7,6 +7,10 @@
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 
+#include "gfx/Hud.hpp"
+#include "gltf/Camera3D.hpp"
+#include <tuple>
+
 namespace bgl::script
 {
 ScriptEngine::ScriptEngine()
@@ -33,8 +37,61 @@ void ScriptEngine::registerEngineAPI()
     });
 
     bgl.set_function("version", []() -> std::string {
-        return "BGL Engine 0.1 (C++23 / OpenGL 4.6)";
+        return "BGL Engine 0.8.1 (C++23 / OpenGL 4.6 DSA / QML & Lua)";
     });
+}
+
+void ScriptEngine::bindCamera(bgl::gfx::Camera3D *camera)
+{
+    if (!camera) return;
+
+    auto bgl = (*m_lua)["bgl"].get_or_create<sol::table>();
+    auto cameraTable = bgl.create_named("camera");
+
+    cameraTable.set_function("set_target", [camera](float x, float y, float z) {
+        camera->setTarget(glm::vec3(x, y, z));
+    });
+
+    cameraTable.set_function("set_distance", [camera](float dist) {
+        camera->setDistance(dist);
+    });
+
+    cameraTable.set_function("set_pitch", [camera](float pitch) {
+        camera->setPitch(pitch);
+    });
+
+    cameraTable.set_function("set_yaw", [camera](float yaw) {
+        camera->setYaw(yaw);
+    });
+
+    cameraTable.set_function("get_position", [camera]() -> std::tuple<float, float, float> {
+        auto pos = camera->getPosition();
+        return {pos.x, pos.y, pos.z};
+    });
+
+    spdlog::info("[ScriptEngine] Bound 3D Camera API to Lua (bgl.camera)");
+}
+
+void ScriptEngine::bindHud(bgl::gfx::Hud *hud)
+{
+    if (!hud) return;
+
+    auto bgl = (*m_lua)["bgl"].get_or_create<sol::table>();
+    auto textTable = bgl.create_named("text");
+
+    textTable.set_function("add", [hud](const std::string &msg, float x, float y) {
+        hud->addText(msg, x, y);
+    });
+
+    textTable.set_function("add_colored", [hud](const std::string &msg, float x, float y, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        hud->addText(msg, x, y, glm::u8vec4(r, g, b, a));
+    });
+
+    textTable.set_function("clear", [hud]() {
+        hud->clearCustomTexts();
+    });
+
+    spdlog::info("[ScriptEngine] Bound Text / HUD Overlay API to Lua (bgl.text)");
 }
 
 void ScriptEngine::executeFile(const std::filesystem::path &path)

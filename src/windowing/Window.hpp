@@ -3,28 +3,39 @@
 
 #pragma once
 
+// Must include glad/gl.h BEFORE Qt OpenGL headers to avoid GL header collision
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
+
+#include <QOpenGLWindow>
+#include <QOpenGLContext>
+#include <QSurfaceFormat>
+#include <QKeyEvent>
+#include <QMouseEvent>
+#include <QWheelEvent>
+#include <QElapsedTimer>
+#include <QGuiApplication>
+
 #include <entt/entt.hpp>
 #include <glm/vec2.hpp>
 #include <functional>
+#include <memory>
 
 namespace bgl::window
 {
 
 /**
- * @brief RAII GLFW window wrapper with render-loop, input dispatch, and fullscreen toggle.
- *
- * Non-copyable. Manages a single GLFWwindow and its OpenGL context.
- * Input events are forwarded to an EnTT dispatcher when one is set.
+ * @brief Qt QOpenGLWindow wrapper providing OpenGL 4.6 DSA context,
+ * continuous real-time rendering loop, input event publishing via EnTT, and window controls.
  */
-class Window
+class Window : public QOpenGLWindow
 {
+    Q_OBJECT
+
   public:
     using RenderCallback = std::function<void(double time)>;
 
     Window();
-    ~Window();
+    ~Window() override;
 
     Window(const Window &) = delete;
     Window &operator=(const Window &) = delete;
@@ -50,19 +61,24 @@ class Window
     void run(RenderCallback callback);
     void toggleFullscreen();
 
+  protected:
+    void initializeGL() override;
+    void resizeGL(int w, int h) override;
+    void paintGL() override;
+
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+
   private:
-    void registerCallbacks();
-    [[nodiscard]] glm::vec2 getScreenSize() const;
-
-    GLFWwindow    *m_window{nullptr};
     RenderCallback m_renderCallback;
-
     entt::dispatcher *m_dispatcher{nullptr};
+    QElapsedTimer m_timer;
 
-    bool m_isPaused{false};
     bool m_isFullscreen{false};
-    int  m_windowedX{0},     m_windowedY{0};
-    int  m_windowedWidth{800}, m_windowedHeight{600};
 };
 
 } // namespace bgl::window

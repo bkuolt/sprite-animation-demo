@@ -16,12 +16,26 @@ namespace bgl { class Character; struct AnimationState; }
 namespace bgl::gfx
 {
 
+struct CustomTextItem
+{
+    std::string text;
+    float x{15.0f};
+    float y{15.0f};
+    glm::u8vec4 color{255, 255, 255, 255};
+};
+
 class Hud
 {
   public:
     Hud() = default;
 
-    /// Renders the HUD overlay with FPS and animation info.
+    /// Adds a custom text overlay line (e.g. from Lua scripts).
+    void addText(std::string text, float x, float y, glm::u8vec4 color = {255, 255, 255, 255});
+
+    /// Clears all custom text overlays.
+    void clearCustomTexts();
+
+    /// Renders the HUD overlay with FPS, animation info, and custom Lua texts.
     /// @param modelName The name of the currently rendered 3D model.
     void updateAndRender(const Font &font, GLuint textProgram, const QuadMesh &overlayQuad,
                          const glm::vec2 &winSize, int currentFps, const std::string &modelName);
@@ -32,6 +46,9 @@ class Hud
     std::optional<TextTexture> m_hudTexture1;
     std::optional<TextTexture> m_hudTexture2;
     std::optional<TextTexture> m_hudTexture3;
+
+    std::vector<CustomTextItem> m_customTexts;
+    std::vector<TextTexture> m_customTextTextures;
 };
 
 } // namespace bgl::gfx

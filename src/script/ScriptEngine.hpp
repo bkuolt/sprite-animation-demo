@@ -9,15 +9,18 @@
 
 // Forward declare sol::state to avoid pulling Lua headers into every TU.
 namespace sol { class state; }
+namespace bgl::gfx { class Camera3D; class Hud; }
 
 namespace bgl::script
 {
 /**
  * @brief Manages a single Lua interpreter instance via sol2.
  *
- * Exposes a minimal engine API to Lua scripts:
+ * Exposes an engine API to Lua scripts:
  *  - bgl.log(msg)
  *  - bgl.version() -> string
+ *  - bgl.camera (set_target, set_distance, set_pitch, set_yaw, get_position)
+ *  - bgl.text (add, clear)
  */
 class ScriptEngine
 {
@@ -27,6 +30,16 @@ class ScriptEngine
 
     ScriptEngine(const ScriptEngine &) = delete;
     ScriptEngine &operator=(const ScriptEngine &) = delete;
+
+    /**
+     * @brief Binds a live Camera3D instance to Lua's bgl.camera module.
+     */
+    void bindCamera(bgl::gfx::Camera3D *camera);
+
+    /**
+     * @brief Binds a live Hud instance to Lua's bgl.text / bgl.ui module.
+     */
+    void bindHud(bgl::gfx::Hud *hud);
 
     /**
      * @brief Executes a Lua script file.

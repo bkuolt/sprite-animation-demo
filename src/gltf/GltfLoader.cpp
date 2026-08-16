@@ -230,6 +230,7 @@ std::shared_ptr<bgl::gfx::Scene> GltfLoader::loadFromFile(const std::filesystem:
                     mat.pbrData.baseColorFactor[3]);
                 bglPrim.metallicFactor = mat.pbrData.metallicFactor;
                 bglPrim.roughnessFactor = mat.pbrData.roughnessFactor;
+                bglPrim.doubleSided = mat.doubleSided;
 
                 bglPrim.emissiveFactor = glm::vec3(
                     mat.emissiveFactor[0],

@@ -3,6 +3,7 @@
 
 #include "Application.hpp"
 #include "script/ScriptEngine.hpp"
+#include <QGuiApplication>
 #include <csignal>
 #include <cstdlib>
 #include <filesystem>
@@ -22,9 +23,11 @@ static void signal_handler(int sig)
     std::_Exit(0);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     spdlog::set_level(spdlog::level::info);
+
+    QGuiApplication app(argc, argv);
 
     std::signal(SIGINT,  signal_handler);
     std::signal(SIGTERM, signal_handler);

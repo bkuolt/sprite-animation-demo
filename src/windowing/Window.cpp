@@ -4,134 +4,35 @@
 #include "Window.hpp"
 #include "../events/Event.hpp"
 #include "../gfx/Graphics.hpp"
+#include "../gl/GLContext.hpp"
 
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 
-namespace
-{
-void KeyboardCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-    auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
-    if (!win) return;
-
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    {
-        win->close();
-        return;
-    }
-
-    if (key == GLFW_KEY_F && action == GLFW_PRESS)
-    {
-        win->toggleFullscreen();
-    }
-
-    if (auto *d = win->getEventDispatcher())
-    {
-        d->trigger(bgl::events::KeyEvent{key, scancode, action, mods});
-    }
-}
-
-void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
-{
-    auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getEventDispatcher())
-    {
-        win->getEventDispatcher()->trigger(bgl::events::MouseMovedEvent{xpos, ypos});
-    }
-}
-
-void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
-{
-    auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getEventDispatcher())
-    {
-        win->getEventDispatcher()->trigger(bgl::events::MouseButtonEvent{button, action, mods});
-    }
-}
-
-void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
-{
-    auto *win = static_cast<bgl::window::Window *>(glfwGetWindowUserPointer(window));
-    if (win && win->getEventDispatcher())
-    {
-        win->getEventDispatcher()->trigger(bgl::events::ScrollEvent{xoffset, yoffset});
-    }
-}
-
-void WindowIconifyCallback(GLFWwindow * /*window*/, int iconified)
-{
-    spdlog::info(iconified ? "Window minimized" : "Window restored");
-}
-
-void WindowMaximizeCallback(GLFWwindow * /*window*/, int maximized)
-{
-    spdlog::info(maximized ? "Window maximized" : "Window restored from maximized");
-}
-} // namespace
-
 namespace bgl::window
 {
 
-glm::vec2 Window::getScreenSize() const
+Window::Window()
 {
-    GLFWmonitor *primary = glfwGetPrimaryMonitor();
-    if (!primary) throw std::runtime_error("Failed to get primary monitor");
+    QSurfaceFormat format;
+    format.setVersion(4, 6);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setOption(QSurfaceFormat::DebugContext);
+    format.setSamples(4);
+    setFormat(format);
 
-    const GLFWvidmode *mode = glfwGetVideoMode(primary);
-    if (!mode) throw std::runtime_error("Failed to get video mode");
+    setTitle("BGL Sprite Animation Demo (Qt 6 OpenGL 4.6 DSA)");
+    resize(1280, 720);
 
-    return {static_cast<float>(mode->width), static_cast<float>(mode->height)};
+    m_timer.start();
 }
+
+Window::~Window() = default;
 
 glm::vec2 Window::getWindowSize() const
 {
-    int width = 0, height = 0;
-    if (m_window) glfwGetFramebufferSize(m_window, &width, &height);
-    return {static_cast<float>(width > 0 ? width : 1),
-            static_cast<float>(height > 0 ? height : 1)};
-}
-
-Window::Window()
-{
-    if (!glfwInit())
-    {
-        throw std::runtime_error("Failed to initialize GLFW");
-    }
-
-    const auto screenSize = getScreenSize();
-    const auto size = screenSize * 0.75f;
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
-
-    m_window = glfwCreateWindow(static_cast<int>(size.x), static_cast<int>(size.y),
-                                "BGL Sprite Animation Demo", nullptr, nullptr);
-    if (!m_window)
-    {
-        glfwTerminate();
-        throw std::runtime_error("Failed to create GLFW window");
-    }
-
-    registerCallbacks();
-
-    glfwMakeContextCurrent(m_window);
-    glfwSwapInterval(1);
-
-    bgl::gl::InitializeGLAD();
-    bgl::gl::InitializeOpenGL();
-}
-
-Window::~Window()
-{
-    if (m_window)
-    {
-        glfwDestroyWindow(m_window);
-        m_window = nullptr;
-    }
-    glfwTerminate();
+    return {static_cast<float>(width() > 0 ? width() : 1),
+            static_cast<float>(height() > 0 ? height() : 1)};
 }
 
 void Window::setRenderCallback(RenderCallback callback)
@@ -141,73 +42,127 @@ void Window::setRenderCallback(RenderCallback callback)
 
 void Window::close()
 {
-    if (m_window) glfwSetWindowShouldClose(m_window, GLFW_TRUE);
+    QOpenGLWindow::close();
+    if (QGuiApplication::instance())
+    {
+        QGuiApplication::quit();
+    }
 }
 
-void Window::registerCallbacks()
+void Window::initializeGL()
 {
-    glfwSetWindowUserPointer(m_window, this);
+    bgl::gl::InitializeGLAD();
+    bgl::gl::InitializeOpenGL();
+}
 
-    glfwSetKeyCallback(m_window, KeyboardCallback);
-    glfwSetCursorPosCallback(m_window, CursorPosCallback);
-    glfwSetMouseButtonCallback(m_window, MouseButtonCallback);
-    glfwSetScrollCallback(m_window, ScrollCallback);
-    glfwSetWindowCloseCallback(m_window, [](GLFWwindow *) { spdlog::trace("Window closed"); });
-    glfwSetWindowIconifyCallback(m_window, WindowIconifyCallback);
-    glfwSetWindowMaximizeCallback(m_window, WindowMaximizeCallback);
+void Window::resizeGL(int w, int h)
+{
+    glViewport(0, 0, w, h);
+}
+
+void Window::paintGL()
+{
+    const double elapsedSeconds = m_timer.elapsed() / 1000.0;
+    if (m_renderCallback)
+    {
+        m_renderCallback(elapsedSeconds);
+    }
+
+    // Schedule immediate update for real-time graphics loop
+    update();
+}
+
+void Window::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Escape)
+    {
+        close();
+        return;
+    }
+
+    if (event->key() == Qt::Key_F)
+    {
+        toggleFullscreen();
+    }
+
+    if (m_dispatcher)
+    {
+        m_dispatcher->trigger(bgl::events::KeyEvent{event->key(), static_cast<int>(event->nativeScanCode()), 1, 0});
+    }
+}
+
+void Window::keyReleaseEvent(QKeyEvent *event)
+{
+    if (m_dispatcher)
+    {
+        m_dispatcher->trigger(bgl::events::KeyEvent{event->key(), static_cast<int>(event->nativeScanCode()), 0, 0});
+    }
+}
+
+void Window::mousePressEvent(QMouseEvent *event)
+{
+    int buttonIndex = 0;
+    if (event->button() == Qt::RightButton) buttonIndex = 1;
+    else if (event->button() == Qt::MiddleButton) buttonIndex = 2;
+
+    if (m_dispatcher)
+    {
+        m_dispatcher->trigger(bgl::events::MouseButtonEvent{buttonIndex, 1, 0});
+    }
+}
+
+void Window::mouseReleaseEvent(QMouseEvent *event)
+{
+    int buttonIndex = 0;
+    if (event->button() == Qt::RightButton) buttonIndex = 1;
+    else if (event->button() == Qt::MiddleButton) buttonIndex = 2;
+
+    if (m_dispatcher)
+    {
+        m_dispatcher->trigger(bgl::events::MouseButtonEvent{buttonIndex, 0, 0});
+    }
+}
+
+void Window::mouseMoveEvent(QMouseEvent *event)
+{
+    if (m_dispatcher)
+    {
+        m_dispatcher->trigger(bgl::events::MouseMovedEvent{event->position().x(), event->position().y()});
+    }
+}
+
+void Window::wheelEvent(QWheelEvent *event)
+{
+    if (m_dispatcher)
+    {
+        const double deltaY = event->angleDelta().y() / 120.0;
+        const double deltaX = event->angleDelta().x() / 120.0;
+        m_dispatcher->trigger(bgl::events::ScrollEvent{deltaX, deltaY});
+    }
 }
 
 void Window::toggleFullscreen()
 {
-    if (!m_window) return;
-
     if (m_isFullscreen)
     {
-        glfwSetWindowMonitor(m_window, nullptr, m_windowedX, m_windowedY,
-                             m_windowedWidth, m_windowedHeight, 0);
+        showNormal();
         m_isFullscreen = false;
         spdlog::info("Switched to windowed mode");
     }
     else
     {
-        glfwGetWindowPos(m_window, &m_windowedX, &m_windowedY);
-        glfwGetWindowSize(m_window, &m_windowedWidth, &m_windowedHeight);
-
-        GLFWmonitor *monitor = glfwGetPrimaryMonitor();
-        if (monitor)
-        {
-            const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-            glfwSetWindowMonitor(m_window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-            m_isFullscreen = true;
-            spdlog::info("Switched to fullscreen mode");
-        }
+        showFullScreen();
+        m_isFullscreen = true;
+        spdlog::info("Switched to fullscreen mode");
     }
 }
 
 void Window::run()
 {
-    glfwMakeContextCurrent(m_window);
-
-    while (!glfwWindowShouldClose(m_window))
+    show();
+    if (QGuiApplication::instance())
     {
-        int width = 0, height = 0;
-        glfwGetFramebufferSize(m_window, &width, &height);
-
-        const bool iconified = glfwGetWindowAttrib(m_window, GLFW_ICONIFIED) != 0;
-        const bool visible   = glfwGetWindowAttrib(m_window, GLFW_VISIBLE) != 0;
-
-        if (iconified || !visible || width == 0 || height == 0)
-        {
-            glfwWaitEvents();
-            continue;
-        }
-
-        glViewport(0, 0, width, height);
-
-        if (m_renderCallback) m_renderCallback(glfwGetTime());
-
-        glfwSwapBuffers(m_window);
-        glfwPollEvents();
+        QGuiApplication::exec();
     }
 }
 

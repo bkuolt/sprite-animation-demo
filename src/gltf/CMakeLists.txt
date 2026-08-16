@@ -20,7 +20,6 @@ target_link_libraries(bgl_gltf PUBLIC
     glm::glm
     glad::glad
     OpenGL::GL
-    glfw
     bgl_io
     spdlog::spdlog
     fmt::fmt
