@@ -514,6 +514,7 @@ void Application::renderSkybox(const glm::mat4 &view, const glm::mat4 &projectio
                                   1, GL_FALSE, &invViewProj[0][0]);
         
         glUseProgram(m_skyboxProgram);
+        glBindSampler(0, 0); // Disable global sampler to prevent mipmap requirement on skybox
         glBindTextureUnit(0, m_skyboxTexture->getHandle());
 
         glBindVertexArray(m_bgQuad.getVAO());
@@ -585,6 +586,12 @@ void Application::renderSnow(double time, const glm::mat4 &projection)
 
 void Application::renderUI(double /*time*/, const glm::vec2 &winSize)
 {
+    // Ensure 2D rendering states are correct after 3D pass
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
     if (m_font)
     {
         m_hud->updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, "Sponza");
