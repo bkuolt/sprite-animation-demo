@@ -39,6 +39,13 @@ TextureCube::TextureCube(ktxTexture2 *texture, ktx_transcode_fmt_e targetFormat)
     glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_handle);
     glTextureStorage2D(m_handle, baseTexture->numLevels, internalFormat, baseTexture->baseWidth, baseTexture->baseHeight);
 
+    // Set default filtering and clamping so the texture is complete even without mipmaps
+    glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(m_handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(m_handle, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
     const uint8_t *baseData = ktxTexture_GetData(baseTexture);
 
     for (uint32_t level = 0; level < baseTexture->numLevels; ++level)
@@ -59,7 +66,7 @@ TextureCube::TextureCube(ktxTexture2 *texture, ktx_transcode_fmt_e targetFormat)
             }
             else
             {
-                const GLenum format = (targetFormat == KTX_TTF_RGBA32) ? GL_RGBA : GL_RGB;
+                const GLenum format = (ktxTexture_GetElementSize(baseTexture) == 3) ? GL_RGB : GL_RGBA;
                 const GLenum type = (targetFormat == KTX_TTF_RGBA32) ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT_5_6_5;
                 glTextureSubImage3D(m_handle, level, 0, 0, face, width, height, 1, format, type, data);
             }

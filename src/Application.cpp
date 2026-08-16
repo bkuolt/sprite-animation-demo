@@ -517,7 +517,7 @@ void Application::renderSkybox(const glm::mat4 &view, const glm::mat4 &projectio
         glBindSampler(0, 0); // Disable global sampler to prevent mipmap requirement on skybox
         glBindTextureUnit(0, m_skyboxTexture->getHandle());
 
-        glBindVertexArray(m_bgQuad.getVAO());
+        glBindVertexArray(m_overlayQuad.getVAO());
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glDepthMask(GL_TRUE);
