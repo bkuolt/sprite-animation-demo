@@ -28,14 +28,13 @@ const std::vector<std::shared_ptr<Node>> &Scene::getRootNodes() const noexcept
     return _rootNodes;
 }
 
-void Scene::updateTransforms()
+void Scene::updateTransforms(const glm::mat4 &rootMatrix)
 {
-    const glm::mat4 identity(1.0f);
     for (auto &rootNode : _rootNodes)
     {
         if (rootNode)
         {
-            rootNode->updateTransforms(identity);
+            rootNode->updateTransforms(rootMatrix);
         }
     }
 }

@@ -141,17 +141,26 @@ void Application::onKeyEvent(const events::KeyEvent &event)
 void Application::onScrollEvent(const events::ScrollEvent &event)
 {
     m_camera->handleScroll(event.yoffset);
+    if (m_camera3D) {
+        m_camera3D->handleScroll(event.yoffset);
+    }
 }
 
 void Application::onCursorPosEvent(const events::MouseMovedEvent &event)
 {
     const auto winSize = m_window->getWindowSize();
     m_camera->handleCursorPos(event.xpos, event.ypos, static_cast<float>(winSize.x), static_cast<float>(winSize.y));
+    if (m_camera3D) {
+        m_camera3D->handleCursorPos(event.xpos, event.ypos);
+    }
 }
 
 void Application::onMouseButtonEvent(const events::MouseButtonEvent &event)
 {
     m_camera->handleMouseButton(event.button, event.action);
+    if (m_camera3D) {
+        m_camera3D->handleMouseButton(event.button, event.action);
+    }
 }
 
 
@@ -466,6 +475,8 @@ void Application::renderFrame(double time)
     }
     if (m_scene && m_gltfRenderer)
     {
+        glm::mat4 rootTransform = glm::scale(glm::mat4(1.0f), glm::vec3(4.0f)); // Make the model much larger
+        m_scene->updateTransforms(rootTransform);
         m_gltfRenderer->render(m_scene, view3D, proj3D, m_camera3D->getPosition());
     }
     glDisable(GL_DEPTH_TEST);

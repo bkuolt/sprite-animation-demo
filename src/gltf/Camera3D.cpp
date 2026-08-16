@@ -11,14 +11,7 @@ Camera3D::Camera3D(glm::vec3 target, float distance)
 {
 }
 
-void Camera3D::registerCallbacks(GLFWwindow *window)
-{
-    if (!window) return;
-    glfwSetWindowUserPointer(window, this);
-    glfwSetScrollCallback(window, scrollCallback);
-    glfwSetCursorPosCallback(window, cursorPosCallback);
-    glfwSetMouseButtonCallback(window, mouseButtonCallback);
-}
+
 
 glm::mat4 Camera3D::getViewMatrix() const
 {
@@ -52,58 +45,46 @@ void Camera3D::setDistance(float distance) noexcept
     _distance = std::max(0.1f, distance);
 }
 
-void Camera3D::scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
+void Camera3D::handleScroll(double yoffset)
 {
-    (void)xoffset;
-    auto *camera = static_cast<Camera3D *>(glfwGetWindowUserPointer(window));
-    if (camera)
-    {
-        camera->_distance -= static_cast<float>(yoffset) * 0.5f;
-        camera->_distance = std::max(0.1f, camera->_distance);
-    }
+    _distance -= static_cast<float>(yoffset) * 0.5f;
+    _distance = std::max(0.1f, _distance);
 }
 
-void Camera3D::cursorPosCallback(GLFWwindow *window, double xpos, double ypos)
+void Camera3D::handleCursorPos(double xpos, double ypos)
 {
-    auto *camera = static_cast<Camera3D *>(glfwGetWindowUserPointer(window));
-    if (!camera) return;
+    double dx = xpos - _lastMouseX;
+    double dy = ypos - _lastMouseY;
 
-    double dx = xpos - camera->_lastMouseX;
-    double dy = ypos - camera->_lastMouseY;
-
-    if (camera->_isRotating)
+    if (_isRotating)
     {
-        camera->_yaw += static_cast<float>(dx) * 0.25f;
-        camera->_pitch += static_cast<float>(dy) * 0.25f;
-        camera->_pitch = std::clamp(camera->_pitch, -89.0f, 89.0f);
+        _yaw += static_cast<float>(dx) * 0.25f;
+        _pitch += static_cast<float>(dy) * 0.25f;
+        _pitch = std::clamp(_pitch, -89.0f, 89.0f);
     }
-    else if (camera->_isPanning)
+    else if (_isPanning)
     {
-        float panSpeed = camera->_distance * 0.001f;
-        glm::vec3 right = glm::normalize(glm::cross(camera->getPosition() - camera->_target, glm::vec3(0.0f, 1.0f, 0.0f)));
+        float panSpeed = _distance * 0.001f;
+        glm::vec3 right = glm::normalize(glm::cross(getPosition() - _target, glm::vec3(0.0f, 1.0f, 0.0f)));
         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-        camera->_target -= right * static_cast<float>(dx) * panSpeed;
-        camera->_target += up * static_cast<float>(dy) * panSpeed;
+        _target -= right * static_cast<float>(dx) * panSpeed;
+        _target += up * static_cast<float>(dy) * panSpeed;
     }
 
-    camera->_lastMouseX = xpos;
-    camera->_lastMouseY = ypos;
+    _lastMouseX = xpos;
+    _lastMouseY = ypos;
 }
 
-void Camera3D::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+void Camera3D::handleMouseButton(int button, int action)
 {
-    (void)mods;
-    auto *camera = static_cast<Camera3D *>(glfwGetWindowUserPointer(window));
-    if (!camera) return;
-
     if (button == GLFW_MOUSE_BUTTON_LEFT)
     {
-        camera->_isRotating = (action == GLFW_PRESS);
+        _isRotating = (action == GLFW_PRESS);
     }
     else if (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_MIDDLE)
     {
-        camera->_isPanning = (action == GLFW_PRESS);
+        _isPanning = (action == GLFW_PRESS);
     }
 }
 } // namespace bgl::gfx

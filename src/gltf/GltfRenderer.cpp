@@ -132,7 +132,9 @@ void main()
 {
     vec4 baseColor = uBaseColorFactor;
     if (uHasBaseColorTexture) {
-        baseColor *= texture(uBaseColorTexture, vec3(TexCoord, 0.0));
+        vec4 texColor = texture(uBaseColorTexture, vec3(TexCoord, 0.0));
+        texColor.rgb = pow(texColor.rgb, vec3(2.2)); // sRGB to Linear
+        baseColor *= texColor;
     }
     // discard transparent pixels for cutout materials (basic check)
     if (baseColor.a < 0.1) discard;
@@ -182,7 +184,8 @@ void main()
     // Emissive
     vec3 emissive = uEmissiveFactor;
     if (uHasEmissiveTexture) {
-        emissive *= texture(uEmissiveTexture, vec3(TexCoord, 0.0)).rgb;
+        vec3 emTex = texture(uEmissiveTexture, vec3(TexCoord, 0.0)).rgb;
+        emissive *= pow(emTex, vec3(2.2)); // sRGB to Linear
     }
 
     vec3 color = ambient + Lo + emissive;

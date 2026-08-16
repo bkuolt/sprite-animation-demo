@@ -24,7 +24,7 @@ class Scene
 
     void keepTextureAlive(std::shared_ptr<class Texture2DArray> tex);
 
-    void updateTransforms();
+    void updateTransforms(const glm::mat4 &rootMatrix = glm::mat4(1.0f));
     [[nodiscard]] const std::string &getName() const noexcept;
 
   private:

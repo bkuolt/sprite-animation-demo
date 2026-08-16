@@ -18,7 +18,9 @@ class Camera3D
     explicit Camera3D(glm::vec3 target = glm::vec3(0.0f), float distance = 5.0f);
     ~Camera3D() = default;
 
-    void registerCallbacks(GLFWwindow *window);
+    void handleScroll(double yoffset);
+    void handleCursorPos(double xpos, double ypos);
+    void handleMouseButton(int button, int action);
 
     [[nodiscard]] glm::mat4 getViewMatrix() const;
     [[nodiscard]] glm::mat4 getProjectionMatrix(float aspectRatio) const;
@@ -28,9 +30,7 @@ class Camera3D
     void setDistance(float distance) noexcept;
 
   private:
-    static void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
-    static void cursorPosCallback(GLFWwindow *window, double xpos, double ypos);
-    static void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
+
 
     glm::vec3 _target{0.0f};
     float _distance{5.0f};
