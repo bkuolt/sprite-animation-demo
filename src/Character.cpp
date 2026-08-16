@@ -10,7 +10,7 @@ namespace bgl
 {
 Character::Character(std::string name) : m_name(std::move(name)) {}
 
-void Character::addAnimation(std::string name, std::shared_ptr<bgl::gfx::Texture2DArray> texture, uint32_t frameCount)
+void Character::addAnimation(std::string name, std::shared_ptr<bgl::gl::Texture2DArray> texture, uint32_t frameCount)
 {
     m_animations.push_back(AnimationState{std::move(name), std::move(texture), frameCount});
     spdlog::info("Added animation '{}' to character '{}'", m_animations.back().name, m_name);

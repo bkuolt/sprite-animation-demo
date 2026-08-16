@@ -164,4 +164,23 @@ std::unique_ptr<bgl::gl::Texture2DArray> loadTexture(std::span<const std::byte> 
         return nullptr;
     }
 }
+
+std::unique_ptr<bgl::gl::TextureCube> loadCubemapTexture(const std::filesystem::path &path)
+{
+    if (!std::filesystem::exists(path))
+    {
+        spdlog::error("Cubemap texture file does not exist: {}", path.string());
+        return nullptr;
+    }
+
+    TextureFormat format = detectFormatFromExtension(path.extension().string());
+    if (format == TextureFormat::KTX2)
+    {
+        KtxLoader loader(path, KTX_TTF_RGBA32); // Use RGBA32 for skybox
+        return loader.uploadCubemap();
+    }
+    
+    spdlog::error("Cubemap only supports KTX2 format currently. File: {}", path.string());
+    return nullptr;
+}
 } // namespace bgl::io

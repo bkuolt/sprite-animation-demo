@@ -3,6 +3,7 @@
 
 #include "KtxLoader.hpp"
 #include "../gl/Texture2DArray.hpp"
+#include "../gl/TextureCube.hpp"
 
 #include <filesystem>
 #include <glad/gl.h>
@@ -129,5 +130,10 @@ void KtxLoader::transcode()
 std::unique_ptr<bgl::gl::Texture2DArray> KtxLoader::upload()
 {
     return std::make_unique<bgl::gl::Texture2DArray>(_texture, _targetFormat);
+}
+
+std::unique_ptr<bgl::gl::TextureCube> KtxLoader::uploadCubemap()
+{
+    return std::make_unique<bgl::gl::TextureCube>(_texture, _targetFormat);
 }
 } // namespace bgl::io

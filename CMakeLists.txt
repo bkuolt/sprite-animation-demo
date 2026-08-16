@@ -85,7 +85,9 @@ file(GLOB_RECURSE ASSET_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/assets/*.otf"
     "${CMAKE_SOURCE_DIR}/assets/*.json"
     "${CMAKE_SOURCE_DIR}/assets/*.lua"
-    "${CMAKE_SOURCE_DIR}/assets/models/*.glb"
+    "${CMAKE_SOURCE_DIR}/assets/*.glb"
+    "${CMAKE_SOURCE_DIR}/assets/*.gltf"
+    "${CMAKE_SOURCE_DIR}/assets/*.bin"
 )
 
 set(ASSET_DESTINATIONS "")

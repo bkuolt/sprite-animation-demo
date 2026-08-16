@@ -6,6 +6,7 @@
 #include <glad/gl.h>
 
 #include "../gl/Texture2DArray.hpp"
+#include "../gl/TextureCube.hpp"
 #include <filesystem>
 #include <memory>
 #include <span>
@@ -34,6 +35,11 @@ class ITextureLoader
  * Supports KTX2, PNG, and JPEG formats.
  */
 [[nodiscard]] std::unique_ptr<bgl::gl::Texture2DArray> loadTexture(const std::filesystem::path &path);
+
+/**
+ * @brief Loads a cubemap texture from disk (KTX2 only).
+ */
+[[nodiscard]] std::unique_ptr<bgl::gl::TextureCube> loadCubemapTexture(const std::filesystem::path &path);
 
 /**
  * @brief Automatically loads a texture from raw memory by inspecting magic bytes or using a format extension hint.

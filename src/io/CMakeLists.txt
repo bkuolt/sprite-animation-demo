@@ -33,6 +33,4 @@ if(BGL_ENABLE_JPEG_LOADER)
     target_compile_definitions(bgl_io PUBLIC BGL_ENABLE_JPEG_LOADER)
 endif()
 
-if(BGL_ENABLE_GLSL_LOADER)
-    target_compile_definitions(bgl_io PUBLIC BGL_ENABLE_GLSL_LOADER)
-endif()
+
