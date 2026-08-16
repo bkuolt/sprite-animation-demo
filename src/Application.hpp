@@ -21,7 +21,7 @@
 // Forward declarations — heavy enough that every translation unit does NOT need
 // their full definition to compile.
 namespace bgl::window  { class Window; }
-namespace bgl::gl      { class Texture2DArray; class Sampler; }
+namespace bgl::gl      { class Texture2DArray; class Sampler; class TextureCube; }
 namespace bgl::gfx     { class Camera; class Hud; class TileMap; class Scene; class GltfRenderer; class Grid; class Camera3D; }
 namespace bgl::audio   { class AudioEngine; }
 
@@ -81,6 +81,7 @@ class Application
     /** @brief Per-frame rendering pipeline. */
     void renderFrame(double time);
     void renderBackground(const glm::mat4 &projection);
+    void renderSkybox(const glm::mat4 &view, const glm::mat4 &projection);
     void renderCharacter(double time, const glm::mat4 &projection);
     void renderSnow(double time, const glm::mat4 &projection);
     void renderItems(double time, const glm::mat4 &projection);
@@ -120,6 +121,7 @@ class Application
     // not in every TU that includes Application.hpp.
     std::unique_ptr<Font>                        m_font;
     std::unique_ptr<bgl::gl::Texture2DArray>         m_snowTexture;
+    std::unique_ptr<bgl::gl::TextureCube>            m_skyboxTexture;
 
     // --- Quads (value members — QuadMesh.hpp is lightweight) ---
     QuadMesh m_spriteQuad;
@@ -131,6 +133,7 @@ class Application
     bgl::gl::ProgramHandle m_textProgram;
     bgl::gl::ProgramHandle m_bgProgram;
     bgl::gl::ProgramHandle m_snowProgram;
+    bgl::gl::ProgramHandle m_skyboxProgram;
 
     bgl::gl::VAOHandle m_snowVAO;
     bgl::gl::BufferHandle m_snowVBO;

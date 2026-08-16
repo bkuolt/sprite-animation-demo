@@ -15,6 +15,7 @@
 #include "gltf/GltfRenderer.hpp"
 #include "gltf/Grid.hpp"
 #include "gl/Shader.hpp"
+#include "gl/TextureCube.hpp"
 #include "io/TextureLoader.hpp"
 #include "windowing/Window.hpp"
 
@@ -68,6 +69,10 @@ Application::Application()
     m_gltfRenderer = std::make_unique<bgl::gfx::GltfRenderer>();
     m_grid         = std::make_unique<bgl::gfx::Grid>();
     m_camera3D     = std::make_unique<bgl::gfx::Camera3D>();
+    m_camera3D->setTarget(glm::vec3(0.0f, 5.0f, 0.0f));
+    m_camera3D->setDistance(30.0f);
+    m_camera3D->setPitch(-30.0f);
+    m_camera3D->setYaw(45.0f);
 
     m_window->setEventDispatcher(&m_eventDispatcher);
 
@@ -225,6 +230,12 @@ void Application::initAssets()
         }
     }
 
+    auto skyboxPath = basePath / "assets" / "textures" / "skybox.ktx2";
+    if (std::filesystem::exists(skyboxPath))
+    {
+        m_skyboxTexture = io::loadCubemapTexture(skyboxPath);
+    }
+
     m_tileMap->setTexture(m_itemTexture);
     for (size_t i = 0; i < m_characters.size(); ++i) {
         if (m_characters[i]->getName() == "Santa") {
@@ -279,6 +290,12 @@ void Application::initShaders()
     const auto snowVsSrc = gl::LoadShaderFromFile(srcPath / "snow.vs");
     const auto snowFsSrc = gl::LoadShaderFromFile(srcPath / "snow.fs");
     m_snowProgram.reset(gl::CreateShaderProgramFromGLSL(snowVsSrc, snowFsSrc));
+
+    const auto skyboxVsSrc = gl::LoadShaderFromFile(srcPath / "skybox.vs");
+    const auto skyboxFsSrc = gl::LoadShaderFromFile(srcPath / "skybox.fs");
+    m_skyboxProgram.reset(gl::CreateShaderProgramFromGLSL(skyboxVsSrc, skyboxFsSrc));
+    
+    spdlog::info("Skybox program ID: {}", m_skyboxProgram.get());
 #endif
 }
 
@@ -461,11 +478,11 @@ void Application::renderFrame(double time)
     glClear(GL_DEPTH_BUFFER_BIT); // Clear depth for 3D drawing over 2D background, or keep 2D behind
 
     const float aspect3D = winSize.y > 0 ? (winSize.x / winSize.y) : 1.0f;
-    const glm::mat4 proj3D = glm::perspective(glm::radians(45.0f), aspect3D, 0.1f, 100.0f);
+    const glm::mat4 proj3D = glm::perspective(glm::radians(45.0f), aspect3D, 0.1f, 1000.0f);
     
-    // Rotate the view slowly around the object to orbit it automatically
     glm::mat4 view3D = m_camera3D->getViewMatrix();
-    view3D = glm::rotate(view3D, static_cast<float>(time * 0.5), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    renderSkybox(view3D, proj3D);
 
     if (m_grid)
     {
@@ -473,13 +490,44 @@ void Application::renderFrame(double time)
     }
     if (m_scene && m_gltfRenderer)
     {
-        glm::mat4 rootTransform = glm::scale(glm::mat4(1.0f), glm::vec3(4.0f)); // Make the model much larger
+        glm::mat4 rootTransform = glm::mat4(1.0f); // Scale 1.0 for Sponza
         m_scene->updateTransforms(rootTransform);
         m_gltfRenderer->render(m_scene, view3D, proj3D, m_camera3D->getPosition());
     }
     glDisable(GL_DEPTH_TEST);
 
-    renderUI(time, winSize);
+    // renderUI(time, winSize); // User requested only 3D and Skybox
+}
+
+void Application::renderSkybox(const glm::mat4 &view, const glm::mat4 &projection)
+{
+    if (m_skyboxProgram != 0 && m_skyboxTexture && m_skyboxTexture->isValid())
+    {
+        glDepthFunc(GL_LEQUAL);
+
+        glm::mat4 viewNoTrans = glm::mat4(glm::mat3(view));
+        glm::mat4 invViewProj = glm::inverse(projection * viewNoTrans);
+
+        glProgramUniformMatrix4fv(m_skyboxProgram, glGetUniformLocation(m_skyboxProgram, "invViewProj"),
+                                  1, GL_FALSE, &invViewProj[0][0]);
+        
+        glUseProgram(m_skyboxProgram);
+        glBindTextureUnit(0, m_skyboxTexture->getHandle());
+
+        glBindVertexArray(m_bgQuad.getVAO());
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+        glDepthFunc(GL_LESS);
+        
+        GLenum err;
+        while((err = glGetError()) != GL_NO_ERROR) {
+            spdlog::error("OpenGL error in renderSkybox: 0x{:04x}", err);
+        }
+    }
+    else
+    {
+        if (m_frameCounter % 60 == 0) spdlog::warn("Skybox not rendering: program={}, texture_valid={}", m_skyboxProgram.get(), (m_skyboxTexture ? m_skyboxTexture->isValid() : false));
+    }
 }
 
 void Application::renderBackground(const glm::mat4 &projection)

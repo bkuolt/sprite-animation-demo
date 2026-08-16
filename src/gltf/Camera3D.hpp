@@ -69,6 +69,8 @@ class Camera3D
      * @param distance The new distance.
      */
     void setDistance(float distance) noexcept;
+    void setPitch(float pitch) noexcept;
+    void setYaw(float yaw) noexcept;
 
   private:
 

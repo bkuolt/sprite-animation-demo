@@ -45,6 +45,16 @@ void Camera3D::setDistance(float distance) noexcept
     _distance = std::max(0.1f, distance);
 }
 
+void Camera3D::setPitch(float pitch) noexcept
+{
+    _pitch = std::clamp(pitch, -89.0f, 89.0f);
+}
+
+void Camera3D::setYaw(float yaw) noexcept
+{
+    _yaw = yaw;
+}
+
 void Camera3D::handleScroll(double yoffset)
 {
     _distance -= static_cast<float>(yoffset) * 0.5f;
