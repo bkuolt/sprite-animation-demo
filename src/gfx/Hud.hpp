@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include "../Character.hpp"
 #include "Graphics.hpp"
 #include "text/Font.hpp"
 #include "text/TextRenderer.hpp"
 
 #include <glm/vec2.hpp>
-#include <memory>
 #include <optional>
 #include <string>
+
+namespace bgl { class Character; struct AnimationState; }
 
 namespace bgl::gfx
 {
@@ -21,8 +21,10 @@ class Hud
   public:
     Hud() = default;
 
-    void updateAndRender(const Font &font, GLuint textProgram, const QuadMesh &overlayQuad, const glm::vec2 &winSize,
-                         int currentFps, const std::shared_ptr<Character> &currentCharacter);
+    /// Renders the HUD overlay with FPS and animation info.
+    /// @param currentCharacter Non-owning pointer. May be nullptr.
+    void updateAndRender(const Font &font, GLuint textProgram, const QuadMesh &overlayQuad,
+                         const glm::vec2 &winSize, int currentFps, const Character *currentCharacter);
 
   private:
     std::string m_lastHudText1;

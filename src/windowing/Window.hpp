@@ -3,15 +3,21 @@
 
 #pragma once
 
-#include "glad/gl.h"
-#include "InputHandler.hpp"
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <entt/entt.hpp>
 #include <glm/vec2.hpp>
+#include <functional>
 
 namespace bgl::window
 {
 
+/**
+ * @brief RAII GLFW window wrapper with render-loop, input dispatch, and fullscreen toggle.
+ *
+ * Non-copyable. Manages a single GLFWwindow and its OpenGL context.
+ * Input events are forwarded to an EnTT dispatcher when one is set.
+ */
 class Window
 {
   public:
@@ -22,23 +28,20 @@ class Window
 
     Window(const Window &) = delete;
     Window &operator=(const Window &) = delete;
-    Window(Window &&) noexcept = default;
-    Window &operator=(Window &&) noexcept = default;
 
-    [[nodiscard]] InputHandler &getInputHandler() noexcept
+    /// Sets the EnTT dispatcher used for input event publishing.
+    void setEventDispatcher(entt::dispatcher *dispatcher) noexcept
     {
-        return _inputHandler;
+        m_dispatcher = dispatcher;
     }
-    [[nodiscard]] const InputHandler &getInputHandler() const noexcept
+
+    /// Returns the active EnTT dispatcher, or nullptr.
+    [[nodiscard]] entt::dispatcher *getEventDispatcher() const noexcept
     {
-        return _inputHandler;
+        return m_dispatcher;
     }
 
     void setRenderCallback(RenderCallback callback);
-    void setEventDispatcher(entt::dispatcher *dispatcher)
-    {
-        _inputHandler.setEventDispatcher(dispatcher);
-    }
 
     [[nodiscard]] glm::vec2 getWindowSize() const;
 
@@ -47,18 +50,19 @@ class Window
     void run(RenderCallback callback);
     void toggleFullscreen();
 
-  protected:
+  private:
     void registerCallbacks();
     [[nodiscard]] glm::vec2 getScreenSize() const;
 
-    GLFWwindow *_window{nullptr};
-    RenderCallback _renderCallback;
-    InputHandler _inputHandler;
+    GLFWwindow    *m_window{nullptr};
+    RenderCallback m_renderCallback;
 
-    bool _isPaused{false};
-    bool _isFullscreen{false};
-    int _windowedX{0}, _windowedY{0};
-    int _windowedWidth{800}, _windowedHeight{600};
+    entt::dispatcher *m_dispatcher{nullptr};
+
+    bool m_isPaused{false};
+    bool m_isFullscreen{false};
+    int  m_windowedX{0},     m_windowedY{0};
+    int  m_windowedWidth{800}, m_windowedHeight{600};
 };
 
 } // namespace bgl::window

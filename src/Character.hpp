@@ -6,7 +6,6 @@
 #include "gfx/Texture2DArray.hpp"
 #include <glm/vec2.hpp>
 #include <memory>
-#include <ranges>
 #include <string>
 #include <string_view>
 #include <vector>

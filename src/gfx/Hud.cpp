@@ -2,13 +2,14 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "Hud.hpp"
+#include "../Character.hpp"
 #include <fmt/format.h>
 
 namespace bgl::gfx
 {
 
 void Hud::updateAndRender(const Font &font, GLuint textProgram, const QuadMesh &overlayQuad, const glm::vec2 &winSize,
-                          int currentFps, const std::shared_ptr<Character> &currentCharacter)
+                          int currentFps, const Character *currentCharacter)
 {
     const auto *animState = currentCharacter ? currentCharacter->getCurrentAnimation() : nullptr;
 

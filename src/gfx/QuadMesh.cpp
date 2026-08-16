@@ -13,30 +13,30 @@ namespace bgl
 
 QuadMesh::~QuadMesh()
 {
-    if (VAO) { glDeleteVertexArrays(1, &VAO); VAO = 0; }
-    if (VBO) { glDeleteBuffers(1, &VBO); VBO = 0; }
-    if (IBO) { glDeleteBuffers(1, &IBO); IBO = 0; }
+    if (m_vao) { glDeleteVertexArrays(1, &m_vao); m_vao = 0; }
+    if (m_vbo) { glDeleteBuffers(1, &m_vbo); m_vbo = 0; }
+    if (m_ibo) { glDeleteBuffers(1, &m_ibo); m_ibo = 0; }
 }
 
 QuadMesh::QuadMesh(QuadMesh &&other) noexcept
-    : VAO(other.VAO), VBO(other.VBO), IBO(other.IBO), indexCount(other.indexCount)
+    : m_vao(other.m_vao), m_vbo(other.m_vbo), m_ibo(other.m_ibo), m_indexCount(other.m_indexCount)
 {
-    other.VAO = other.VBO = other.IBO = 0;
-    other.indexCount = 0;
+    other.m_vao = other.m_vbo = other.m_ibo = 0;
+    other.m_indexCount = 0;
 }
 
 QuadMesh &QuadMesh::operator=(QuadMesh &&other) noexcept
 {
     if (this != &other)
     {
-        if (VAO) glDeleteVertexArrays(1, &VAO);
-        if (VBO) glDeleteBuffers(1, &VBO);
-        if (IBO) glDeleteBuffers(1, &IBO);
+        if (m_vao) glDeleteVertexArrays(1, &m_vao);
+        if (m_vbo) glDeleteBuffers(1, &m_vbo);
+        if (m_ibo) glDeleteBuffers(1, &m_ibo);
 
-        VAO = other.VAO; VBO = other.VBO; IBO = other.IBO;
-        indexCount = other.indexCount;
-        other.VAO = other.VBO = other.IBO = 0;
-        other.indexCount = 0;
+        m_vao = other.m_vao; m_vbo = other.m_vbo; m_ibo = other.m_ibo;
+        m_indexCount = other.m_indexCount;
+        other.m_vao = other.m_vbo = other.m_ibo = 0;
+        other.m_indexCount = 0;
     }
     return *this;
 }
@@ -52,21 +52,21 @@ QuadMesh create2DQuad()
     constexpr std::array<GLuint, 6> indices = {0, 1, 2, 2, 3, 0};
 
     QuadMesh quad;
-    quad.indexCount = 6;
+    quad.m_indexCount = 6;
 
-    glCreateVertexArrays(1, &quad.VAO);
-    glCreateBuffers(1, &quad.VBO);
-    glCreateBuffers(1, &quad.IBO);
+    glCreateVertexArrays(1, &quad.m_vao);
+    glCreateBuffers(1, &quad.m_vbo);
+    glCreateBuffers(1, &quad.m_ibo);
 
-    glNamedBufferStorage(quad.VBO, vertices.size() * sizeof(glm::vec2), vertices.data(), 0);
-    glNamedBufferStorage(quad.IBO, indices.size() * sizeof(GLuint), indices.data(), 0);
+    glNamedBufferStorage(quad.m_vbo, vertices.size() * sizeof(glm::vec2), vertices.data(), 0);
+    glNamedBufferStorage(quad.m_ibo, indices.size() * sizeof(GLuint), indices.data(), 0);
 
-    glVertexArrayVertexBuffer(quad.VAO, 0, quad.VBO, 0, sizeof(glm::vec2));
-    glVertexArrayElementBuffer(quad.VAO, quad.IBO);
+    glVertexArrayVertexBuffer(quad.m_vao, 0, quad.m_vbo, 0, sizeof(glm::vec2));
+    glVertexArrayElementBuffer(quad.m_vao, quad.m_ibo);
 
-    glEnableVertexArrayAttrib(quad.VAO, 0);
-    glVertexArrayAttribFormat(quad.VAO, 0, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(quad.VAO, 0, 0);
+    glEnableVertexArrayAttrib(quad.m_vao, 0);
+    glVertexArrayAttribFormat(quad.m_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(quad.m_vao, 0, 0);
 
     return quad;
 }
@@ -82,25 +82,25 @@ QuadMesh createOverlayQuad()
     constexpr std::array<GLuint, 6> indices = {0, 1, 2, 2, 3, 0};
 
     QuadMesh quad;
-    quad.indexCount = 6;
+    quad.m_indexCount = 6;
 
-    glCreateVertexArrays(1, &quad.VAO);
-    glCreateBuffers(1, &quad.VBO);
-    glCreateBuffers(1, &quad.IBO);
+    glCreateVertexArrays(1, &quad.m_vao);
+    glCreateBuffers(1, &quad.m_vbo);
+    glCreateBuffers(1, &quad.m_ibo);
 
-    glNamedBufferStorage(quad.VBO, vertices.size() * sizeof(OverlayVertex), vertices.data(), 0);
-    glNamedBufferStorage(quad.IBO, indices.size() * sizeof(GLuint), indices.data(), 0);
+    glNamedBufferStorage(quad.m_vbo, vertices.size() * sizeof(OverlayVertex), vertices.data(), 0);
+    glNamedBufferStorage(quad.m_ibo, indices.size() * sizeof(GLuint), indices.data(), 0);
 
-    glVertexArrayVertexBuffer(quad.VAO, 0, quad.VBO, 0, sizeof(OverlayVertex));
-    glVertexArrayElementBuffer(quad.VAO, quad.IBO);
+    glVertexArrayVertexBuffer(quad.m_vao, 0, quad.m_vbo, 0, sizeof(OverlayVertex));
+    glVertexArrayElementBuffer(quad.m_vao, quad.m_ibo);
 
-    glEnableVertexArrayAttrib(quad.VAO, 0);
-    glVertexArrayAttribFormat(quad.VAO, 0, 2, GL_FLOAT, GL_FALSE, offsetof(OverlayVertex, pos));
-    glVertexArrayAttribBinding(quad.VAO, 0, 0);
+    glEnableVertexArrayAttrib(quad.m_vao, 0);
+    glVertexArrayAttribFormat(quad.m_vao, 0, 2, GL_FLOAT, GL_FALSE, offsetof(OverlayVertex, pos));
+    glVertexArrayAttribBinding(quad.m_vao, 0, 0);
 
-    glEnableVertexArrayAttrib(quad.VAO, 1);
-    glVertexArrayAttribFormat(quad.VAO, 1, 2, GL_FLOAT, GL_FALSE, offsetof(OverlayVertex, uv));
-    glVertexArrayAttribBinding(quad.VAO, 1, 0);
+    glEnableVertexArrayAttrib(quad.m_vao, 1);
+    glVertexArrayAttribFormat(quad.m_vao, 1, 2, GL_FLOAT, GL_FALSE, offsetof(OverlayVertex, uv));
+    glVertexArrayAttribBinding(quad.m_vao, 1, 0);
 
     return quad;
 }
@@ -120,8 +120,8 @@ void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram,
     glUseProgram(shaderProgram);
 
     glBindTextureUnit(0, textureID);
-    glBindVertexArray(quad.VAO);
-    glDrawElements(GL_TRIANGLES, quad.indexCount, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(quad.m_vao);
+    glDrawElements(GL_TRIANGLES, quad.m_indexCount, GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
     glUseProgram(0);
@@ -151,8 +151,8 @@ void renderTextOverlay(const QuadMesh &quad, GLuint textureID, GLuint textShader
     glUseProgram(textShaderProgram);
 
     glBindTextureUnit(0, textureID);
-    glBindVertexArray(quad.VAO);
-    glDrawElements(GL_TRIANGLES, quad.indexCount, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(quad.m_vao);
+    glDrawElements(GL_TRIANGLES, quad.m_indexCount, GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
     glUseProgram(0);

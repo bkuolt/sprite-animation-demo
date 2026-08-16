@@ -4,6 +4,7 @@
 #pragma once
 
 #include <glad/gl.h>
+#include <optional>
 
 namespace bgl
 {
@@ -19,6 +20,7 @@ void InitializeOpenGL();
 
 /**
  * @brief Queries current estimated VRAM usage in megabytes.
+ * @return VRAM usage in MB, or std::nullopt if the driver does not support the query.
  */
-[[nodiscard]] int GetVRAMUsageMB();
+[[nodiscard]] std::optional<int> GetVRAMUsageMB();
 } // namespace bgl

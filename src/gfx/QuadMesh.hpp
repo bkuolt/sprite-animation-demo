@@ -33,12 +33,24 @@ class QuadMesh
     QuadMesh(QuadMesh &&other) noexcept;
     QuadMesh &operator=(QuadMesh &&other) noexcept;
 
-    [[nodiscard]] bool isValid() const noexcept { return VAO != 0; }
+    [[nodiscard]] GLuint getVAO() const noexcept { return m_vao; }
+    [[nodiscard]] GLuint getVBO() const noexcept { return m_vbo; }
+    [[nodiscard]] GLuint getIBO() const noexcept { return m_ibo; }
+    [[nodiscard]] GLsizei getIndexCount() const noexcept { return m_indexCount; }
 
-    GLuint VAO{0};
-    GLuint VBO{0};
-    GLuint IBO{0};
-    GLsizei indexCount{0};
+  private:
+    friend QuadMesh create2DQuad();
+    friend QuadMesh createOverlayQuad();
+    friend void renderQuad(const QuadMesh &quad, GLuint textureID, GLuint shaderProgram, int currentFrameIndex,
+                           float tweenFactor, const glm::mat4 &projection, const glm::mat4 &model);
+    friend void renderTextOverlay(const QuadMesh &quad, GLuint textureID, GLuint textShaderProgram, uint32_t texWidth,
+                                  uint32_t texHeight, uint32_t winWidth, uint32_t winHeight, float paddingX,
+                                  float paddingY);
+
+    GLuint m_vao{0};
+    GLuint m_vbo{0};
+    GLuint m_ibo{0};
+    GLsizei m_indexCount{0};
 };
 
 [[nodiscard]] QuadMesh create2DQuad();

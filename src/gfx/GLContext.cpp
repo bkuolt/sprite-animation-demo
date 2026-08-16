@@ -156,7 +156,7 @@ void InitializeOpenGL()
     }
 }
 
-int GetVRAMUsageMB()
+std::optional<int> GetVRAMUsageMB()
 {
     GLint totalMemKb = 0;
     GLint availMemKb = 0;
@@ -176,6 +176,6 @@ int GetVRAMUsageMB()
         return freeMemAmd[0] / 1024;
     }
 
-    return 42; // Fallback representation if driver does not support queries
+    return std::nullopt; // Driver does not support VRAM queries.
 }
 } // namespace bgl

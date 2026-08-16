@@ -2,6 +2,7 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "Application.hpp"
+#include "Character.hpp"
 #include "audio/AudioEngine.hpp"
 #include "gfx/Camera.hpp"
 #include "gfx/Hud.hpp"
@@ -434,7 +435,7 @@ void Application::renderBackground(const glm::mat4 &projection)
         glProgramUniformMatrix4fv(m_bgProgram, glGetUniformLocation(m_bgProgram, "projection"),
                                   1, GL_FALSE, &projection[0][0]);
         glUseProgram(m_bgProgram);
-        glBindVertexArray(m_bgQuad.VAO);
+        glBindVertexArray(m_bgQuad.getVAO());
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     }
 }
@@ -480,7 +481,7 @@ void Application::renderUI(double /*time*/, const glm::vec2 &winSize)
     auto current_char = !m_characters.empty() ? m_characters[m_currentCharacterIndex] : nullptr;
     if (m_font)
     {
-        m_hud->updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, current_char);
+        m_hud->updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, current_char.get());
     }
 }
 
