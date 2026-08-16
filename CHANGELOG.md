@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-08-16
+### Fixed
+- **PBR Color Space Correction**: Fixed physically based rendering math breaking down due to incorrect sRGB to Linear space mapping of BaseColor and Emissive textures.
+- **glTF OpenGL Resource Lifecycle**: Resolved a critical bug causing `GL_INVALID_OPERATION` on texture binding due to premature deletion of OpenGL texture handles during the glTF parsing phase.
+- **Camera3D Input Handling**: Refactored `Camera3D` to utilize the standard application event bus for scrolling and mouse interactions, restoring 3D zoom and panning capabilities.
+- **AMD/Mesa Driver Compatibility**: Mitigated driver crashes by strictly enforcing `GL_RGBA8` internal formats for 2D Array Textures dynamically.
+
+### Changed
+- Scaled up the default glTF model instantiation at startup via the Scene root transform matrix.
+
+## [0.7.0] - 2026-08-16
+### Added
+- **glTF Asset Pipeline**: Integrated full support for loading 3D glTF models with embedded textures via `fastgltf` and `libjpeg`.
+- **PBR Render Engine**: Implemented a complete Cook-Torrance BRDF pipeline for physically based rendering.
+- **Lua Scripting**: Created a new isolated static library for Lua scripting utilizing `sol3` via Conan.
+
+## [0.6.0] - 2026-08-02
+### Added
+- **OpenAL Audio Subsystem**: Integrated a procedural and RAII-compliant `AudioEngine` using OpenAL Soft.
+
 ## [0.5.0] - 2026-07-26
 ### Added
 - **Core Decoupling & Event Bus:** Integrated the `EnTT` framework to establish a highly performant, type-safe Event Bus architecture (`entt::dispatcher`).
