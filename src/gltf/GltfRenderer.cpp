@@ -289,8 +289,11 @@ void GltfRenderer::renderNode(const std::shared_ptr<Node> &node, const glm::mat4
 
             int texUnit = 0;
 
-            auto bindTex = [&](GLuint tex, GLint loc, GLint hasLoc) {
+            auto bindTex = [&](GLuint tex, GLint loc, GLint hasLoc, const char* name) {
                 if (tex > 0) {
+                    if (!glIsTexture(tex)) {
+                        spdlog::error("Texture {} (name: {}) is NOT a valid texture object!", tex, name);
+                    }
                     glBindTextureUnit(texUnit, tex);
                     glUniform1i(loc, texUnit);
                     glUniform1i(hasLoc, GL_TRUE);
@@ -300,11 +303,11 @@ void GltfRenderer::renderNode(const std::shared_ptr<Node> &node, const glm::mat4
                 }
             };
 
-            bindTex(prim.baseColorTexture, _uBaseColorTexLoc, _uHasBaseColorTexLoc);
-            bindTex(prim.metallicRoughnessTexture, _uMetallicRoughnessTexLoc, _uHasMetallicRoughnessTexLoc);
-            bindTex(prim.normalTexture, _uNormalTexLoc, _uHasNormalTexLoc);
-            bindTex(prim.emissiveTexture, _uEmissiveTexLoc, _uHasEmissiveTexLoc);
-            bindTex(prim.occlusionTexture, _uOcclusionTexLoc, _uHasOcclusionTexLoc);
+            bindTex(prim.baseColorTexture, _uBaseColorTexLoc, _uHasBaseColorTexLoc, "BaseColor");
+            bindTex(prim.metallicRoughnessTexture, _uMetallicRoughnessTexLoc, _uHasMetallicRoughnessTexLoc, "MetallicRoughness");
+            bindTex(prim.normalTexture, _uNormalTexLoc, _uHasNormalTexLoc, "Normal");
+            bindTex(prim.emissiveTexture, _uEmissiveTexLoc, _uHasEmissiveTexLoc, "Emissive");
+            bindTex(prim.occlusionTexture, _uOcclusionTexLoc, _uHasOcclusionTexLoc, "Occlusion");
 
             glBindVertexArray(prim.vao);
 

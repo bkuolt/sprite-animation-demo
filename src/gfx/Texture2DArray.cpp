@@ -97,7 +97,7 @@ Texture2DArray::Texture2DArray(std::span<const ImageLayer> layers, bool generate
     const uint32_t numLayers = static_cast<uint32_t>(layers.size());
 
     const GLenum format = (channels == 3) ? GL_RGB : GL_RGBA;
-    const GLenum internalFormat = (channels == 3) ? GL_RGB8 : GL_RGBA8;
+    const GLenum internalFormat = GL_RGBA8; // Always use GL_RGBA8 for array textures to avoid driver bugs with GL_RGB8
 
     const GLsizei mipLevels =
         generateMipmaps ? static_cast<GLsizei>(std::floor(std::log2(std::max(width, height)))) + 1 : 1;
