@@ -50,6 +50,7 @@ Texture2DArray::Texture2DArray(ktxTexture2 *texture, ktx_transcode_fmt_e targetF
     const uint32_t numLayers = std::max(1u, baseTexture->numLayers);
     glTextureStorage3D(m_handle, baseTexture->numLevels, internalFormat, baseTexture->baseWidth,
                        baseTexture->baseHeight, numLayers);
+    m_layerCount = numLayers;
 
     const uint8_t *baseData = ktxTexture_GetData(baseTexture);
 
@@ -102,8 +103,8 @@ Texture2DArray::Texture2DArray(std::span<const ImageLayer> layers, bool generate
         generateMipmaps ? static_cast<GLsizei>(std::floor(std::log2(std::max(width, height)))) + 1 : 1;
 
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_handle);
-
     glTextureStorage3D(m_handle, mipLevels, internalFormat, width, height, numLayers);
+    m_layerCount = numLayers;
 
     for (uint32_t layer = 0; layer < numLayers; ++layer)
     {
@@ -128,9 +129,11 @@ Texture2DArray::~Texture2DArray()
     cleanup();
 }
 
-Texture2DArray::Texture2DArray(Texture2DArray &&other) noexcept : m_handle(other.m_handle)
+Texture2DArray::Texture2DArray(Texture2DArray &&other) noexcept
+    : m_handle(other.m_handle), m_layerCount(other.m_layerCount)
 {
     other.m_handle = 0;
+    other.m_layerCount = 0;
 }
 
 Texture2DArray &Texture2DArray::operator=(Texture2DArray &&other) noexcept
@@ -139,7 +142,9 @@ Texture2DArray &Texture2DArray::operator=(Texture2DArray &&other) noexcept
     {
         cleanup();
         m_handle = other.m_handle;
+        m_layerCount = other.m_layerCount;
         other.m_handle = 0;
+        other.m_layerCount = 0;
     }
     return *this;
 }

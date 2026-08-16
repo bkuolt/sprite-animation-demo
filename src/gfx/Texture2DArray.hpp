@@ -61,6 +61,14 @@ class Texture2DArray
     }
 
     /**
+     * @brief Returns the number of array layers (animation frames) in the texture.
+     */
+    [[nodiscard]] uint32_t layerCount() const noexcept
+    {
+        return m_layerCount;
+    }
+
+    /**
      * @brief Releases ownership of the texture handle.
      * @return The OpenGL texture ID.
      */
@@ -73,6 +81,7 @@ class Texture2DArray
 
   private:
     void cleanup() noexcept;
-    GLuint m_handle{0};
+    GLuint   m_handle{0};
+    uint32_t m_layerCount{0};
 };
 } // namespace bgl::gfx

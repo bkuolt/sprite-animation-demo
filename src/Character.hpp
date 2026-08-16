@@ -4,10 +4,11 @@
 #pragma once
 
 #include "gfx/Texture2DArray.hpp"
-#include <glad/gl.h>
 #include <glm/vec2.hpp>
 #include <memory>
+#include <ranges>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace bgl
@@ -50,10 +51,10 @@ class Character
 
     /**
      * @brief Selects an animation state matching the given name.
-     * @param name The animation state name to activate.
-     * @return True if an animation with the name was found and set; false otherwise.
+     * @param name The animation state name to activate (compared by value).
+     * @return True if found and set; false otherwise.
      */
-    bool setAnimationByName(const std::string &name);
+    bool setAnimationByName(std::string_view name);
 
     /**
      * @brief Switches to the next available animation sequentially.

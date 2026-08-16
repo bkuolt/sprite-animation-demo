@@ -2,7 +2,9 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "Character.hpp"
+#include <ranges>
 #include <spdlog/spdlog.h>
+#include <string_view>
 
 namespace bgl
 {
@@ -22,17 +24,14 @@ void Character::setAnimationIndex(size_t index)
     }
 }
 
-bool Character::setAnimationByName(const std::string &name)
+bool Character::setAnimationByName(std::string_view name)
 {
-    for (size_t i = 0; i < m_animations.size(); ++i)
-    {
-        if (m_animations[i].name == name)
-        {
-            m_currentAnimationIndex = i;
-            return true;
-        }
-    }
-    return false;
+    const auto it = std::ranges::find_if(m_animations,
+        [name](const AnimationState &s) { return s.name == name; });
+
+    if (it == m_animations.end()) return false;
+    m_currentAnimationIndex = static_cast<size_t>(it - m_animations.begin());
+    return true;
 }
 
 void Character::nextAnimation()

@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <memory>
 #include <span>
-#include <string>
+#include <string_view>
 #include <cstddef>
 
 namespace bgl::io
@@ -39,5 +39,5 @@ class ITextureLoader
  * @brief Automatically loads a texture from raw memory by inspecting magic bytes or using a format extension hint.
  */
 [[nodiscard]] std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(std::span<const std::byte> memoryBuffer,
-                                                                      const std::string &extensionHint = "");
+                                                                      std::string_view extensionHint = "");
 } // namespace bgl::io

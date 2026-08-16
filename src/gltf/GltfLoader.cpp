@@ -137,42 +137,38 @@ std::shared_ptr<bgl::gfx::Scene> GltfLoader::loadFromFile(const std::filesystem:
             if (posIt == prim.attributes.end()) continue;
 
             const auto &posAccessor = asset.accessors[posIt->accessorIndex];
-            std::size_t vertexCount = posAccessor.count;
+            const std::size_t vertexCount = posAccessor.count;
             std::vector<Vertex> vertices(vertexCount);
 
-            // Copy positions
-            std::vector<fastgltf::math::fvec3> positions(vertexCount);
-            fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, posAccessor, positions.data());
-            for (std::size_t i = 0; i < vertexCount; ++i)
+            // Positions (required).
+            // Use a typed buffer then move-zip into the Vertex array.
+            // This avoids touching the Vertex array multiple times for non-sparse accessors.
             {
-                vertices[i].position = glm::vec3(positions[i][0], positions[i][1], positions[i][2]);
-            }
-
-            // Copy Normals if present
-            auto normIt = prim.findAttribute("NORMAL");
-            if (normIt != prim.attributes.end())
-            {
-                std::vector<fastgltf::math::fvec3> normals(vertexCount);
-                fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, asset.accessors[normIt->accessorIndex], normals.data());
+                std::vector<fastgltf::math::fvec3> buf(vertexCount);
+                fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, posAccessor, buf.data());
                 for (std::size_t i = 0; i < vertexCount; ++i)
-                {
-                    vertices[i].normal = glm::vec3(normals[i][0], normals[i][1], normals[i][2]);
-                }
+                    vertices[i].position = {buf[i][0], buf[i][1], buf[i][2]};
             }
 
-            // Copy TexCoords if present
-            auto texIt = prim.findAttribute("TEXCOORD_0");
-            if (texIt != prim.attributes.end())
+            // Normals (optional — check with init-statement to keep scope tight).
+            if (auto normIt = prim.findAttribute("NORMAL"); normIt != prim.attributes.end())
             {
-                std::vector<fastgltf::math::fvec2> texcoords(vertexCount);
-                fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, asset.accessors[texIt->accessorIndex], texcoords.data());
+                std::vector<fastgltf::math::fvec3> buf(vertexCount);
+                fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, asset.accessors[normIt->accessorIndex], buf.data());
                 for (std::size_t i = 0; i < vertexCount; ++i)
-                {
-                    vertices[i].texcoord = glm::vec2(texcoords[i][0], texcoords[i][1]);
-                }
+                    vertices[i].normal = {buf[i][0], buf[i][1], buf[i][2]};
             }
 
-            // Indices
+            // UV coordinates (optional).
+            if (auto texIt = prim.findAttribute("TEXCOORD_0"); texIt != prim.attributes.end())
+            {
+                std::vector<fastgltf::math::fvec2> buf(vertexCount);
+                fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, asset.accessors[texIt->accessorIndex], buf.data());
+                for (std::size_t i = 0; i < vertexCount; ++i)
+                    vertices[i].texcoord = {buf[i][0], buf[i][1]};
+            }
+
+            // Indices (optional — non-indexed draws fall back to count = vertexCount).
             std::vector<uint32_t> indices;
             if (prim.indicesAccessor.has_value())
             {

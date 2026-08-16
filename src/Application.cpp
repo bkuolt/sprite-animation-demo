@@ -2,10 +2,16 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "Application.hpp"
+#include "audio/AudioEngine.hpp"
+#include "gfx/Camera.hpp"
+#include "gfx/Hud.hpp"
 #include "gfx/Sampler.hpp"
+#include "gfx/TileMap.hpp"
+#include "gfx/text/Font.hpp"
 #include "gfx/text/TextShaper.hpp"
 #include "io/ShaderLoader.hpp"
 #include "io/TextureLoader.hpp"
+#include "windowing/Window.hpp"
 
 #include <algorithm>
 #include <array>
@@ -19,10 +25,41 @@
 
 namespace bgl
 {
+namespace
+{
+/// Returns the directory containing the running executable.
+/// Cached so repeated calls don't re-stat /proc.
+[[nodiscard]] const std::filesystem::path &getExecutableDir()
+{
+    static const std::filesystem::path dir =
+        std::filesystem::read_symlink("/proc/self/exe").parent_path();
+    return dir;
+}
+
+/// Computes the current animation frame index from wall-clock time.
+[[nodiscard]] int computeAnimFrame(double time, double fps, int frameCount) noexcept
+{
+    if (frameCount <= 0) return 0;
+    return static_cast<int>(std::floor(time * fps)) % frameCount;
+}
+
+/// Computes the tween factor (0..1) between the current and next frame.
+[[nodiscard]] float computeAnimTween(double time, double fps) noexcept
+{
+    const double totalFrames = time * fps;
+    return static_cast<float>(totalFrames - std::floor(totalFrames));
+}
+} // namespace
+
 
 Application::Application()
 {
-    m_window = std::make_unique<bgl::window::Window>();
+    m_window       = std::make_unique<bgl::window::Window>();
+    m_camera       = std::make_unique<bgl::gfx::Camera>();
+    m_hud          = std::make_unique<bgl::gfx::Hud>();
+    m_tileMap      = std::make_unique<bgl::gfx::TileMap>();
+    m_audioEngine  = std::make_unique<bgl::audio::AudioEngine>();
+
     m_window->setEventDispatcher(&m_eventDispatcher);
 
     setupCallbacks();
@@ -62,7 +99,7 @@ void Application::onKeyEvent(const events::KeyEvent &event)
 {
     if (event.key == GLFW_KEY_R && event.action == GLFW_PRESS)
     {
-        m_camera.reset();
+        m_camera->reset();
     }
 
     if (!m_characters.empty())
@@ -94,28 +131,27 @@ void Application::onKeyEvent(const events::KeyEvent &event)
 
 void Application::onScrollEvent(const events::ScrollEvent &event)
 {
-    m_camera.handleScroll(event.yoffset);
+    m_camera->handleScroll(event.yoffset);
 }
 
 void Application::onCursorPosEvent(const events::MouseMovedEvent &event)
 {
     const auto winSize = m_window->getWindowSize();
-    m_camera.handleCursorPos(event.xpos, event.ypos, static_cast<float>(winSize.x), static_cast<float>(winSize.y));
+    m_camera->handleCursorPos(event.xpos, event.ypos, static_cast<float>(winSize.x), static_cast<float>(winSize.y));
 }
 
 void Application::onMouseButtonEvent(const events::MouseButtonEvent &event)
 {
-    m_camera.handleMouseButton(event.button, event.action);
+    m_camera->handleMouseButton(event.button, event.action);
 }
 
 
 void Application::initAssets()
 {
-    const auto binaryPath = std::filesystem::read_symlink("/proc/self/exe");
-    const auto basePath = binaryPath.parent_path();
+    const auto &basePath = getExecutableDir();
 
     // Load a bold sans-serif font
-    m_font = Font::LoadSystemFont("sans-serif:bold", 36);
+    m_font = std::make_unique<Font>(Font::LoadSystemFont("sans-serif:bold", 36));
 
     const auto jsonPath = basePath / "assets" / "animations.json";
     std::ifstream f(jsonPath);
@@ -157,9 +193,9 @@ void Application::initAssets()
                 auto tex = io::loadTexture(file);
                 if (tex)
                 {
-                    GLint layers = 0;
-                    glGetTextureLevelParameteriv(tex->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
-                    character->addAnimation(animName, std::move(tex), static_cast<uint32_t>(layers > 0 ? layers : 1));
+                    // Use layerCount() — no driver round-trip needed.
+                    const uint32_t frames = std::max(1u, tex->layerCount());
+                    character->addAnimation(animName, std::move(tex), frames);
                 }
             }
         }
@@ -180,9 +216,7 @@ void Application::initAssets()
         m_itemTexture = io::loadTexture(itemFile);
         if (m_itemTexture)
         {
-            GLint layers = 0;
-            glGetTextureLevelParameteriv(m_itemTexture->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
-            m_itemFrameCount = static_cast<uint32_t>(layers > 0 ? layers : 1);
+            m_itemFrameCount = std::max(1u, m_itemTexture->layerCount());
         }
     }
 
@@ -190,20 +224,19 @@ void Application::initAssets()
     auto levelJson = basePath / "assets" / "level.json";
     if (std::filesystem::exists(levelJson))
     {
-        m_tileMap.loadFromFile(levelJson);
+        m_tileMap->loadFromFile(levelJson);
     }
 
     auto tilesFile = basePath / "assets" / "textures" / "ktx" / "tiles" / "tiles.ktx2";
     if (std::filesystem::exists(tilesFile))
     {
-        m_tileMap.setTexture(io::loadTexture(tilesFile));
+        m_tileMap->setTexture(io::loadTexture(tilesFile));
     }
 }
 
 void Application::initShaders()
 {
-    const auto binaryPath = std::filesystem::read_symlink("/proc/self/exe");
-    const auto basePath = binaryPath.parent_path();
+    const auto &basePath = getExecutableDir();
 
     const auto mainVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.vert.spv");
     const auto mainFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.frag.spv");
@@ -282,7 +315,7 @@ void Application::initMeshes()
         for (int i = 0; i < 5; ++i)
         {
             m_worldItems.push_back({
-                glm::vec2(xDist(rng), GROUND_Y - 0.2f),
+                glm::vec2(xDist(rng), kGroundY - 0.2f),
                 scaleDist(rng),
                 timeDist(rng)
             });
@@ -292,8 +325,8 @@ void Application::initMeshes()
 
 void Application::run()
 {
-    m_audioEngine.init();
-    m_audioEngine.playJingleBells();
+    // AudioEngine is initialised in its constructor — start playing immediately.
+    m_audioEngine->playJingleBells();
     m_window->setRenderCallback([this](double time) { renderFrame(time); });
     m_window->run();
 }
@@ -312,7 +345,7 @@ void Application::renderFrame(double time)
     double dt = time - m_lastFrameTime;
     m_lastFrameTime = time;
 
-    m_audioEngine.update(static_cast<float>(dt));
+    m_audioEngine->update(static_cast<float>(dt));
 
     if (!m_characters.empty())
     {
@@ -321,33 +354,33 @@ void Application::renderFrame(double time)
         glm::vec2 pos = current_char->getPosition();
         if (m_rightPressed)
         {
-            pos.x += CHARACTER_SPEED * static_cast<float>(dt);
+            pos.x += kCharacterSpeed * static_cast<float>(dt);
             current_char->setFlipped(false);
             isMoving = true;
         }
         else if (m_leftPressed)
         {
-            pos.x -= CHARACTER_SPEED * static_cast<float>(dt);
+            pos.x -= kCharacterSpeed * static_cast<float>(dt);
             current_char->setFlipped(true);
             isMoving = true;
         }
 
         if (m_spacePressed && !current_char->isJumping())
         {
-            current_char->setVelocityY(JUMP_FORCE);
+            current_char->setVelocityY(kJumpForce);
             current_char->setJumping(true);
-            m_audioEngine.playJumpSound();
+            m_audioEngine->playJumpSound();
         }
 
-        if (current_char->isJumping() || pos.y > GROUND_Y)
+        if (current_char->isJumping() || pos.y > kGroundY)
         {
-            float vY = current_char->getVelocityY() - (GRAVITY * static_cast<float>(dt));
+            float vY = current_char->getVelocityY() - (kGravity * static_cast<float>(dt));
             pos.y += vY * static_cast<float>(dt);
             current_char->setVelocityY(vY);
 
-            if (pos.y <= GROUND_Y)
+            if (pos.y <= kGroundY)
             {
-                pos.y = GROUND_Y;
+                pos.y = kGroundY;
                 current_char->setVelocityY(0.0f);
                 current_char->setJumping(false);
             }
@@ -371,7 +404,7 @@ void Application::renderFrame(double time)
 
     const auto winSize = m_window->getWindowSize();
     const float aspect = winSize.x / winSize.y;
-    const glm::mat4 projection = m_camera.getProjectionMatrix(aspect);
+    const glm::mat4 projection = m_camera->getProjectionMatrix(aspect);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -386,7 +419,7 @@ void Application::renderFrame(double time)
     glClear(GL_COLOR_BUFFER_BIT);
 
     renderBackground(projection);
-    m_tileMap.render(m_mainProgram, m_spriteQuad, projection);
+    m_tileMap->render(m_mainProgram, m_spriteQuad, projection);
     renderSnow(time, projection);
     renderItems(time, projection);
     renderCharacter(time, projection);
@@ -397,11 +430,10 @@ void Application::renderBackground(const glm::mat4 &projection)
 {
     if (m_bgProgram != 0)
     {
-        const GLint projLoc = glGetUniformLocation(m_bgProgram, "projection");
-        glProgramUniformMatrix4fv(m_bgProgram, projLoc, 1, GL_FALSE, &projection[0][0]);
-        
+        // glProgramUniform* is DSA — no glUseProgram needed before setting uniforms.
+        glProgramUniformMatrix4fv(m_bgProgram, glGetUniformLocation(m_bgProgram, "projection"),
+                                  1, GL_FALSE, &projection[0][0]);
         glUseProgram(m_bgProgram);
-
         glBindVertexArray(m_bgQuad.VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     }
@@ -411,14 +443,11 @@ void Application::renderCharacter(double time, const glm::mat4 &projection)
 {
     auto current_char = !m_characters.empty() ? m_characters[m_currentCharacterIndex] : nullptr;
 
-    if (auto animState = current_char->getCurrentAnimation())
+    if (auto *animState = current_char->getCurrentAnimation())
     {
-        const auto num_frames = animState->frameCount > 0 ? animState->frameCount : 1;
-        constexpr double target_fps = 24.0;
-
-        const double totalFrames = time * target_fps;
-        const int currentFrame = static_cast<int>(std::floor(totalFrames)) % num_frames;
-        const float tweenFactor = static_cast<float>(totalFrames - std::floor(totalFrames));
+        constexpr double kFps = 24.0;
+        const int   currentFrame = computeAnimFrame(time, kFps, static_cast<int>(animState->frameCount));
+        const float tweenFactor  = computeAnimTween(time, kFps);
 
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(current_char->getPosition(), 0.0f));
         if (current_char->isFlipped())
@@ -451,7 +480,7 @@ void Application::renderUI(double /*time*/, const glm::vec2 &winSize)
     auto current_char = !m_characters.empty() ? m_characters[m_currentCharacterIndex] : nullptr;
     if (m_font)
     {
-        m_hud.updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, current_char);
+        m_hud->updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, current_char);
     }
 }
 
@@ -460,17 +489,18 @@ void Application::renderItems(double time, const glm::mat4 &projection)
     if (!m_itemTexture || !m_itemTexture->isValid() || m_itemFrameCount == 0 || m_worldItems.empty())
         return;
 
+    constexpr double kFps = 10.0;
+    const GLuint texHandle = m_itemTexture->getHandle();
+
     for (const auto &item : m_worldItems)
     {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(item.pos, 0.0f));
-        model = glm::scale(model, glm::vec3(item.scale));
+        glm::mat4 model =
+            glm::scale(
+                glm::translate(glm::mat4(1.0f), glm::vec3(item.pos, 0.0f)),
+                glm::vec3(item.scale));
 
-        const double itemTime = time + item.timeOffset;
-        const double target_fps = 10.0;
-        const double totalFrames = itemTime * target_fps;
-        const int currentFrame = static_cast<int>(std::floor(totalFrames)) % m_itemFrameCount;
-
-        renderQuad(m_spriteQuad, m_itemTexture->getHandle(), m_mainProgram, currentFrame, 0.0f, projection, model);
+        const int frame = computeAnimFrame(time + item.timeOffset, kFps, static_cast<int>(m_itemFrameCount));
+        renderQuad(m_spriteQuad, texHandle, m_mainProgram, frame, 0.0f, projection, model);
     }
 }
 
