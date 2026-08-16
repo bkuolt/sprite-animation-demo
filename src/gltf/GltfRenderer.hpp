@@ -11,7 +11,8 @@
 namespace bgl::gfx
 {
 /**
- * @brief OpenGL 4.6 DSA renderer for glTF scenes with Phong shading.
+ * @brief OpenGL 4.6 DSA renderer for glTF scenes implementing Physically Based Rendering (PBR).
+ * Utilizes a Cook-Torrance BRDF workflow with support for BaseColor, Metallic/Roughness, Normal, Emissive, and Occlusion maps.
  */
 class GltfRenderer
 {
@@ -19,7 +20,20 @@ class GltfRenderer
     GltfRenderer();
     ~GltfRenderer();
 
+    /**
+     * @brief Updates the scene graph for animations and dynamic transformations.
+     * @param scene The glTF scene to update.
+     * @param deltaTime The time elapsed since the last update.
+     */
     void update(const std::shared_ptr<Scene> &scene, float deltaTime);
+
+    /**
+     * @brief Renders the glTF scene using the PBR shader pipeline.
+     * @param scene The glTF scene to render.
+     * @param view The 4x4 View matrix.
+     * @param projection The 4x4 Projection matrix.
+     * @param cameraPos The world-space camera position (used for view-dependent lighting).
+     */
     void render(const std::shared_ptr<Scene> &scene, const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &cameraPos);
 
   private:

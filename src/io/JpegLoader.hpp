@@ -11,16 +11,38 @@
 
 namespace bgl::io
 {
+/**
+ * @brief Texture loader implementation for JPEG images using libjpeg.
+ * Decodes standard JPEG images from disk or memory buffers.
+ */
 class JpegLoader final : public bgl::io::ITextureLoader
 {
   public:
-    // Load a single JPEG image as a 1-layer 2D Texture Array
+    /**
+     * @brief Constructs a loader to decode a single JPEG image from disk.
+     * @param path The file path to the JPEG image.
+     */
     explicit JpegLoader(const std::filesystem::path &path);
+    
+    /**
+     * @brief Constructs a loader to decode a JPEG image from a memory buffer.
+     * Useful for glTF embedded textures.
+     * @param memoryBuffer The span representing raw JPEG file bytes in memory.
+     */
     explicit JpegLoader(std::span<const std::byte> memoryBuffer);
+    
+    /**
+     * @brief Constructs a loader to decode multiple JPEG images into a Texture Array.
+     * @param paths A span of paths to the JPEG images.
+     */
     explicit JpegLoader(std::span<const std::filesystem::path> paths);
 
     ~JpegLoader() override = default;
 
+    /**
+     * @brief Uploads the decoded JPEG data to the GPU and creates a Texture2DArray.
+     * @return A unique pointer to the instantiated OpenGL texture object.
+     */
     [[nodiscard]] std::unique_ptr<bgl::gfx::Texture2DArray> upload() override;
 
   private:
