@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **glTF OpenGL Resource Lifecycle**: Resolved a critical bug causing `GL_INVALID_OPERATION` on texture binding due to premature deletion of OpenGL texture handles during the glTF parsing phase.
 - **Camera3D Input Handling**: Refactored `Camera3D` to utilize the standard application event bus for scrolling and mouse interactions, restoring 3D zoom and panning capabilities.
 - **AMD/Mesa Driver Compatibility**: Mitigated driver crashes by strictly enforcing `GL_RGBA8` internal formats for 2D Array Textures dynamically.
+- **Text Rendering Pipeline**: Resolved a critical issue causing HarfBuzz text quads to render as black rectangles by properly disabling global sampler state overrides during SSBO texture generation.
+- **Camera Orientation**: Fixed `Camera3D` pitch calculations and configured the default scene camera to an isometric top-down perspective.
+
+### Added
+- **OpenGL Architecture Isolation**: Migrated all core OpenGL objects to a dedicated `bgl::gl` namespace and established strict component boundaries within the CMake build system.
+- **Skybox & Cubemap System**: Implemented an RAII-compliant `TextureCube` class for KTX2 cubemap support and integrated a fully functional 3D skybox rendering pass with optimized inverse-projection math.
 
 ### Changed
 - Scaled up the default glTF model instantiation at startup via the Scene root transform matrix.

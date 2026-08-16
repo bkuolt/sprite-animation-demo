@@ -22,9 +22,9 @@ class Hud
     Hud() = default;
 
     /// Renders the HUD overlay with FPS and animation info.
-    /// @param currentCharacter Non-owning pointer. May be nullptr.
+    /// @param modelName The name of the currently rendered 3D model.
     void updateAndRender(const Font &font, GLuint textProgram, const QuadMesh &overlayQuad,
-                         const glm::vec2 &winSize, int currentFps, const Character *currentCharacter);
+                         const glm::vec2 &winSize, int currentFps, const std::string &modelName);
 
   private:
     std::string m_lastHudText1;

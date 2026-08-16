@@ -128,6 +128,7 @@ void renderTextOverlay(const QuadMesh &quad, GLuint textureID, GLuint textShader
     glProgramUniformMatrix4fv(textShaderProgram, 5, 1, GL_FALSE, glm::value_ptr(transform));
     glUseProgram(textShaderProgram);
 
+    glBindSampler(0, 0); // Disable any global sampler object
     glBindTextureUnit(0, textureID);
     glBindVertexArray(quad.m_vao);
     glDrawElements(GL_TRIANGLES, quad.m_indexCount, GL_UNSIGNED_INT, nullptr);

@@ -71,7 +71,7 @@ Application::Application()
     m_camera3D     = std::make_unique<bgl::gfx::Camera3D>();
     m_camera3D->setTarget(glm::vec3(0.0f, 5.0f, 0.0f));
     m_camera3D->setDistance(30.0f);
-    m_camera3D->setPitch(-30.0f);
+    m_camera3D->setPitch(30.0f);
     m_camera3D->setYaw(45.0f);
 
     m_window->setEventDispatcher(&m_eventDispatcher);
@@ -496,7 +496,7 @@ void Application::renderFrame(double time)
     }
     glDisable(GL_DEPTH_TEST);
 
-    // renderUI(time, winSize); // User requested only 3D and Skybox
+    renderUI(time, winSize);
 }
 
 void Application::renderSkybox(const glm::mat4 &view, const glm::mat4 &projection)
@@ -504,6 +504,8 @@ void Application::renderSkybox(const glm::mat4 &view, const glm::mat4 &projectio
     if (m_skyboxProgram != 0 && m_skyboxTexture && m_skyboxTexture->isValid())
     {
         glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_FALSE);
+        glDisable(GL_CULL_FACE);
 
         glm::mat4 viewNoTrans = glm::mat4(glm::mat3(view));
         glm::mat4 invViewProj = glm::inverse(projection * viewNoTrans);
@@ -517,7 +519,9 @@ void Application::renderSkybox(const glm::mat4 &view, const glm::mat4 &projectio
         glBindVertexArray(m_bgQuad.getVAO());
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
+        glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
+        glEnable(GL_CULL_FACE); // Re-enable for model rendering
         
         GLenum err;
         while((err = glGetError()) != GL_NO_ERROR) {
@@ -581,10 +585,9 @@ void Application::renderSnow(double time, const glm::mat4 &projection)
 
 void Application::renderUI(double /*time*/, const glm::vec2 &winSize)
 {
-    auto current_char = !m_characters.empty() ? m_characters[m_currentCharacterIndex] : nullptr;
     if (m_font)
     {
-        m_hud->updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, current_char.get());
+        m_hud->updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, "Sponza");
     }
 }
 
