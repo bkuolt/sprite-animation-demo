@@ -35,6 +35,7 @@ option(BGL_ENABLE_GLSL_LOADER "Enable GLSL runtime shader compiler" ON)
 # --- Static library modules ---
 add_subdirectory(src/gfx/text)    # bgl_text
 add_subdirectory(src/io)          # bgl_io
+add_subdirectory(src/gl)          # bgl_gl
 add_subdirectory(src/gfx)         # bgl_gfx
 add_subdirectory(src/audio)       # bgl_audio
 add_subdirectory(src/windowing)   # bgl_windowing
@@ -52,6 +53,7 @@ target_include_directories(app PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_compile_features(app PRIVATE cxx_std_23)
 
 target_link_libraries(app PRIVATE
+    bgl_gl
     bgl_gfx
     bgl_io
     bgl_audio

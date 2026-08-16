@@ -5,7 +5,7 @@
 
 #include <glad/gl.h>
 
-namespace bgl::gfx
+namespace bgl::gl
 {
 /**
  * @brief Wrapper for an OpenGL Sampler Object.
@@ -74,4 +74,4 @@ class Sampler
     void cleanup() noexcept;
     GLuint m_handle{0};
 };
-} // namespace bgl::gfx
+} // namespace bgl::gl

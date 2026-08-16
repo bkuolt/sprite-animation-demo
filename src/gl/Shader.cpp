@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
-#include "ShaderLoader.hpp"
+#include "Shader.hpp"
 #include "glad/gl.h"
 
 #include <filesystem>
@@ -68,7 +68,7 @@ static GLuint compileSPIRVShader(GLenum type, std::span<const uint32_t> spirvBin
     return shader;
 }
 
-namespace bgl::io
+namespace bgl::gl
 {
 #ifdef BGL_ENABLE_GLSL_LOADER
 std::string LoadShaderFromFile(const std::filesystem::path &path)
@@ -194,4 +194,4 @@ GLuint CreateShaderProgramFromSPIRV(std::span<const uint32_t> vertexSpv, std::sp
     return program;
 }
 
-} // namespace bgl::io
+} // namespace bgl::gl

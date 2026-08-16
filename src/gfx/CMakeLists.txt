@@ -1,11 +1,7 @@
 add_library(bgl_gfx STATIC
-    GLContext.cpp
     Graphics.cpp
     QuadMesh.cpp
     TileMap.cpp
-    Texture2D.cpp
-    Texture2DArray.cpp
-    Sampler.cpp
     Camera.cpp
     Hud.cpp
 )
@@ -24,4 +20,5 @@ target_link_libraries(bgl_gfx PUBLIC
     EnTT::EnTT
     nlohmann_json::nlohmann_json
     bgl_text
+    bgl_gl
 )

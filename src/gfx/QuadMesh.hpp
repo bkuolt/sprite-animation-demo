@@ -4,6 +4,7 @@
 #pragma once
 
 #include <glad/gl.h>
+#include "../gl/GLHandle.hpp"
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 #include <cstdint>
@@ -25,13 +26,11 @@ class QuadMesh
 {
   public:
     QuadMesh() = default;
-    ~QuadMesh();
-
     QuadMesh(const QuadMesh &) = delete;
     QuadMesh &operator=(const QuadMesh &) = delete;
 
-    QuadMesh(QuadMesh &&other) noexcept;
-    QuadMesh &operator=(QuadMesh &&other) noexcept;
+    QuadMesh(QuadMesh &&other) noexcept = default;
+    QuadMesh &operator=(QuadMesh &&other) noexcept = default;
 
     [[nodiscard]] GLuint getVAO() const noexcept { return m_vao; }
     [[nodiscard]] GLuint getVBO() const noexcept { return m_vbo; }
@@ -47,9 +46,9 @@ class QuadMesh
                                   uint32_t texHeight, uint32_t winWidth, uint32_t winHeight, float paddingX,
                                   float paddingY);
 
-    GLuint m_vao{0};
-    GLuint m_vbo{0};
-    GLuint m_ibo{0};
+    bgl::gl::VAOHandle m_vao;
+    bgl::gl::BufferHandle m_vbo;
+    bgl::gl::BufferHandle m_ibo;
     GLsizei m_indexCount{0};
 };
 

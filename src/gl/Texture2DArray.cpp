@@ -32,7 +32,7 @@ constexpr GLenum GetGlInternalFormat(ktx_transcode_fmt_e format)
 }
 } // namespace
 
-namespace bgl::gfx
+namespace bgl::gl
 {
 Texture2DArray::Texture2DArray(ktxTexture2 *texture, ktx_transcode_fmt_e targetFormat)
 {
@@ -158,4 +158,4 @@ void Texture2DArray::cleanup() noexcept
         m_handle = 0;
     }
 }
-} // namespace bgl::gfx
+} // namespace bgl::gl

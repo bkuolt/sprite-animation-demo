@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "gfx/Texture2DArray.hpp"
+#include "gl/Texture2DArray.hpp"
 #include <glm/vec2.hpp>
 #include <memory>
 #include <string>
@@ -18,7 +18,7 @@ namespace bgl
 struct AnimationState
 {
     std::string name;
-    std::shared_ptr<bgl::gfx::Texture2DArray> texture;
+    std::shared_ptr<bgl::gl::Texture2DArray> texture;
     uint32_t frameCount{0};
 };
 
@@ -40,7 +40,7 @@ class Character
      * @param texture Texture array containing animation frames.
      * @param frameCount Number of frames in the animation layer sequence.
      */
-    void addAnimation(std::string name, std::shared_ptr<bgl::gfx::Texture2DArray> texture, uint32_t frameCount);
+    void addAnimation(std::string name, std::shared_ptr<bgl::gl::Texture2DArray> texture, uint32_t frameCount);
 
     /**
      * @brief Sets the active animation index directly.

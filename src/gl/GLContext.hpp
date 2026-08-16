@@ -6,7 +6,7 @@
 #include <glad/gl.h>
 #include <optional>
 
-namespace bgl
+namespace bgl::gl
 {
 /**
  * @brief Initializes GLAD function pointers for OpenGL.
@@ -23,4 +23,4 @@ void InitializeOpenGL();
  * @return VRAM usage in MB, or std::nullopt if the driver does not support the query.
  */
 [[nodiscard]] std::optional<int> GetVRAMUsageMB();
-} // namespace bgl
+} // namespace bgl::gl

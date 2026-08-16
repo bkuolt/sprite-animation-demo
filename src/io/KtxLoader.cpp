@@ -2,7 +2,7 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "KtxLoader.hpp"
-#include "../gfx/Texture2DArray.hpp"
+#include "../gl/Texture2DArray.hpp"
 
 #include <filesystem>
 #include <glad/gl.h>
@@ -126,8 +126,8 @@ void KtxLoader::transcode()
     }
 }
 
-std::unique_ptr<bgl::gfx::Texture2DArray> KtxLoader::upload()
+std::unique_ptr<bgl::gl::Texture2DArray> KtxLoader::upload()
 {
-    return std::make_unique<bgl::gfx::Texture2DArray>(_texture, _targetFormat);
+    return std::make_unique<bgl::gl::Texture2DArray>(_texture, _targetFormat);
 }
 } // namespace bgl::io

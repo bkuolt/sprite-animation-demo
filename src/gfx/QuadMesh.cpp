@@ -9,38 +9,6 @@
 
 namespace bgl
 {
-// --- QuadMesh RAII ---
-
-QuadMesh::~QuadMesh()
-{
-    if (m_vao) { glDeleteVertexArrays(1, &m_vao); m_vao = 0; }
-    if (m_vbo) { glDeleteBuffers(1, &m_vbo); m_vbo = 0; }
-    if (m_ibo) { glDeleteBuffers(1, &m_ibo); m_ibo = 0; }
-}
-
-QuadMesh::QuadMesh(QuadMesh &&other) noexcept
-    : m_vao(other.m_vao), m_vbo(other.m_vbo), m_ibo(other.m_ibo), m_indexCount(other.m_indexCount)
-{
-    other.m_vao = other.m_vbo = other.m_ibo = 0;
-    other.m_indexCount = 0;
-}
-
-QuadMesh &QuadMesh::operator=(QuadMesh &&other) noexcept
-{
-    if (this != &other)
-    {
-        if (m_vao) glDeleteVertexArrays(1, &m_vao);
-        if (m_vbo) glDeleteBuffers(1, &m_vbo);
-        if (m_ibo) glDeleteBuffers(1, &m_ibo);
-
-        m_vao = other.m_vao; m_vbo = other.m_vbo; m_ibo = other.m_ibo;
-        m_indexCount = other.m_indexCount;
-        other.m_vao = other.m_vbo = other.m_ibo = 0;
-        other.m_indexCount = 0;
-    }
-    return *this;
-}
-
 // --- Factories ---
 
 QuadMesh create2DQuad()
@@ -54,9 +22,14 @@ QuadMesh create2DQuad()
     QuadMesh quad;
     quad.m_indexCount = 6;
 
-    glCreateVertexArrays(1, &quad.m_vao);
-    glCreateBuffers(1, &quad.m_vbo);
-    glCreateBuffers(1, &quad.m_ibo);
+    GLuint vao, vbo, ibo;
+    glCreateVertexArrays(1, &vao);
+    glCreateBuffers(1, &vbo);
+    glCreateBuffers(1, &ibo);
+
+    quad.m_vao.reset(vao);
+    quad.m_vbo.reset(vbo);
+    quad.m_ibo.reset(ibo);
 
     glNamedBufferStorage(quad.m_vbo, vertices.size() * sizeof(glm::vec2), vertices.data(), 0);
     glNamedBufferStorage(quad.m_ibo, indices.size() * sizeof(GLuint), indices.data(), 0);
@@ -84,9 +57,14 @@ QuadMesh createOverlayQuad()
     QuadMesh quad;
     quad.m_indexCount = 6;
 
-    glCreateVertexArrays(1, &quad.m_vao);
-    glCreateBuffers(1, &quad.m_vbo);
-    glCreateBuffers(1, &quad.m_ibo);
+    GLuint vao, vbo, ibo;
+    glCreateVertexArrays(1, &vao);
+    glCreateBuffers(1, &vbo);
+    glCreateBuffers(1, &ibo);
+
+    quad.m_vao.reset(vao);
+    quad.m_vbo.reset(vbo);
+    quad.m_ibo.reset(ibo);
 
     glNamedBufferStorage(quad.m_vbo, vertices.size() * sizeof(OverlayVertex), vertices.data(), 0);
     glNamedBufferStorage(quad.m_ibo, indices.size() * sizeof(GLuint), indices.data(), 0);

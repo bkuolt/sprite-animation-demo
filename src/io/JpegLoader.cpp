@@ -62,7 +62,7 @@ JpegLoader::JpegLoader(std::span<const std::byte> memoryBuffer)
     cinfo.out_color_space = JCS_RGB;
     jpeg_start_decompress(&cinfo);
 
-    bgl::gfx::ImageLayer layer;
+    bgl::gl::ImageLayer layer;
     layer.width = cinfo.output_width;
     layer.height = cinfo.output_height;
     layer.channels = cinfo.output_components;
@@ -84,9 +84,9 @@ JpegLoader::JpegLoader(std::span<const std::byte> memoryBuffer)
     _layers.push_back(std::move(layer));
 }
 
-std::unique_ptr<bgl::gfx::Texture2DArray> JpegLoader::upload()
+std::unique_ptr<bgl::gl::Texture2DArray> JpegLoader::upload()
 {
-    return std::make_unique<bgl::gfx::Texture2DArray>(_layers, true);
+    return std::make_unique<bgl::gl::Texture2DArray>(_layers, true);
 }
 
 void JpegLoader::loadFile(const std::filesystem::path &path)
@@ -116,7 +116,7 @@ void JpegLoader::loadFile(const std::filesystem::path &path)
     cinfo.out_color_space = JCS_RGB;
     jpeg_start_decompress(&cinfo);
 
-    bgl::gfx::ImageLayer layer;
+    bgl::gl::ImageLayer layer;
     layer.width = cinfo.output_width;
     layer.height = cinfo.output_height;
     layer.channels = cinfo.output_components;

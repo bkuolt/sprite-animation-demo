@@ -14,7 +14,7 @@
 #include "gltf/GltfLoader.hpp"
 #include "gltf/GltfRenderer.hpp"
 #include "gltf/Grid.hpp"
-#include "io/ShaderLoader.hpp"
+#include "gl/Shader.hpp"
 #include "io/TextureLoader.hpp"
 #include "windowing/Window.hpp"
 
@@ -82,17 +82,7 @@ Application::Application()
 Application::~Application()
 {
     // QuadMesh members are RAII — they release GPU resources automatically.
-    // Explicit program + buffer cleanup for handles not wrapped in RAII types.
-    if (m_mainProgram)  glDeleteProgram(m_mainProgram);
-    if (m_textProgram)  glDeleteProgram(m_textProgram);
-    if (m_bgProgram)    glDeleteProgram(m_bgProgram);
-    if (m_snowProgram)  glDeleteProgram(m_snowProgram);
-
-    if (m_snowVAO) glDeleteVertexArrays(1, &m_snowVAO);
-    if (m_snowVBO) glDeleteBuffers(1, &m_snowVBO);
-    if (m_quadVBO) glDeleteBuffers(1, &m_quadVBO);
-    if (m_quadIBO) glDeleteBuffers(1, &m_quadIBO);
-
+    // m_mainProgram, m_snowVAO, etc. are now also RAII-wrapped and clean up automatically.
     spdlog::info("Application resources released.");
 }
 
@@ -274,21 +264,21 @@ void Application::initShaders()
 
     const auto mainVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.vert.spv");
     const auto mainFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.frag.spv");
-    m_mainProgram = io::CreateShaderProgramFromSPIRV(mainVsSpv, mainFsSpv);
+    m_mainProgram.reset(io::CreateShaderProgramFromSPIRV(mainVsSpv, mainFsSpv));
 
     const auto textVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.vert.spv");
     const auto textFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.frag.spv");
-    m_textProgram = io::CreateShaderProgramFromSPIRV(textVsSpv, textFsSpv);
+    m_textProgram.reset(io::CreateShaderProgramFromSPIRV(textVsSpv, textFsSpv));
 
 #ifdef BGL_ENABLE_GLSL_LOADER
     const auto srcPath = basePath / "assets" / "shaders";
     const auto bgVsSrc = io::LoadShaderFromFile(srcPath / "background.vs");
     const auto bgFsSrc = io::LoadShaderFromFile(srcPath / "background.fs");
-    m_bgProgram = io::CreateShaderProgramFromGLSL(bgVsSrc, bgFsSrc);
+    m_bgProgram.reset(io::CreateShaderProgramFromGLSL(bgVsSrc, bgFsSrc));
 
     const auto snowVsSrc = io::LoadShaderFromFile(srcPath / "snow.vs");
     const auto snowFsSrc = io::LoadShaderFromFile(srcPath / "snow.fs");
-    m_snowProgram = io::CreateShaderProgramFromGLSL(snowVsSrc, snowFsSrc);
+    m_snowProgram.reset(io::CreateShaderProgramFromGLSL(snowVsSrc, snowFsSrc));
 #endif
 }
 
@@ -311,17 +301,22 @@ void Application::initMeshes()
         }
     }
 
-    glCreateBuffers(1, &m_snowVBO);
+    GLuint snowVboId, snowVaoId, quadVboId, quadIboId;
+    glCreateBuffers(1, &snowVboId);
+    m_snowVBO.reset(snowVboId);
     glNamedBufferStorage(m_snowVBO, snowOffsets.size() * sizeof(glm::vec2), snowOffsets.data(), 0);
 
-    glCreateVertexArrays(1, &m_snowVAO);
+    glCreateVertexArrays(1, &snowVaoId);
+    m_snowVAO.reset(snowVaoId);
 
     constexpr std::array<glm::vec2, 4> baseQuad = {glm::vec2(-1.0f, -1.0f), glm::vec2(1.0f, -1.0f),
                                                    glm::vec2(1.0f, 1.0f), glm::vec2(-1.0f, 1.0f)};
     constexpr std::array<GLuint, 6> baseIndices = {0, 1, 2, 2, 3, 0};
 
-    glCreateBuffers(1, &m_quadVBO);
-    glCreateBuffers(1, &m_quadIBO);
+    glCreateBuffers(1, &quadVboId);
+    m_quadVBO.reset(quadVboId);
+    glCreateBuffers(1, &quadIboId);
+    m_quadIBO.reset(quadIboId);
     glNamedBufferStorage(m_quadVBO, baseQuad.size() * sizeof(glm::vec2), baseQuad.data(), 0);
     glNamedBufferStorage(m_quadIBO, baseIndices.size() * sizeof(GLuint), baseIndices.data(), 0);
 

@@ -8,7 +8,7 @@
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 
-namespace bgl::gfx
+namespace bgl::gl
 {
 Texture2D::Texture2D(const ImageLayer &image, bool generateMipmaps)
 {
@@ -70,4 +70,4 @@ void Texture2D::cleanup() noexcept
         m_handle = 0;
     }
 }
-} // namespace bgl::gfx
+} // namespace bgl::gl

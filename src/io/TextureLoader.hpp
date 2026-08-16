@@ -5,7 +5,7 @@
 
 #include <glad/gl.h>
 
-#include "../gfx/Texture2DArray.hpp"
+#include "../gl/Texture2DArray.hpp"
 #include <filesystem>
 #include <memory>
 #include <span>
@@ -26,18 +26,18 @@ class ITextureLoader
      * @brief Uploads loaded texture data to the GPU.
      * @return Unique pointer to the created Texture2DArray.
      */
-    [[nodiscard]] virtual std::unique_ptr<bgl::gfx::Texture2DArray> upload() = 0;
+    [[nodiscard]] virtual std::unique_ptr<bgl::gl::Texture2DArray> upload() = 0;
 };
 
 /**
  * @brief Automatically loads a texture from disk by detecting magic numbers or file extension.
  * Supports KTX2, PNG, and JPEG formats.
  */
-[[nodiscard]] std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(const std::filesystem::path &path);
+[[nodiscard]] std::unique_ptr<bgl::gl::Texture2DArray> loadTexture(const std::filesystem::path &path);
 
 /**
  * @brief Automatically loads a texture from raw memory by inspecting magic bytes or using a format extension hint.
  */
-[[nodiscard]] std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(std::span<const std::byte> memoryBuffer,
+[[nodiscard]] std::unique_ptr<bgl::gl::Texture2DArray> loadTexture(std::span<const std::byte> memoryBuffer,
                                                                       std::string_view extensionHint = "");
 } // namespace bgl::io

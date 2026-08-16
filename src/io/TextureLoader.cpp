@@ -83,7 +83,7 @@ TextureFormat detectFormatFromExtension(std::string_view ext) noexcept
 }
 } // namespace
 
-std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(const std::filesystem::path &path)
+std::unique_ptr<bgl::gl::Texture2DArray> loadTexture(const std::filesystem::path &path)
 {
     if (!std::filesystem::exists(path))
     {
@@ -130,7 +130,7 @@ std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(const std::filesystem::pat
     }
 }
 
-std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(std::span<const std::byte> memoryBuffer, std::string_view extensionHint)
+std::unique_ptr<bgl::gl::Texture2DArray> loadTexture(std::span<const std::byte> memoryBuffer, std::string_view extensionHint)
 {
     TextureFormat format = detectFormatFromMagic(memoryBuffer);
     if (format == TextureFormat::Unknown && !extensionHint.empty())

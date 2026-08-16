@@ -16,10 +16,10 @@ void Scene::addRootNode(std::shared_ptr<Node> node)
     _rootNodes.push_back(std::move(node));
 }
 
-void Scene::keepTextureAlive(std::shared_ptr<class Texture2DArray> tex)
+void Scene::keepTextureAlive(std::shared_ptr<bgl::gl::Texture2DArray> tex)
 {
     if (tex) {
-        _textures.push_back(std::move(tex));
+        m_textures.push_back(std::move(tex));
     }
 }
 

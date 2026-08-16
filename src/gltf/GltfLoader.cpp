@@ -2,7 +2,8 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "GltfLoader.hpp"
-#include "io/TextureLoader.hpp"
+#include "../gl/Texture2DArray.hpp"
+#include "../io/TextureLoader.hpp"
 #include <fastgltf/core.hpp>
 #include <fastgltf/types.hpp>
 #include <fastgltf/tools.hpp>
@@ -50,7 +51,7 @@ std::shared_ptr<bgl::gfx::Scene> GltfLoader::loadFromFile(const std::filesystem:
     auto bglScene = std::make_shared<bgl::gfx::Scene>(path.filename().string());
 
     // 1. Process textures via existing BGL loaders
-    std::unordered_map<std::size_t, std::shared_ptr<bgl::gfx::Texture2DArray>> loadedTextures;
+    std::unordered_map<std::size_t, std::shared_ptr<bgl::gl::Texture2DArray>> loadedTextures;
 
     auto getOrLoadTexture = [&](std::size_t imageIndex) -> GLuint {
         if (loadedTextures.contains(imageIndex))
@@ -61,7 +62,7 @@ std::shared_ptr<bgl::gfx::Scene> GltfLoader::loadFromFile(const std::filesystem:
         if (imageIndex >= asset.images.size()) return 0;
         const auto &image = asset.images[imageIndex];
 
-        std::unique_ptr<bgl::gfx::Texture2DArray> texArray;
+        std::unique_ptr<bgl::gl::Texture2DArray> texArray;
 
         if (auto *uri = std::get_if<fastgltf::sources::URI>(&image.data))
         {

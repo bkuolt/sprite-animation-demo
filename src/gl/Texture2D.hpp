@@ -7,8 +7,9 @@
 #include <glad/gl.h>
 #include <span>
 #include <vector>
+#include "GLHandle.hpp"
 
-namespace bgl::gfx
+namespace bgl::gl
 {
 /**
  * @brief Represents a single layer of an image.
@@ -66,4 +67,4 @@ class Texture2D
     void cleanup() noexcept;
     GLuint m_handle{0};
 };
-} // namespace bgl::gfx
+} // namespace bgl::gl

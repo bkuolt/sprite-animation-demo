@@ -10,7 +10,7 @@
 #include <string_view>
 #include <vector>
 
-namespace bgl::io
+namespace bgl::gl
 {
 #ifdef BGL_ENABLE_GLSL_LOADER
 [[nodiscard]] std::string LoadShaderFromFile(const std::filesystem::path &filepath);
@@ -21,4 +21,4 @@ namespace bgl::io
 #endif
 [[nodiscard]] GLuint CreateShaderProgramFromSPIRV(std::span<const uint32_t> vertexSpv,
                                                   std::span<const uint32_t> fragmentSpv);
-} // namespace bgl::io
+} // namespace bgl::gl

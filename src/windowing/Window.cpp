@@ -120,8 +120,8 @@ Window::Window()
     glfwMakeContextCurrent(m_window);
     glfwSwapInterval(1);
 
-    bgl::InitializeGLAD();
-    bgl::InitializeOpenGL();
+    bgl::gl::InitializeGLAD();
+    bgl::gl::InitializeOpenGL();
 }
 
 Window::~Window()

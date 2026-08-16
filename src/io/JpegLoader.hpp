@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../gfx/Texture2DArray.hpp"
+#include "../gl/Texture2DArray.hpp"
 #include "TextureLoader.hpp"
 #include <filesystem>
 #include <span>
@@ -43,11 +43,11 @@ class JpegLoader final : public bgl::io::ITextureLoader
      * @brief Uploads the decoded JPEG data to the GPU and creates a Texture2DArray.
      * @return A unique pointer to the instantiated OpenGL texture object.
      */
-    [[nodiscard]] std::unique_ptr<bgl::gfx::Texture2DArray> upload() override;
+    [[nodiscard]] std::unique_ptr<bgl::gl::Texture2DArray> upload() override;
 
   private:
     void loadFile(const std::filesystem::path &path);
 
-    std::vector<bgl::gfx::ImageLayer> _layers;
+    std::vector<bgl::gl::ImageLayer> _layers;
 };
 } // namespace bgl::io

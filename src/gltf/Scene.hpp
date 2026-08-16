@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+namespace bgl::gl { class Texture2DArray; }
+
 namespace bgl::gfx
 {
 /**
@@ -35,7 +37,7 @@ class Scene
      * @brief Registers a texture to ensure its OpenGL handle stays alive for the scene's lifetime.
      * @param tex The texture array to keep alive.
      */
-    void keepTextureAlive(std::shared_ptr<class Texture2DArray> tex);
+    void keepTextureAlive(std::shared_ptr<bgl::gl::Texture2DArray> tex);
 
     /**
      * @brief Recursively updates the global transform matrices for all nodes in the scene graph.
@@ -52,6 +54,6 @@ class Scene
   private:
     std::string _name;
     std::vector<std::shared_ptr<Node>> _rootNodes;
-    std::vector<std::shared_ptr<class Texture2DArray>> _textures;
+    std::vector<std::shared_ptr<bgl::gl::Texture2DArray>> m_textures;
 };
 } // namespace bgl::gfx

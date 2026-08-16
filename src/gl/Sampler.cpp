@@ -4,7 +4,7 @@
 #include "Sampler.hpp"
 #include <spdlog/spdlog.h>
 
-namespace bgl::gfx
+namespace bgl::gl
 {
 Sampler::Sampler()
 {
@@ -66,4 +66,4 @@ void Sampler::bind(GLuint textureUnit) const
 {
     glBindSampler(textureUnit, m_handle);
 }
-} // namespace bgl::gfx
+} // namespace bgl::gl

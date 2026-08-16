@@ -113,7 +113,7 @@ std::vector<std::string> getTextureCompressionExtensions()
 }
 } // namespace
 
-namespace bgl
+namespace bgl::gl
 {
 void InitializeGLAD()
 {
@@ -178,4 +178,4 @@ std::optional<int> GetVRAMUsageMB()
 
     return std::nullopt; // Driver does not support VRAM queries.
 }
-} // namespace bgl
+} // namespace bgl::gl

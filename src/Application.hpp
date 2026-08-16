@@ -12,6 +12,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 #include <glad/gl.h>
+#include "gl/GLHandle.hpp"
 #include <memory>
 #include <optional>
 #include <string>
@@ -110,30 +111,30 @@ class Application
         float     timeOffset;
     };
     std::vector<WorldItem>                       m_worldItems;
-    std::shared_ptr<gfx::Texture2DArray>         m_itemTexture;
+    std::shared_ptr<bgl::gl::Texture2DArray>         m_itemTexture;
     uint32_t                                     m_itemFrameCount{0};
 
     // --- Font (FreeType) ---
     // unique_ptr so the complete Font type is only required in Application.cpp,
     // not in every TU that includes Application.hpp.
     std::unique_ptr<Font>                        m_font;
-    std::unique_ptr<gfx::Texture2DArray>         m_snowTexture;
+    std::unique_ptr<bgl::gl::Texture2DArray>         m_snowTexture;
 
     // --- Quads (value members — QuadMesh.hpp is lightweight) ---
     QuadMesh m_spriteQuad;
     QuadMesh m_overlayQuad;
     QuadMesh m_bgQuad;
 
-    // --- Raw GL handles (programs and particle buffers not yet RAII-wrapped) ---
-    GLuint m_mainProgram{0};
-    GLuint m_textProgram{0};
-    GLuint m_bgProgram{0};
-    GLuint m_snowProgram{0};
+    // --- RAII-wrapped GL handles ---
+    bgl::gfx::ProgramHandle m_mainProgram;
+    bgl::gfx::ProgramHandle m_textProgram;
+    bgl::gfx::ProgramHandle m_bgProgram;
+    bgl::gfx::ProgramHandle m_snowProgram;
 
-    GLuint m_snowVAO{0};
-    GLuint m_snowVBO{0};
-    GLuint m_quadVBO{0};
-    GLuint m_quadIBO{0};
+    bgl::gfx::VAOHandle m_snowVAO;
+    bgl::gfx::BufferHandle m_snowVBO;
+    bgl::gfx::BufferHandle m_quadVBO;
+    bgl::gfx::BufferHandle m_quadIBO;
 
     // --- Frame timing ---
     double m_lastFpsTime{0.0};

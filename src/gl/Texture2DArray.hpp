@@ -7,9 +7,9 @@
 #include <glad/gl.h>
 #include <ktx.h>
 #include <span>
-#include <vector>
+#include "GLHandle.hpp"
 
-namespace bgl::gfx
+namespace bgl::gl
 {
 /**
  * @brief Represents an OpenGL 2D Texture Array Object.
@@ -84,4 +84,4 @@ class Texture2DArray
     GLuint   m_handle{0};
     uint32_t m_layerCount{0};
 };
-} // namespace bgl::gfx
+} // namespace bgl::gl

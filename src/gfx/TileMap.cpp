@@ -9,7 +9,7 @@
 
 namespace bgl::gfx
 {
-void TileMap::setTexture(std::shared_ptr<Texture2DArray> texture)
+void TileMap::setTexture(std::shared_ptr<bgl::gl::Texture2DArray> texture)
 {
     m_texture = std::move(texture);
 }

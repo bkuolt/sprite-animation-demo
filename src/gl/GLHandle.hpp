@@ -6,7 +6,7 @@
 #include <glad/gl.h>
 #include <utility>
 
-namespace bgl::gfx
+namespace bgl::gl
 {
 /**
  * @brief Type-safe RAII wrapper for a single OpenGL handle.
@@ -84,4 +84,4 @@ using ProgramHandle = GLHandle<kDeleteProgram>;
 using VAOHandle     = GLHandle<kDeleteVAO>;
 using BufferHandle  = GLHandle<kDeleteBuffer>;
 
-} // namespace bgl::gfx
+} // namespace bgl::gl

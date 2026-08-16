@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+namespace bgl::gl { class Texture2DArray; }
+
 namespace bgl::gfx
 {
 /**
