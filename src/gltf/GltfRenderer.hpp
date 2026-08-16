@@ -10,9 +10,35 @@
 
 namespace bgl::gfx
 {
+// SSBO 1: Instance Data (std430 layout)
+struct alignas(16) InstanceData
+{
+    glm::mat4 modelMatrix;
+    glm::vec4 aabbMin;
+    glm::vec4 aabbMax;
+    std::uint32_t materialIndex{0};
+    std::uint32_t padding[3]{0, 0, 0};
+};
+
+// SSBO 2: Frustum Planes (std430 layout)
+struct alignas(16) FrustumData
+{
+    glm::vec4 planes[6];
+};
+
+// SSBO 3: Indirect Draw Command (std430 matching glDrawElementsIndirectCommand)
+struct alignas(4) DrawElementsIndirectCommand
+{
+    std::uint32_t count{0};
+    std::uint32_t instanceCount{0};
+    std::uint32_t firstIndex{0};
+    std::uint32_t baseVertex{0};
+    std::uint32_t baseInstance{0};
+};
+
 /**
- * @brief OpenGL 4.6 DSA renderer for glTF scenes implementing Physically Based Rendering (PBR).
- * Utilizes a Cook-Torrance BRDF workflow with support for BaseColor, Metallic/Roughness, Normal, Emissive, and Occlusion maps.
+ * @brief OpenGL 4.6 DSA renderer for glTF scenes implementing Physically Based Rendering (PBR)
+ * and GPU-Driven Frustum Culling & Indirect Drawing.
  */
 class GltfRenderer
 {
@@ -28,7 +54,7 @@ class GltfRenderer
     void update(const std::shared_ptr<Scene> &scene, float deltaTime);
 
     /**
-     * @brief Renders the glTF scene using the PBR shader pipeline.
+     * @brief Renders the glTF scene using the PBR shader pipeline and GPU-driven frustum culling.
      * @param scene The glTF scene to render.
      * @param view The 4x4 View matrix.
      * @param projection The 4x4 Projection matrix.
@@ -40,9 +66,16 @@ class GltfRenderer
     void renderNode(const std::shared_ptr<Node> &node, const glm::mat4 &view, const glm::mat4 &projection);
     GLuint compileShader(GLenum type, const char *source);
     GLuint createProgram(const char *vertSrc, const char *fragSrc);
+    GLuint createComputeProgram(const char *compSrc);
 
     GLuint _program{0};
-    GLint _uProgram{0};
+    GLuint _cullComputeProgram{0};
+
+    // SSBO handles (DSA)
+    GLuint _instanceSSBO{0};
+    GLuint _frustumSSBO{0};
+    GLuint _indirectCommandSSBO{0};
+
     GLint _uModelLoc{-1};
     GLint _uViewLoc{-1};
     GLint _uProjLoc{-1};

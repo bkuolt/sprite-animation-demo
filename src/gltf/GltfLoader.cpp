@@ -147,8 +147,17 @@ std::shared_ptr<bgl::gfx::Scene> GltfLoader::loadFromFile(const std::filesystem:
             {
                 std::vector<fastgltf::math::fvec3> buf(vertexCount);
                 fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, posAccessor, buf.data());
+                glm::vec3 pMin{1e30f};
+                glm::vec3 pMax{-1e30f};
                 for (std::size_t i = 0; i < vertexCount; ++i)
-                    vertices[i].position = {buf[i][0], buf[i][1], buf[i][2]};
+                {
+                    glm::vec3 pos{buf[i][0], buf[i][1], buf[i][2]};
+                    vertices[i].position = pos;
+                    pMin = glm::min(pMin, pos);
+                    pMax = glm::max(pMax, pos);
+                }
+                bglPrim.aabbMin = pMin;
+                bglPrim.aabbMax = pMax;
             }
 
             // Normals (optional — check with init-statement to keep scope tight).

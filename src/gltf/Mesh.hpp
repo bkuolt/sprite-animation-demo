@@ -36,6 +36,9 @@ struct Primitive
     GLuint occlusionTexture{0};
     float metallicFactor{1.0f};
     float roughnessFactor{1.0f};
+    // Local AABB bounding box for culling
+    glm::vec3 aabbMin{-1.0f};
+    glm::vec3 aabbMax{1.0f};
 };
 
 /**

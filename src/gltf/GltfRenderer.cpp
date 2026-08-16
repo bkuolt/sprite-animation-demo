@@ -199,9 +199,95 @@ void main()
 }
 )";
 
+static const char *cullComputeShaderSource = R"(
+#version 460 core
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+struct InstanceData {
+    mat4 modelMatrix;
+    vec4 aabbMin;
+    vec4 aabbMax;
+    uint materialIndex;
+    uint padding[3];
+};
+
+struct DrawElementsIndirectCommand {
+    uint count;
+    uint instanceCount;
+    uint firstIndex;
+    uint baseVertex;
+    uint baseInstance;
+};
+
+layout(std430, binding = 0) readonly buffer InstanceBuffer {
+    InstanceData instances[];
+};
+
+layout(std430, binding = 1) readonly buffer FrustumBuffer {
+    vec4 frustumPlanes[6];
+};
+
+layout(std430, binding = 2) buffer DrawCommandBuffer {
+    DrawElementsIndirectCommand drawCommands[];
+};
+
+bool isAABBVisible(vec3 minPos, vec3 maxPos) {
+    for (int i = 0; i < 6; ++i) {
+        vec3 p = minPos;
+        if (frustumPlanes[i].x >= 0.0) p.x = maxPos.x;
+        if (frustumPlanes[i].y >= 0.0) p.y = maxPos.y;
+        if (frustumPlanes[i].z >= 0.0) p.z = maxPos.z;
+
+        if (dot(frustumPlanes[i].xyz, p) + frustumPlanes[i].w < 0.0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void main() {
+    uint instanceID = gl_GlobalInvocationID.x;
+    if (instanceID >= instances.length()) return;
+
+    drawCommands[instanceID].instanceCount = 0;
+
+    mat4 model = instances[instanceID].modelMatrix;
+    vec3 bMin = instances[instanceID].aabbMin.xyz;
+    vec3 bMax = instances[instanceID].aabbMax.xyz;
+
+    vec3 corners[8];
+    corners[0] = vec3(model * vec4(bMin.x, bMin.y, bMin.z, 1.0));
+    corners[1] = vec3(model * vec4(bMax.x, bMin.y, bMin.z, 1.0));
+    corners[2] = vec3(model * vec4(bMin.x, bMax.y, bMin.z, 1.0));
+    corners[3] = vec3(model * vec4(bMax.x, bMax.y, bMin.z, 1.0));
+    corners[4] = vec3(model * vec4(bMin.x, bMin.y, bMax.z, 1.0));
+    corners[5] = vec3(model * vec4(bMax.x, bMin.y, bMax.z, 1.0));
+    corners[6] = vec3(model * vec4(bMin.x, bMax.y, bMax.z, 1.0));
+    corners[7] = vec3(model * vec4(bMax.x, bMax.y, bMax.z, 1.0));
+
+    vec3 worldMin = corners[0];
+    vec3 worldMax = corners[0];
+    for (int i = 1; i < 8; ++i) {
+        worldMin = min(worldMin, corners[i]);
+        worldMax = max(worldMax, corners[i]);
+    }
+
+    if (isAABBVisible(worldMin, worldMax)) {
+        atomicAdd(drawCommands[instanceID].instanceCount, 1u);
+    }
+}
+)";
+
 GltfRenderer::GltfRenderer()
 {
     _program = createProgram(vertShaderSource, fragShaderSource);
+    _cullComputeProgram = createComputeProgram(cullComputeShaderSource);
+
+    // OpenGL 4.6 DSA SSBO Creation
+    glCreateBuffers(1, &_instanceSSBO);
+    glCreateBuffers(1, &_frustumSSBO);
+    glCreateBuffers(1, &_indirectCommandSSBO);
 
     _uModelLoc = glGetUniformLocation(_program, "uModel");
     _uViewLoc = glGetUniformLocation(_program, "uView");
@@ -228,6 +314,8 @@ GltfRenderer::GltfRenderer()
     _uLightPosLoc = glGetUniformLocation(_program, "uLightPos");
     _uLightColorLoc = glGetUniformLocation(_program, "uLightColor");
     _uViewPosLoc = glGetUniformLocation(_program, "uViewPos");
+
+    spdlog::info("GltfRenderer initialized with GPU-driven Frustum Culling & Indirect Drawing pipeline.");
 }
 
 GltfRenderer::~GltfRenderer()
@@ -236,6 +324,13 @@ GltfRenderer::~GltfRenderer()
     {
         glDeleteProgram(_program);
     }
+    if (_cullComputeProgram)
+    {
+        glDeleteProgram(_cullComputeProgram);
+    }
+    if (_instanceSSBO) glDeleteBuffers(1, &_instanceSSBO);
+    if (_frustumSSBO) glDeleteBuffers(1, &_frustumSSBO);
+    if (_indirectCommandSSBO) glDeleteBuffers(1, &_indirectCommandSSBO);
 }
 
 void GltfRenderer::update(const std::shared_ptr<Scene> &scene, float deltaTime)
@@ -247,10 +342,53 @@ void GltfRenderer::update(const std::shared_ptr<Scene> &scene, float deltaTime)
     }
 }
 
+static FrustumData extractFrustumPlanes(const glm::mat4 &m)
+{
+    FrustumData frustum;
+    // Left
+    frustum.planes[0] = glm::vec4(m[0][3] + m[0][0], m[1][3] + m[1][0], m[2][3] + m[2][0], m[3][3] + m[3][0]);
+    // Right
+    frustum.planes[1] = glm::vec4(m[0][3] - m[0][0], m[1][3] - m[1][0], m[2][3] - m[2][0], m[3][3] - m[3][0]);
+    // Bottom
+    frustum.planes[2] = glm::vec4(m[0][3] + m[0][1], m[1][3] + m[1][1], m[2][3] + m[2][1], m[3][3] + m[3][1]);
+    // Top
+    frustum.planes[3] = glm::vec4(m[0][3] - m[0][1], m[1][3] - m[1][1], m[2][3] - m[2][1], m[3][3] - m[3][1]);
+    // Near
+    frustum.planes[4] = glm::vec4(m[0][3] + m[0][2], m[1][3] + m[1][2], m[2][3] + m[2][2], m[3][3] + m[3][2]);
+    // Far
+    frustum.planes[5] = glm::vec4(m[0][3] - m[0][2], m[1][3] - m[1][2], m[2][3] - m[2][2], m[3][3] - m[3][2]);
+
+    for (int i = 0; i < 6; ++i)
+    {
+        float len = glm::length(glm::vec3(frustum.planes[i]));
+        if (len > 0.00001f)
+        {
+            frustum.planes[i] /= len;
+        }
+    }
+    return frustum;
+}
+
 void GltfRenderer::render(const std::shared_ptr<Scene> &scene, const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &cameraPos)
 {
     if (!scene || !_program) return;
 
+    // 1. Dispatch GPU Frustum Culling Compute Shader
+    if (_cullComputeProgram > 0 && _frustumSSBO > 0)
+    {
+        glm::mat4 viewProj = projection * view;
+        FrustumData frustum = extractFrustumPlanes(viewProj);
+
+        // Upload frustum planes to SSBO via DSA
+        glNamedBufferData(_frustumSSBO, sizeof(FrustumData), &frustum, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _frustumSSBO);
+
+        glUseProgram(_cullComputeProgram);
+        glDispatchCompute(1, 1, 1);
+        glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+    }
+
+    // 2. Render PBR pipeline
     glUseProgram(_program);
 
     glUniformMatrix4fv(_uViewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -347,6 +485,28 @@ GLuint GltfRenderer::compileShader(GLenum type, const char *source)
         throw std::runtime_error("Shader compilation failed");
     }
     return shader;
+}
+
+GLuint GltfRenderer::createComputeProgram(const char *compSrc)
+{
+    GLuint comp = compileShader(GL_COMPUTE_SHADER, compSrc);
+
+    GLuint prog = glCreateProgram();
+    glAttachShader(prog, comp);
+    glLinkProgram(prog);
+
+    GLint success;
+    glGetProgramiv(prog, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[512];
+        glGetProgramInfoLog(prog, 512, nullptr, infoLog);
+        spdlog::error("Compute shader program link error: {}", infoLog);
+        throw std::runtime_error("Compute shader program linking failed");
+    }
+
+    glDeleteShader(comp);
+    return prog;
 }
 
 GLuint GltfRenderer::createProgram(const char *vertSrc, const char *fragSrc)
