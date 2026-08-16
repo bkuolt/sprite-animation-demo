@@ -36,7 +36,9 @@ TextureCube::TextureCube(ktxTexture2 *texture, ktx_transcode_fmt_e targetFormat)
     const GLenum internalFormat = GetGlInternalFormat(targetFormat);
     const bool isCompressed = (targetFormat != KTX_TTF_RGBA32 && targetFormat != KTX_TTF_RGB565);
 
-    glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_handle);
+    GLuint handle = 0;
+    glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &handle);
+    m_handle.reset(handle);
     glTextureStorage2D(m_handle, baseTexture->numLevels, internalFormat, baseTexture->baseWidth, baseTexture->baseHeight);
 
     // Set default filtering and clamping so the texture is complete even without mipmaps
@@ -73,30 +75,6 @@ TextureCube::TextureCube(ktxTexture2 *texture, ktx_transcode_fmt_e targetFormat)
         }
     }
 
-    spdlog::info("Created TextureCube (KTX2) with GL ID: {}", m_handle);
-}
-
-TextureCube::~TextureCube() { cleanup(); }
-
-TextureCube::TextureCube(TextureCube &&other) noexcept : m_handle(other.m_handle) { other.m_handle = 0; }
-
-TextureCube &TextureCube::operator=(TextureCube &&other) noexcept
-{
-    if (this != &other)
-    {
-        cleanup();
-        m_handle = other.m_handle;
-        other.m_handle = 0;
-    }
-    return *this;
-}
-
-void TextureCube::cleanup() noexcept
-{
-    if (m_handle != 0)
-    {
-        glDeleteTextures(1, &m_handle);
-        m_handle = 0;
-    }
+    spdlog::info("Created TextureCube (KTX2) with GL ID: {}", m_handle.get());
 }
 } // namespace bgl::gl

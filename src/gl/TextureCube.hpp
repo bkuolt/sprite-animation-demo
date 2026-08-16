@@ -24,22 +24,21 @@ class TextureCube
      */
     explicit TextureCube(ktxTexture2 *texture, ktx_transcode_fmt_e targetFormat);
 
-    ~TextureCube();
+    ~TextureCube() = default;
 
     TextureCube(const TextureCube &) = delete;
     TextureCube &operator=(const TextureCube &) = delete;
 
-    TextureCube(TextureCube &&other) noexcept;
-    TextureCube &operator=(TextureCube &&other) noexcept;
+    TextureCube(TextureCube &&) noexcept = default;
+    TextureCube &operator=(TextureCube &&) noexcept = default;
 
     /**
      * @brief Gets the underlying OpenGL texture handle.
      */
-    [[nodiscard]] GLuint getHandle() const { return m_handle; }
-    [[nodiscard]] bool isValid() const { return m_handle != 0; }
+    [[nodiscard]] GLuint getHandle() const { return m_handle.get(); }
+    [[nodiscard]] bool isValid() const { return static_cast<bool>(m_handle); }
 
   private:
-    void cleanup() noexcept;
-    GLuint m_handle{0};
+    TextureHandle m_handle;
 };
 } // namespace bgl::gl

@@ -523,11 +523,6 @@ void Application::renderSkybox(const glm::mat4 &view, const glm::mat4 &projectio
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
         glEnable(GL_CULL_FACE); // Re-enable for model rendering
-        
-        GLenum err;
-        while((err = glGetError()) != GL_NO_ERROR) {
-            spdlog::error("OpenGL error in renderSkybox: 0x{:04x}", err);
-        }
     }
     else
     {

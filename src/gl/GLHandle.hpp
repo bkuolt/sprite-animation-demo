@@ -77,11 +77,13 @@ class GLHandle
 inline constexpr auto kDeleteProgram = [](GLuint h) noexcept { glDeleteProgram(h); };
 inline constexpr auto kDeleteVAO     = [](GLuint h) noexcept { glDeleteVertexArrays(1, &h); };
 inline constexpr auto kDeleteBuffer  = [](GLuint h) noexcept { glDeleteBuffers(1, &h); };
+inline constexpr auto kDeleteTexture = [](GLuint h) noexcept { glDeleteTextures(1, &h); };
 
 // --- Convenient type aliases ---
 
 using ProgramHandle = GLHandle<kDeleteProgram>;
 using VAOHandle     = GLHandle<kDeleteVAO>;
 using BufferHandle  = GLHandle<kDeleteBuffer>;
+using TextureHandle = GLHandle<kDeleteTexture>;
 
 } // namespace bgl::gl
