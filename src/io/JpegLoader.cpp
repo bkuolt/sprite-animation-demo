@@ -41,9 +41,52 @@ JpegLoader::JpegLoader(std::span<const std::filesystem::path> paths)
     }
 }
 
-std::unique_ptr<bgl::gfx::Texture2DArray> JpegLoader::upload()
+JpegLoader::JpegLoader(std::span<const std::byte> memoryBuffer)
 {
-    return std::make_unique<bgl::gfx::Texture2DArray>(_layers, true);
+    struct jpeg_decompress_struct cinfo{};
+    CustomJpegErrorMgr jerr{};
+
+    cinfo.err = jpeg_std_error(&jerr.pub);
+    jerr.pub.error_exit = CustomJpegErrorExit;
+
+    if (setjmp(jerr.setjmp_buffer))
+    {
+        jpeg_destroy_decompress(&cinfo);
+        throw std::runtime_error("Error reading JPEG from memory buffer");
+    }
+
+    jpeg_create_decompress(&cinfo);
+    jpeg_mem_src(&cinfo, reinterpret_cast<const unsigned char *>(memoryBuffer.data()), memoryBuffer.size());
+    jpeg_read_header(&cinfo, TRUE);
+
+    cinfo.out_color_space = JCS_RGB;
+    jpeg_start_decompress(&cinfo);
+
+    bgl::gl::ImageLayer layer;
+    layer.width = cinfo.output_width;
+    layer.height = cinfo.output_height;
+    layer.channels = cinfo.output_components;
+    layer.data.resize(static_cast<size_t>(layer.width) * layer.height * layer.channels);
+
+    const int row_stride = layer.width * layer.channels;
+    JSAMPROW row_pointer[1];
+
+    while (cinfo.output_scanline < cinfo.output_height)
+    {
+        row_pointer[0] = &layer.data[cinfo.output_scanline * row_stride];
+        jpeg_read_scanlines(&cinfo, row_pointer, 1);
+    }
+
+    jpeg_finish_decompress(&cinfo);
+    jpeg_destroy_decompress(&cinfo);
+
+    spdlog::info("Loaded JPEG from memory ({}x{})", layer.width, layer.height);
+    _layers.push_back(std::move(layer));
+}
+
+std::unique_ptr<bgl::gl::Texture2DArray> JpegLoader::upload()
+{
+    return std::make_unique<bgl::gl::Texture2DArray>(_layers, true);
 }
 
 void JpegLoader::loadFile(const std::filesystem::path &path)
@@ -73,7 +116,7 @@ void JpegLoader::loadFile(const std::filesystem::path &path)
     cinfo.out_color_space = JCS_RGB;
     jpeg_start_decompress(&cinfo);
 
-    bgl::gfx::ImageLayer layer;
+    bgl::gl::ImageLayer layer;
     layer.width = cinfo.output_width;
     layer.height = cinfo.output_height;
     layer.channels = cinfo.output_components;

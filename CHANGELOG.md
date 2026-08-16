@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-08-16
+### Added
+- **GPU-Driven Frustum Culling**: Implemented a GLSL 460 compute shader pipeline (`cullComputeShaderSource`) for atomical GPU-side AABB frustum visibility testing.
+- **`std430` SSBO Infrastructure**: Added standard SSBO structures (`InstanceData`, `FrustumData`, `DrawElementsIndirectCommand`) with OpenGL 4.6 DSA management.
+- **QML Integration Adapter**: Added `GltfQmlItemAdapter` in `src/gltf/GltfQmlItemAdapter.hpp` to enable seamless integration into Qt/QML UI pipelines without adding forced Qt framework build dependencies to core `bgl::gfx`.
+- **TextureHandle RAII Migration**: Migrated `TextureCube` to use `TextureHandle` RAII template for memory leak prevention and safety.
+
+## [0.7.2] - 2026-08-16
+### Fixed
+- **Skybox Cubemap Format**: Fixed a critical texture skewing issue where uncompressed RGB cubemaps were incorrectly uploaded as RGBA to the GPU, causing scrambled colorful noise. The pipeline now dynamically determines the proper `GL_RGB` vs `GL_RGBA` alignment via `ktxTexture_GetElementSize`.
+- **Skybox Assets**: Generated and included a proper gradient skybox texture (`skybox.ktx2`) to replace the placeholder colored cubes.
+
+## [0.7.1] - 2026-08-16
+### Fixed
+- **PBR Color Space Correction**: Fixed physically based rendering math breaking down due to incorrect sRGB to Linear space mapping of BaseColor and Emissive textures.
+- **glTF OpenGL Resource Lifecycle**: Resolved a critical bug causing `GL_INVALID_OPERATION` on texture binding due to premature deletion of OpenGL texture handles during the glTF parsing phase.
+- **Camera3D Input Handling**: Refactored `Camera3D` to utilize the standard application event bus for scrolling and mouse interactions, restoring 3D zoom and panning capabilities.
+- **AMD/Mesa Driver Compatibility**: Mitigated driver crashes by strictly enforcing `GL_RGBA8` internal formats for 2D Array Textures dynamically.
+- **Text Rendering Pipeline**: Resolved a critical issue causing HarfBuzz text quads to render as black rectangles by properly disabling global sampler state overrides during SSBO texture generation.
+- **Camera Orientation**: Fixed `Camera3D` pitch calculations and configured the default scene camera to an isometric top-down perspective.
+
+### Added
+- **OpenGL Architecture Isolation**: Migrated all core OpenGL objects to a dedicated `bgl::gl` namespace and established strict component boundaries within the CMake build system.
+- **Skybox & Cubemap System**: Implemented an RAII-compliant `TextureCube` class for KTX2 cubemap support and integrated a fully functional 3D skybox rendering pass with optimized inverse-projection math.
+
+### Changed
+- Scaled up the default glTF model instantiation at startup via the Scene root transform matrix.
+
+## [0.7.0] - 2026-08-16
+### Added
+- **glTF Asset Pipeline**: Integrated full support for loading 3D glTF models with embedded textures via `fastgltf` and `libjpeg`.
+- **PBR Render Engine**: Implemented a complete Cook-Torrance BRDF pipeline for physically based rendering.
+- **Lua Scripting**: Created a new isolated static library for Lua scripting utilizing `sol3` via Conan.
+
+## [0.6.0] - 2026-08-02
+### Added
+- **OpenAL Audio Subsystem**: Integrated a procedural and RAII-compliant `AudioEngine` using OpenAL Soft.
+
 ## [0.5.0] - 2026-07-26
 ### Added
 - **Core Decoupling & Event Bus:** Integrated the `EnTT` framework to establish a highly performant, type-safe Event Bus architecture (`entt::dispatcher`).

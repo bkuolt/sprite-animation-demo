@@ -3,45 +3,59 @@
 
 #pragma once
 
-#include "Character.hpp"
-#include "events/Event.hpp"
-#include "audio/AudioEngine.hpp"
-#include "gfx/TileMap.hpp"
-#include "gfx/Camera.hpp"
-#include "gfx/Graphics.hpp"
-#include "gfx/Hud.hpp"
-#include "gfx/text/Font.hpp"
-#include "gfx/text/TextRenderer.hpp"
-#include "windowing/Window.hpp"
+// Forward declarations for heavy subsystems — prevents their full headers from
+// being compiled into every translation unit that includes Application.hpp.
+// The concrete types are only needed in Application.cpp.
+#include "events/Event.hpp"   // Lightweight event structs (no GL, no audio)
+#include "gfx/QuadMesh.hpp"   // QuadMesh is used as a value member — cannot forward-declare
 #include <entt/entt.hpp>
-#include <glad/gl.h>
+#include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
+#include <glad/gl.h>
+#include "gl/GLHandle.hpp"
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
+// Forward declarations — heavy enough that every translation unit does NOT need
+// their full definition to compile.
+namespace bgl::window  { class Window; }
+namespace bgl::gl      { class Texture2DArray; class Sampler; class TextureCube; }
+namespace bgl::gfx     { class Camera; class Hud; class TileMap; class Scene; class GltfRenderer; class Grid; class Camera3D; }
+namespace bgl::audio   { class AudioEngine; }
+
 namespace bgl
 {
+class Character;
+class Font;  // Defined in gfx/text/Font.hpp (namespace bgl, pulls in FreeType/HarfBuzz)
 
 /**
- * @brief Main engine application class managing rendering loop, windowing, assets, input events, and entities.
+ * @brief Main engine application class.
+ *
+ * Manages the render loop, windowing, asset loading, input, audio, and
+ * entity rendering. All heavy subsystems are stored via unique_ptr to
+ * allow forward-declaration in this header.
  */
 class Application
 {
   public:
     /**
-     * @brief Initializes application resources, window, events, and default graphics state.
+     * @brief Initializes all subsystems, window, events, and default graphics state.
      */
     Application();
 
     /**
-     * @brief Cleans up allocated OpenGL resources, programs, and buffers.
+     * @brief Releases all OpenGL resources, programs, and buffers.
      */
-    ~Application();
+    ~Application();   // Defined in Application.cpp where Font is complete.
+
+    // Non-copyable, non-moveable — manages unique GPU state.
+    Application(const Application &) = delete;
+    Application &operator=(const Application &) = delete;
 
     /**
-     * @brief Enters the main application execution and render loop.
+     * @brief Enters the main application render loop.
      */
     void run();
 
@@ -55,75 +69,93 @@ class Application
     /** @brief Constructs 2D quads and particle buffer objects. */
     void initMeshes();
 
-    /** @brief Connects event dispatcher sinks to application event handlers. */
+    /** @brief Connects EnTT event dispatcher sinks to application handlers. */
     void setupCallbacks();
 
-    /** @brief Input event callbacks. */
+    /** @brief Input event handlers. */
     void onKeyEvent(const events::KeyEvent &event);
     void onScrollEvent(const events::ScrollEvent &event);
     void onCursorPosEvent(const events::MouseMovedEvent &event);
     void onMouseButtonEvent(const events::MouseButtonEvent &event);
 
-    /** @brief Per-frame update and rendering pipeline. */
+    /** @brief Per-frame rendering pipeline. */
     void renderFrame(double time);
     void renderBackground(const glm::mat4 &projection);
+    void renderSkybox(const glm::mat4 &view, const glm::mat4 &projection);
     void renderCharacter(double time, const glm::mat4 &projection);
     void renderSnow(double time, const glm::mat4 &projection);
     void renderItems(double time, const glm::mat4 &projection);
     void renderUI(double time, const glm::vec2 &winSize);
 
-    entt::dispatcher m_eventDispatcher;
-    std::unique_ptr<bgl::window::Window> m_window;
-    std::vector<std::shared_ptr<Character>> m_characters;
-    size_t m_currentCharacterIndex{0};
+    // --- Core subsystems (heap-allocated via unique_ptr to allow fwd-decl) ---
+    entt::dispatcher                             m_eventDispatcher;
+    std::unique_ptr<bgl::window::Window>         m_window;
+    std::unique_ptr<bgl::gfx::Camera>            m_camera;
+    std::unique_ptr<bgl::gfx::Hud>              m_hud;
+    std::unique_ptr<bgl::gfx::TileMap>          m_tileMap;
+    std::unique_ptr<bgl::audio::AudioEngine>    m_audioEngine;
+    std::unique_ptr<bgl::gl::Sampler>          m_defaultSampler;
 
+    // --- 3D Scene ---
+    std::shared_ptr<bgl::gfx::Scene>            m_scene;
+    std::unique_ptr<bgl::gfx::GltfRenderer>     m_gltfRenderer;
+    std::unique_ptr<bgl::gfx::Grid>             m_grid;
+    std::unique_ptr<bgl::gfx::Camera3D>         m_camera3D;
+
+    // --- Characters ---
+    std::vector<std::shared_ptr<Character>>     m_characters;
+    size_t                                       m_currentCharacterIndex{0};
+
+    // --- World items ---
     struct WorldItem {
         glm::vec2 pos;
-        float scale;
-        float timeOffset;
+        float     scale;
+        float     timeOffset;
     };
-    std::vector<WorldItem> m_worldItems;
-    std::shared_ptr<gfx::Texture2DArray> m_itemTexture;
-    uint32_t m_itemFrameCount{0};
+    std::vector<WorldItem>                       m_worldItems;
+    std::shared_ptr<bgl::gl::Texture2DArray>         m_itemTexture;
+    uint32_t                                     m_itemFrameCount{0};
 
-    std::optional<Font> m_font;
+    // --- Font (FreeType) ---
+    // unique_ptr so the complete Font type is only required in Application.cpp,
+    // not in every TU that includes Application.hpp.
+    std::unique_ptr<Font>                        m_font;
+    std::unique_ptr<bgl::gl::Texture2DArray>         m_snowTexture;
+    std::unique_ptr<bgl::gl::TextureCube>            m_skyboxTexture;
 
-    gfx::Camera m_camera;
-    gfx::Hud m_hud;
-    gfx::TileMap m_tileMap;
-    audio::AudioEngine m_audioEngine;
-
-    GLuint m_mainProgram{0};
-    GLuint m_textProgram{0};
-    GLuint m_bgProgram{0};
-    GLuint m_snowProgram{0};
-
-    std::unique_ptr<gfx::Texture2DArray> m_snowTexture;
-
+    // --- Quads (value members — QuadMesh.hpp is lightweight) ---
     QuadMesh m_spriteQuad;
     QuadMesh m_overlayQuad;
     QuadMesh m_bgQuad;
 
-    std::unique_ptr<gfx::Sampler> m_defaultSampler;
+    // --- RAII-wrapped GL handles ---
+    bgl::gl::ProgramHandle m_mainProgram;
+    bgl::gl::ProgramHandle m_textProgram;
+    bgl::gl::ProgramHandle m_bgProgram;
+    bgl::gl::ProgramHandle m_snowProgram;
+    bgl::gl::ProgramHandle m_skyboxProgram;
 
-    GLuint m_snowVAO{0};
-    GLuint m_snowVBO{0};
-    GLuint m_quadVBO{0};
-    GLuint m_quadIBO{0};
+    bgl::gl::VAOHandle m_snowVAO;
+    bgl::gl::BufferHandle m_snowVBO;
+    bgl::gl::BufferHandle m_quadVBO;
+    bgl::gl::BufferHandle m_quadIBO;
 
+    // --- Frame timing ---
     double m_lastFpsTime{0.0};
     double m_lastFrameTime{0.0};
-    int m_frameCounter{0};
-    int m_currentFps{60};
+    int    m_frameCounter{0};
+    int    m_currentFps{60};
 
+    // --- Input state ---
     bool m_leftPressed{false};
     bool m_rightPressed{false};
     bool m_spacePressed{false};
 
-    static constexpr float CHARACTER_SPEED = 2.0f;
-    static constexpr float GRAVITY = 15.0f;
-    static constexpr float JUMP_FORCE = 8.0f;
-    static constexpr float GROUND_Y = 0.0f;
+    // --- Physics constants ---
+    static constexpr float kCharacterSpeed = 2.0f;
+    static constexpr float kGravity        = 15.0f;
+    static constexpr float kJumpForce      = 8.0f;
+    static constexpr float kGroundY        = 0.0f;
 };
 
 } // namespace bgl

@@ -22,7 +22,6 @@ void Camera::handleScroll(double yoffset)
         m_zoomLevel *= 1.1f;
     }
     m_zoomLevel = std::clamp(m_zoomLevel, 0.1f, 10.0f);
-    spdlog::info("Camera zoom: {:.2f}", m_zoomLevel);
 }
 
 void Camera::handleMouseButton(int button, int action)

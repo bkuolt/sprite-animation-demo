@@ -278,6 +278,7 @@ TextTexture TextRenderer::RenderShapedToTexture(const Font &font, const ShapedTe
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        glBindSampler(0, 0); // Disable any global sampler object for UI
         glBindVertexArray(s_emptyVao);
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(quads.size() * 6));
     }

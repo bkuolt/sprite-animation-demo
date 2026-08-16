@@ -63,23 +63,27 @@ TextureFormat detectFormatFromMagic(std::span<const std::byte> data)
     return TextureFormat::Unknown;
 }
 
-TextureFormat detectFormatFromExtension(const std::string &ext)
+TextureFormat detectFormatFromExtension(std::string_view ext) noexcept
 {
-    std::string lowerExt = ext;
-    std::transform(lowerExt.begin(), lowerExt.end(), lowerExt.begin(), [](unsigned char c) { return std::tolower(c); });
+    // Case-insensitive comparison without allocating a temporary string.
+    auto iequals = [](std::string_view a, std::string_view b) {
+        if (a.size() != b.size()) return false;
+        for (size_t i = 0; i < a.size(); ++i)
+            if (std::tolower(static_cast<unsigned char>(a[i])) !=
+                std::tolower(static_cast<unsigned char>(b[i]))) return false;
+        return true;
+    };
 
-    if (lowerExt == ".ktx2" || lowerExt == "ktx2")
-        return TextureFormat::KTX2;
-    if (lowerExt == ".png" || lowerExt == "png")
-        return TextureFormat::PNG;
-    if (lowerExt == ".jpg" || lowerExt == ".jpeg" || lowerExt == "jpg" || lowerExt == "jpeg")
-        return TextureFormat::JPEG;
+    if (iequals(ext, ".ktx2") || iequals(ext, "ktx2")) return TextureFormat::KTX2;
+    if (iequals(ext, ".png")  || iequals(ext, "png"))  return TextureFormat::PNG;
+    if (iequals(ext, ".jpg")  || iequals(ext, "jpg")  ||
+        iequals(ext, ".jpeg") || iequals(ext, "jpeg")) return TextureFormat::JPEG;
 
     return TextureFormat::Unknown;
 }
 } // namespace
 
-std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(const std::filesystem::path &path)
+std::unique_ptr<bgl::gl::Texture2DArray> loadTexture(const std::filesystem::path &path)
 {
     if (!std::filesystem::exists(path))
     {
@@ -126,7 +130,7 @@ std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(const std::filesystem::pat
     }
 }
 
-std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(std::span<const std::byte> memoryBuffer, const std::string &extensionHint)
+std::unique_ptr<bgl::gl::Texture2DArray> loadTexture(std::span<const std::byte> memoryBuffer, std::string_view extensionHint)
 {
     TextureFormat format = detectFormatFromMagic(memoryBuffer);
     if (format == TextureFormat::Unknown && !extensionHint.empty())
@@ -159,5 +163,24 @@ std::unique_ptr<bgl::gfx::Texture2DArray> loadTexture(std::span<const std::byte>
         spdlog::error("Unsupported or unrecognized raw texture memory buffer format.");
         return nullptr;
     }
+}
+
+std::unique_ptr<bgl::gl::TextureCube> loadCubemapTexture(const std::filesystem::path &path)
+{
+    if (!std::filesystem::exists(path))
+    {
+        spdlog::error("Cubemap texture file does not exist: {}", path.string());
+        return nullptr;
+    }
+
+    TextureFormat format = detectFormatFromExtension(path.extension().string());
+    if (format == TextureFormat::KTX2)
+    {
+        KtxLoader loader(path, KTX_TTF_RGBA32); // Use RGBA32 for skybox
+        return loader.uploadCubemap();
+    }
+    
+    spdlog::error("Cubemap only supports KTX2 format currently. File: {}", path.string());
+    return nullptr;
 }
 } // namespace bgl::io

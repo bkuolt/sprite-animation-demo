@@ -21,7 +21,7 @@ PngLoader::PngLoader(std::span<const std::byte> memoryBuffer)
     try
     {
         png::image<png::rgba_pixel> image(stream);
-        bgl::gfx::ImageLayer layer;
+        bgl::gl::ImageLayer layer;
         layer.width = image.get_width();
         layer.height = image.get_height();
         layer.channels = 4;
@@ -55,9 +55,9 @@ PngLoader::PngLoader(std::span<const std::filesystem::path> paths)
     }
 }
 
-std::unique_ptr<bgl::gfx::Texture2DArray> PngLoader::upload()
+std::unique_ptr<bgl::gl::Texture2DArray> PngLoader::upload()
 {
-    return std::make_unique<bgl::gfx::Texture2DArray>(_layers, true);
+    return std::make_unique<bgl::gl::Texture2DArray>(_layers, true);
 }
 
 void PngLoader::loadFile(const std::filesystem::path &path)
@@ -71,7 +71,7 @@ void PngLoader::loadFile(const std::filesystem::path &path)
     {
         png::image<png::rgba_pixel> image(path.string());
 
-        bgl::gfx::ImageLayer layer;
+        bgl::gl::ImageLayer layer;
         layer.width = image.get_width();
         layer.height = image.get_height();
         layer.channels = 4;

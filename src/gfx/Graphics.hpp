@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "GLContext.hpp"
+#include "../gl/GLContext.hpp"
 #include "QuadMesh.hpp"
-#include "Sampler.hpp"
+#include "../gl/Sampler.hpp"
 #include <memory>
 
 namespace bgl
@@ -13,5 +13,5 @@ namespace bgl
 /**
  * @brief Creates a default texture sampler with anisotropic filtering.
  */
-[[nodiscard]] std::unique_ptr<gfx::Sampler> CreateDefaultSampler();
+[[nodiscard]] std::unique_ptr<bgl::gl::Sampler> CreateDefaultSampler();
 } // namespace bgl

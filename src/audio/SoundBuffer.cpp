@@ -75,10 +75,15 @@ bool SoundBuffer::loadFromFile(const std::filesystem::path &path)
         return false;
     }
 
-    const uint16_t channels = *reinterpret_cast<const uint16_t *>(header + 22);
-    const uint32_t sampleRate = *reinterpret_cast<const uint32_t *>(header + 24);
-    const uint16_t bitsPerSample = *reinterpret_cast<const uint16_t *>(header + 34);
-    const uint32_t dataSize = *reinterpret_cast<const uint32_t *>(header + 40);
+    uint16_t channels = 0;
+    uint32_t sampleRate = 0;
+    uint16_t bitsPerSample = 0;
+    uint32_t dataSize = 0;
+
+    std::memcpy(&channels, header + 22, sizeof(channels));
+    std::memcpy(&sampleRate, header + 24, sizeof(sampleRate));
+    std::memcpy(&bitsPerSample, header + 34, sizeof(bitsPerSample));
+    std::memcpy(&dataSize, header + 40, sizeof(dataSize));
 
     ALenum format{AL_FORMAT_MONO16};
     if (channels == 1 && bitsPerSample == 8) format = AL_FORMAT_MONO8;

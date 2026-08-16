@@ -1,6 +1,5 @@
 add_library(bgl_io STATIC
     KtxLoader.cpp
-    ShaderLoader.cpp
     TextureLoader.cpp
 )
 
@@ -21,6 +20,7 @@ target_link_libraries(bgl_io PUBLIC
     KTX::ktx
     spdlog::spdlog
     fmt::fmt
+    bgl_gl
 )
 
 if(BGL_ENABLE_PNG_LOADER)
@@ -33,6 +33,4 @@ if(BGL_ENABLE_JPEG_LOADER)
     target_compile_definitions(bgl_io PUBLIC BGL_ENABLE_JPEG_LOADER)
 endif()
 
-if(BGL_ENABLE_GLSL_LOADER)
-    target_compile_definitions(bgl_io PUBLIC BGL_ENABLE_GLSL_LOADER)
-endif()
+

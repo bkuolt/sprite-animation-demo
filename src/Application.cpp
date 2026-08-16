@@ -2,29 +2,78 @@
 // Copyright (c) 2024-2026 Bastian Kuolt. All rights reserved.
 
 #include "Application.hpp"
-#include "gfx/Sampler.hpp"
+#include "Character.hpp"
+#include "audio/AudioEngine.hpp"
+#include "gfx/Camera.hpp"
+#include "gfx/Hud.hpp"
+#include "gl/Sampler.hpp"
+#include "gfx/TileMap.hpp"
+#include "gfx/text/Font.hpp"
 #include "gfx/text/TextShaper.hpp"
-#include "io/KtxLoader.hpp"
-#include "io/ShaderLoader.hpp"
+#include "gltf/Camera3D.hpp"
+#include "gltf/GltfLoader.hpp"
+#include "gltf/GltfRenderer.hpp"
+#include "gltf/Grid.hpp"
+#include "gl/Shader.hpp"
+#include "gl/TextureCube.hpp"
+#include "io/TextureLoader.hpp"
+#include "windowing/Window.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstdlib>
 #include <filesystem>
-#include <fmt/format.h>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/vec2.hpp>
 #include <nlohmann/json.hpp>
+#include <random>
 #include <spdlog/spdlog.h>
 
 namespace bgl
 {
+namespace
+{
+/// Returns the directory containing the running executable.
+/// Cached so repeated calls don't re-stat /proc.
+[[nodiscard]] const std::filesystem::path &getExecutableDir()
+{
+    static const std::filesystem::path dir =
+        std::filesystem::read_symlink("/proc/self/exe").parent_path();
+    return dir;
+}
+
+/// Computes the current animation frame index from wall-clock time.
+[[nodiscard]] int computeAnimFrame(double time, double fps, int frameCount) noexcept
+{
+    if (frameCount <= 0) return 0;
+    return static_cast<int>(std::floor(time * fps)) % frameCount;
+}
+
+/// Computes the tween factor (0..1) between the current and next frame.
+[[nodiscard]] float computeAnimTween(double time, double fps) noexcept
+{
+    const double totalFrames = time * fps;
+    return static_cast<float>(totalFrames - std::floor(totalFrames));
+}
+} // namespace
+
 
 Application::Application()
 {
-    m_window = std::make_unique<bgl::window::Window>();
+    m_window       = std::make_unique<bgl::window::Window>();
+    m_camera       = std::make_unique<bgl::gfx::Camera>();
+    m_hud          = std::make_unique<bgl::gfx::Hud>();
+    m_tileMap      = std::make_unique<bgl::gfx::TileMap>();
+    m_audioEngine  = std::make_unique<bgl::audio::AudioEngine>();
+
+    m_gltfRenderer = std::make_unique<bgl::gfx::GltfRenderer>();
+    m_grid         = std::make_unique<bgl::gfx::Grid>();
+    m_camera3D     = std::make_unique<bgl::gfx::Camera3D>();
+    m_camera3D->setTarget(glm::vec3(0.0f, 5.0f, 0.0f));
+    m_camera3D->setDistance(30.0f);
+    m_camera3D->setPitch(30.0f);
+    m_camera3D->setYaw(45.0f);
+
     m_window->setEventDispatcher(&m_eventDispatcher);
 
     setupCallbacks();
@@ -37,31 +86,9 @@ Application::Application()
 
 Application::~Application()
 {
-    m_characters.clear();
-
-    if (m_mainProgram != 0)
-        glDeleteProgram(m_mainProgram);
-    if (m_textProgram != 0)
-        glDeleteProgram(m_textProgram);
-    if (m_bgProgram != 0)
-        glDeleteProgram(m_bgProgram);
-    if (m_snowProgram != 0)
-        glDeleteProgram(m_snowProgram);
-
-    if (m_snowVAO != 0)
-        glDeleteVertexArrays(1, &m_snowVAO);
-    if (m_snowVBO != 0)
-        glDeleteBuffers(1, &m_snowVBO);
-    if (m_quadVBO != 0)
-        glDeleteBuffers(1, &m_quadVBO);
-    if (m_quadIBO != 0)
-        glDeleteBuffers(1, &m_quadIBO);
-
-    bgl::destroyQuadMesh(m_spriteQuad);
-    bgl::destroyQuadMesh(m_overlayQuad);
-    bgl::destroyQuadMesh(m_bgQuad);
-
-    spdlog::info("Released VAO/VBO/IBO buffers and shader programs");
+    // QuadMesh members are RAII — they release GPU resources automatically.
+    // m_mainProgram, m_snowVAO, etc. are now also RAII-wrapped and clean up automatically.
+    spdlog::info("Application resources released.");
 }
 
 void Application::setupCallbacks()
@@ -76,7 +103,7 @@ void Application::onKeyEvent(const events::KeyEvent &event)
 {
     if (event.key == GLFW_KEY_R && event.action == GLFW_PRESS)
     {
-        m_camera.reset();
+        m_camera->reset();
     }
 
     if (!m_characters.empty())
@@ -108,28 +135,36 @@ void Application::onKeyEvent(const events::KeyEvent &event)
 
 void Application::onScrollEvent(const events::ScrollEvent &event)
 {
-    m_camera.handleScroll(event.yoffset);
+    m_camera->handleScroll(event.yoffset);
+    if (m_camera3D) {
+        m_camera3D->handleScroll(event.yoffset);
+    }
 }
 
 void Application::onCursorPosEvent(const events::MouseMovedEvent &event)
 {
     const auto winSize = m_window->getWindowSize();
-    m_camera.handleCursorPos(event.xpos, event.ypos, static_cast<float>(winSize.x), static_cast<float>(winSize.y));
+    m_camera->handleCursorPos(event.xpos, event.ypos, static_cast<float>(winSize.x), static_cast<float>(winSize.y));
+    if (m_camera3D) {
+        m_camera3D->handleCursorPos(event.xpos, event.ypos);
+    }
 }
 
 void Application::onMouseButtonEvent(const events::MouseButtonEvent &event)
 {
-    m_camera.handleMouseButton(event.button, event.action);
+    m_camera->handleMouseButton(event.button, event.action);
+    if (m_camera3D) {
+        m_camera3D->handleMouseButton(event.button, event.action);
+    }
 }
 
 
 void Application::initAssets()
 {
-    const auto binaryPath = std::filesystem::read_symlink("/proc/self/exe");
-    const auto basePath = binaryPath.parent_path();
+    const auto &basePath = getExecutableDir();
 
     // Load a bold sans-serif font
-    m_font = Font::LoadSystemFont("sans-serif:bold", 36);
+    m_font = std::make_unique<Font>(Font::LoadSystemFont("sans-serif:bold", 36));
 
     const auto jsonPath = basePath / "assets" / "animations.json";
     std::ifstream f(jsonPath);
@@ -171,15 +206,37 @@ void Application::initAssets()
                 auto tex = io::loadTexture(file);
                 if (tex)
                 {
-                    GLint layers = 0;
-                    glGetTextureLevelParameteriv(tex->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
-                    character->addAnimation(animName, std::move(tex), static_cast<uint32_t>(layers > 0 ? layers : 1));
+                    // Use layerCount() — no driver round-trip needed.
+                    const uint32_t frames = std::max(1u, tex->layerCount());
+                    character->addAnimation(animName, std::move(tex), frames);
                 }
             }
         }
-        m_characters.push_back(character);
+        m_characters.push_back(std::move(character));
     }
 
+    // Load glTF 3D Model
+    {
+        bgl::io::GltfLoader gltfLoader;
+        auto modelPath = basePath / "assets" / "models" / "Sponza" / "Sponza.gltf";
+        if (std::filesystem::exists(modelPath))
+        {
+            m_scene = gltfLoader.loadFromFile(modelPath);
+            spdlog::info("Loaded glTF model: {}", modelPath.string());
+        }
+        else
+        {
+            spdlog::warn("glTF model not found: {}", modelPath.string());
+        }
+    }
+
+    auto skyboxPath = basePath / "assets" / "textures" / "skybox.ktx2";
+    if (std::filesystem::exists(skyboxPath))
+    {
+        m_skyboxTexture = io::loadCubemapTexture(skyboxPath);
+    }
+
+    m_tileMap->setTexture(m_itemTexture);
     for (size_t i = 0; i < m_characters.size(); ++i) {
         if (m_characters[i]->getName() == "Santa") {
             m_currentCharacterIndex = i;
@@ -194,9 +251,7 @@ void Application::initAssets()
         m_itemTexture = io::loadTexture(itemFile);
         if (m_itemTexture)
         {
-            GLint layers = 0;
-            glGetTextureLevelParameteriv(m_itemTexture->getHandle(), 0, GL_TEXTURE_DEPTH, &layers);
-            m_itemFrameCount = static_cast<uint32_t>(layers > 0 ? layers : 1);
+            m_itemFrameCount = std::max(1u, m_itemTexture->layerCount());
         }
     }
 
@@ -204,38 +259,43 @@ void Application::initAssets()
     auto levelJson = basePath / "assets" / "level.json";
     if (std::filesystem::exists(levelJson))
     {
-        m_tileMap.loadFromFile(levelJson);
+        m_tileMap->loadFromFile(levelJson);
     }
 
     auto tilesFile = basePath / "assets" / "textures" / "ktx" / "tiles" / "tiles.ktx2";
     if (std::filesystem::exists(tilesFile))
     {
-        m_tileMap.setTexture(io::loadTexture(tilesFile));
+        m_tileMap->setTexture(io::loadTexture(tilesFile));
     }
 }
 
 void Application::initShaders()
 {
-    const auto binaryPath = std::filesystem::read_symlink("/proc/self/exe");
-    const auto basePath = binaryPath.parent_path();
+    const auto &basePath = getExecutableDir();
 
-    const auto mainVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.vert.spv");
-    const auto mainFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.frag.spv");
-    m_mainProgram = io::CreateShaderProgramFromSPIRV(mainVsSpv, mainFsSpv);
+    const auto mainVsSpv = gl::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.vert.spv");
+    const auto mainFsSpv = gl::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "main.frag.spv");
+    m_mainProgram.reset(gl::CreateShaderProgramFromSPIRV(mainVsSpv, mainFsSpv));
 
-    const auto textVsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.vert.spv");
-    const auto textFsSpv = io::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.frag.spv");
-    m_textProgram = io::CreateShaderProgramFromSPIRV(textVsSpv, textFsSpv);
+    const auto textVsSpv = gl::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.vert.spv");
+    const auto textFsSpv = gl::LoadSPIRVShaderFromFile(basePath / "assets" / "shaders" / "text.frag.spv");
+    m_textProgram.reset(gl::CreateShaderProgramFromSPIRV(textVsSpv, textFsSpv));
 
 #ifdef BGL_ENABLE_GLSL_LOADER
     const auto srcPath = basePath / "assets" / "shaders";
-    const auto bgVsSrc = io::LoadShaderFromFile(srcPath / "background.vs");
-    const auto bgFsSrc = io::LoadShaderFromFile(srcPath / "background.fs");
-    m_bgProgram = io::CreateShaderProgramFromGLSL(bgVsSrc, bgFsSrc);
+    const auto bgVsSrc = gl::LoadShaderFromFile(srcPath / "background.vs");
+    const auto bgFsSrc = gl::LoadShaderFromFile(srcPath / "background.fs");
+    m_bgProgram.reset(gl::CreateShaderProgramFromGLSL(bgVsSrc, bgFsSrc));
 
-    const auto snowVsSrc = io::LoadShaderFromFile(srcPath / "snow.vs");
-    const auto snowFsSrc = io::LoadShaderFromFile(srcPath / "snow.fs");
-    m_snowProgram = io::CreateShaderProgramFromGLSL(snowVsSrc, snowFsSrc);
+    const auto snowVsSrc = gl::LoadShaderFromFile(srcPath / "snow.vs");
+    const auto snowFsSrc = gl::LoadShaderFromFile(srcPath / "snow.fs");
+    m_snowProgram.reset(gl::CreateShaderProgramFromGLSL(snowVsSrc, snowFsSrc));
+
+    const auto skyboxVsSrc = gl::LoadShaderFromFile(srcPath / "skybox.vs");
+    const auto skyboxFsSrc = gl::LoadShaderFromFile(srcPath / "skybox.fs");
+    m_skyboxProgram.reset(gl::CreateShaderProgramFromGLSL(skyboxVsSrc, skyboxFsSrc));
+    
+    spdlog::info("Skybox program ID: {}", m_skyboxProgram.get());
 #endif
 }
 
@@ -247,24 +307,33 @@ void Application::initMeshes()
 
     constexpr int NUM_SNOW_PARTICLES = 150000;
     std::vector<glm::vec2> snowOffsets(NUM_SNOW_PARTICLES);
-    for (int i = 0; i < NUM_SNOW_PARTICLES; ++i)
     {
-        float rx = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 40.0f - 20.0f;
-        float ry = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 40.0f - 20.0f;
-        snowOffsets[i] = glm::vec2(rx, ry);
+        // Use a properly seeded Mersenne Twister — std::rand() is non-uniform and
+        // not seeded here, producing identical sequences across runs.
+        std::mt19937 rng(std::random_device{}());
+        std::uniform_real_distribution<float> dist(-20.0f, 20.0f);
+        for (auto &offset : snowOffsets)
+        {
+            offset = glm::vec2(dist(rng), dist(rng));
+        }
     }
 
-    glCreateBuffers(1, &m_snowVBO);
+    GLuint snowVboId, snowVaoId, quadVboId, quadIboId;
+    glCreateBuffers(1, &snowVboId);
+    m_snowVBO.reset(snowVboId);
     glNamedBufferStorage(m_snowVBO, snowOffsets.size() * sizeof(glm::vec2), snowOffsets.data(), 0);
 
-    glCreateVertexArrays(1, &m_snowVAO);
+    glCreateVertexArrays(1, &snowVaoId);
+    m_snowVAO.reset(snowVaoId);
 
     constexpr std::array<glm::vec2, 4> baseQuad = {glm::vec2(-1.0f, -1.0f), glm::vec2(1.0f, -1.0f),
                                                    glm::vec2(1.0f, 1.0f), glm::vec2(-1.0f, 1.0f)};
     constexpr std::array<GLuint, 6> baseIndices = {0, 1, 2, 2, 3, 0};
 
-    glCreateBuffers(1, &m_quadVBO);
-    glCreateBuffers(1, &m_quadIBO);
+    glCreateBuffers(1, &quadVboId);
+    m_quadVBO.reset(quadVboId);
+    glCreateBuffers(1, &quadIboId);
+    m_quadIBO.reset(quadIboId);
     glNamedBufferStorage(m_quadVBO, baseQuad.size() * sizeof(glm::vec2), baseQuad.data(), 0);
     glNamedBufferStorage(m_quadIBO, baseIndices.size() * sizeof(GLuint), baseIndices.data(), 0);
 
@@ -281,23 +350,29 @@ void Application::initMeshes()
     glVertexArrayAttribBinding(m_snowVAO, 1, 1);
     glVertexArrayBindingDivisor(m_snowVAO, 1, 1);
 
-    // Generate random items
+    // Generate random world items using a seeded RNG.
     if (m_itemFrameCount > 0)
     {
+        std::mt19937 rng(std::random_device{}());
+        std::uniform_real_distribution<float> xDist(-8.0f, 8.0f);
+        std::uniform_real_distribution<float> scaleDist(0.3f, 0.5f);
+        std::uniform_real_distribution<float> timeDist(0.0f, 10.0f);
+
         for (int i = 0; i < 5; ++i)
         {
-            float rx = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 16.0f - 8.0f;
-            float scale = 0.3f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.2f;
-            float tOffset = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.0f;
-            m_worldItems.push_back({glm::vec2(rx, GROUND_Y - 0.2f), scale, tOffset});
+            m_worldItems.push_back({
+                glm::vec2(xDist(rng), kGroundY - 0.2f),
+                scaleDist(rng),
+                timeDist(rng)
+            });
         }
     }
 }
 
 void Application::run()
 {
-    m_audioEngine.init();
-    m_audioEngine.playJingleBells();
+    // AudioEngine is initialised in its constructor — start playing immediately.
+    m_audioEngine->playJingleBells();
     m_window->setRenderCallback([this](double time) { renderFrame(time); });
     m_window->run();
 }
@@ -316,7 +391,7 @@ void Application::renderFrame(double time)
     double dt = time - m_lastFrameTime;
     m_lastFrameTime = time;
 
-    m_audioEngine.update(static_cast<float>(dt));
+    m_audioEngine->update(static_cast<float>(dt));
 
     if (!m_characters.empty())
     {
@@ -325,33 +400,33 @@ void Application::renderFrame(double time)
         glm::vec2 pos = current_char->getPosition();
         if (m_rightPressed)
         {
-            pos.x += CHARACTER_SPEED * static_cast<float>(dt);
+            pos.x += kCharacterSpeed * static_cast<float>(dt);
             current_char->setFlipped(false);
             isMoving = true;
         }
         else if (m_leftPressed)
         {
-            pos.x -= CHARACTER_SPEED * static_cast<float>(dt);
+            pos.x -= kCharacterSpeed * static_cast<float>(dt);
             current_char->setFlipped(true);
             isMoving = true;
         }
 
         if (m_spacePressed && !current_char->isJumping())
         {
-            current_char->setVelocityY(JUMP_FORCE);
+            current_char->setVelocityY(kJumpForce);
             current_char->setJumping(true);
-            m_audioEngine.playJumpSound();
+            m_audioEngine->playJumpSound();
         }
 
-        if (current_char->isJumping() || pos.y > GROUND_Y)
+        if (current_char->isJumping() || pos.y > kGroundY)
         {
-            float vY = current_char->getVelocityY() - (GRAVITY * static_cast<float>(dt));
+            float vY = current_char->getVelocityY() - (kGravity * static_cast<float>(dt));
             pos.y += vY * static_cast<float>(dt);
             current_char->setVelocityY(vY);
 
-            if (pos.y <= GROUND_Y)
+            if (pos.y <= kGroundY)
             {
-                pos.y = GROUND_Y;
+                pos.y = kGroundY;
                 current_char->setVelocityY(0.0f);
                 current_char->setJumping(false);
             }
@@ -375,7 +450,7 @@ void Application::renderFrame(double time)
 
     const auto winSize = m_window->getWindowSize();
     const float aspect = winSize.x / winSize.y;
-    const glm::mat4 projection = m_camera.getProjectionMatrix(aspect);
+    const glm::mat4 projection = m_camera->getProjectionMatrix(aspect);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -389,24 +464,81 @@ void Application::renderFrame(double time)
     glClearColor(c * 0.2f, c * 0.1f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    renderBackground(projection);
-    m_tileMap.render(m_mainProgram, m_spriteQuad, projection);
-    renderSnow(time, projection);
-    renderItems(time, projection);
-    renderCharacter(time, projection);
+    if (0)
+    {
+        renderBackground(projection);
+        m_tileMap->render(m_mainProgram, m_spriteQuad, projection);
+        renderSnow(time, projection);
+        renderItems(time, projection);
+        renderCharacter(time, projection);
+    }
+
+    // --- 3D Render Pass ---
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_DEPTH_BUFFER_BIT); // Clear depth for 3D drawing over 2D background, or keep 2D behind
+
+    const float aspect3D = winSize.y > 0 ? (winSize.x / winSize.y) : 1.0f;
+    const glm::mat4 proj3D = glm::perspective(glm::radians(45.0f), aspect3D, 0.1f, 1000.0f);
+    
+    glm::mat4 view3D = m_camera3D->getViewMatrix();
+
+    renderSkybox(view3D, proj3D);
+
+    if (m_grid)
+    {
+        m_grid->render(view3D, proj3D);
+    }
+    if (m_scene && m_gltfRenderer)
+    {
+        glm::mat4 rootTransform = glm::mat4(1.0f); // Scale 1.0 for Sponza
+        m_scene->updateTransforms(rootTransform);
+        m_gltfRenderer->render(m_scene, view3D, proj3D, m_camera3D->getPosition());
+    }
+    glDisable(GL_DEPTH_TEST);
+
     renderUI(time, winSize);
+}
+
+void Application::renderSkybox(const glm::mat4 &view, const glm::mat4 &projection)
+{
+    if (m_skyboxProgram != 0 && m_skyboxTexture && m_skyboxTexture->isValid())
+    {
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_FALSE);
+        glDisable(GL_CULL_FACE);
+
+        glm::mat4 viewNoTrans = glm::mat4(glm::mat3(view));
+        glm::mat4 invViewProj = glm::inverse(projection * viewNoTrans);
+
+        glProgramUniformMatrix4fv(m_skyboxProgram, glGetUniformLocation(m_skyboxProgram, "invViewProj"),
+                                  1, GL_FALSE, &invViewProj[0][0]);
+        
+        glUseProgram(m_skyboxProgram);
+        glBindSampler(0, 0); // Disable global sampler to prevent mipmap requirement on skybox
+        glBindTextureUnit(0, m_skyboxTexture->getHandle());
+
+        glBindVertexArray(m_overlayQuad.getVAO());
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_CULL_FACE); // Re-enable for model rendering
+    }
+    else
+    {
+        if (m_frameCounter % 60 == 0) spdlog::warn("Skybox not rendering: program={}, texture_valid={}", m_skyboxProgram.get(), (m_skyboxTexture ? m_skyboxTexture->isValid() : false));
+    }
 }
 
 void Application::renderBackground(const glm::mat4 &projection)
 {
     if (m_bgProgram != 0)
     {
-        const GLint projLoc = glGetUniformLocation(m_bgProgram, "projection");
-        glProgramUniformMatrix4fv(m_bgProgram, projLoc, 1, GL_FALSE, &projection[0][0]);
-        
+        // glProgramUniform* is DSA — no glUseProgram needed before setting uniforms.
+        glProgramUniformMatrix4fv(m_bgProgram, glGetUniformLocation(m_bgProgram, "projection"),
+                                  1, GL_FALSE, &projection[0][0]);
         glUseProgram(m_bgProgram);
-
-        glBindVertexArray(m_bgQuad.VAO);
+        glBindVertexArray(m_bgQuad.getVAO());
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     }
 }
@@ -415,14 +547,11 @@ void Application::renderCharacter(double time, const glm::mat4 &projection)
 {
     auto current_char = !m_characters.empty() ? m_characters[m_currentCharacterIndex] : nullptr;
 
-    if (auto animState = current_char->getCurrentAnimation())
+    if (auto *animState = current_char->getCurrentAnimation())
     {
-        const auto num_frames = animState->frameCount > 0 ? animState->frameCount : 1;
-        constexpr double target_fps = 24.0;
-
-        const double totalFrames = time * target_fps;
-        const int currentFrame = static_cast<int>(std::floor(totalFrames)) % num_frames;
-        const float tweenFactor = static_cast<float>(totalFrames - std::floor(totalFrames));
+        constexpr double kFps = 24.0;
+        const int   currentFrame = computeAnimFrame(time, kFps, static_cast<int>(animState->frameCount));
+        const float tweenFactor  = computeAnimTween(time, kFps);
 
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(current_char->getPosition(), 0.0f));
         if (current_char->isFlipped())
@@ -452,10 +581,15 @@ void Application::renderSnow(double time, const glm::mat4 &projection)
 
 void Application::renderUI(double /*time*/, const glm::vec2 &winSize)
 {
-    auto current_char = !m_characters.empty() ? m_characters[m_currentCharacterIndex] : nullptr;
+    // Ensure 2D rendering states are correct after 3D pass
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
     if (m_font)
     {
-        m_hud.updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, current_char);
+        m_hud->updateAndRender(*m_font, m_textProgram, m_overlayQuad, winSize, m_currentFps, "Sponza");
     }
 }
 
@@ -464,17 +598,18 @@ void Application::renderItems(double time, const glm::mat4 &projection)
     if (!m_itemTexture || !m_itemTexture->isValid() || m_itemFrameCount == 0 || m_worldItems.empty())
         return;
 
+    constexpr double kFps = 10.0;
+    const GLuint texHandle = m_itemTexture->getHandle();
+
     for (const auto &item : m_worldItems)
     {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(item.pos, 0.0f));
-        model = glm::scale(model, glm::vec3(item.scale));
+        glm::mat4 model =
+            glm::scale(
+                glm::translate(glm::mat4(1.0f), glm::vec3(item.pos, 0.0f)),
+                glm::vec3(item.scale));
 
-        const double itemTime = time + item.timeOffset;
-        const double target_fps = 10.0;
-        const double totalFrames = itemTime * target_fps;
-        const int currentFrame = static_cast<int>(std::floor(totalFrames)) % m_itemFrameCount;
-
-        renderQuad(m_spriteQuad, m_itemTexture->getHandle(), m_mainProgram, currentFrame, 0.0f, projection, model);
+        const int frame = computeAnimFrame(time + item.timeOffset, kFps, static_cast<int>(m_itemFrameCount));
+        renderQuad(m_spriteQuad, texHandle, m_mainProgram, frame, 0.0f, projection, model);
     }
 }
 

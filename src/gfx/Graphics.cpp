@@ -6,9 +6,9 @@
 
 namespace bgl
 {
-std::unique_ptr<bgl::gfx::Sampler> CreateDefaultSampler()
+std::unique_ptr<bgl::gl::Sampler> CreateDefaultSampler()
 {
-    auto sampler = std::make_unique<bgl::gfx::Sampler>();
+    auto sampler = std::make_unique<bgl::gl::Sampler>();
     sampler->setFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
     sampler->setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 

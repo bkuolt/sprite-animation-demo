@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "gfx/Texture2DArray.hpp"
-#include <glad/gl.h>
+#include "gl/Texture2DArray.hpp"
 #include <glm/vec2.hpp>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace bgl
@@ -18,7 +18,7 @@ namespace bgl
 struct AnimationState
 {
     std::string name;
-    std::shared_ptr<bgl::gfx::Texture2DArray> texture;
+    std::shared_ptr<bgl::gl::Texture2DArray> texture;
     uint32_t frameCount{0};
 };
 
@@ -40,7 +40,7 @@ class Character
      * @param texture Texture array containing animation frames.
      * @param frameCount Number of frames in the animation layer sequence.
      */
-    void addAnimation(std::string name, std::shared_ptr<bgl::gfx::Texture2DArray> texture, uint32_t frameCount);
+    void addAnimation(std::string name, std::shared_ptr<bgl::gl::Texture2DArray> texture, uint32_t frameCount);
 
     /**
      * @brief Sets the active animation index directly.
@@ -50,10 +50,10 @@ class Character
 
     /**
      * @brief Selects an animation state matching the given name.
-     * @param name The animation state name to activate.
-     * @return True if an animation with the name was found and set; false otherwise.
+     * @param name The animation state name to activate (compared by value).
+     * @return True if found and set; false otherwise.
      */
-    bool setAnimationByName(const std::string &name);
+    bool setAnimationByName(std::string_view name);
 
     /**
      * @brief Switches to the next available animation sequentially.
