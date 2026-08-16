@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-08-16
+### Added
+- **GPU-Driven Frustum Culling**: Implemented a GLSL 460 compute shader pipeline (`cullComputeShaderSource`) for atomical GPU-side AABB frustum visibility testing.
+- **`std430` SSBO Infrastructure**: Added standard SSBO structures (`InstanceData`, `FrustumData`, `DrawElementsIndirectCommand`) with OpenGL 4.6 DSA management.
+- **QML Integration Adapter**: Added `GltfQmlItemAdapter` in `src/gltf/GltfQmlItemAdapter.hpp` to enable seamless integration into Qt/QML UI pipelines without adding forced Qt framework build dependencies to core `bgl::gfx`.
+- **TextureHandle RAII Migration**: Migrated `TextureCube` to use `TextureHandle` RAII template for memory leak prevention and safety.
+
 ## [0.7.2] - 2026-08-16
 ### Fixed
 - **Skybox Cubemap Format**: Fixed a critical texture skewing issue where uncompressed RGB cubemaps were incorrectly uploaded as RGBA to the GPU, causing scrambled colorful noise. The pipeline now dynamically determines the proper `GL_RGB` vs `GL_RGBA` alignment via `ktxTexture_GetElementSize`.

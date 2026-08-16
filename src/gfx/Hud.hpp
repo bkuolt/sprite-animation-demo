@@ -31,6 +31,7 @@ class Hud
     std::string m_lastHudText2;
     std::optional<TextTexture> m_hudTexture1;
     std::optional<TextTexture> m_hudTexture2;
+    std::optional<TextTexture> m_hudTexture3;
 };
 
 } // namespace bgl::gfx
